@@ -1,0 +1,176 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "fulfilment step functions."
+Parameters:
+    Stage:
+        Description: Stage name
+        Type: String
+        AllowedValues:
+            - PROD
+            - CODE
+        Default: CODE
+Resources:
+  FulfilmentWorkersLambdaRole:
+        Type: AWS::IAM::Role
+        Properties:
+            RoleName: !Sub FulfilmentWorkers-${Stage}
+            AssumeRolePolicyDocument:
+                Statement:
+                    - Effect: Allow
+                      Principal:
+                          Service:
+                             - lambda.amazonaws.com
+                      Action:
+                          - sts:AssumeRole
+            Path: /
+            Policies:
+                - PolicyName: LambdaPolicy
+                  PolicyDocument:
+                      Statement:
+                          - Effect: Allow
+                            Action:
+                            - logs:CreateLogGroup
+                            - logs:CreateLogStream
+                            - logs:PutLogEvents
+                            - lambda:InvokeFunction
+                            Resource: "*"
+                - PolicyName: PrivateBucket
+                  PolicyDocument:
+                      Statement:
+                          - Effect: Allow
+                            Action: s3:GetObject
+                            Resource:
+                              !Sub arn:aws:s3:::fulfilment-private/${Stage}/*
+                - PolicyName: WorkBucket
+                  PolicyDocument:
+                      Statement:
+                          - Effect: Allow
+                            Action:
+                            - s3:AbortMultipartUpload
+                            - s3:DeleteObject
+                            - s3:GetObject
+                            - s3:GetObjectAcl
+                            - s3:GetBucketAcl
+                            - s3:ListBucket
+                            - s3:PutObject
+                            - s3:GetObjectVersion
+                            - s3:DeleteObjectVersion
+                            Resource:
+                              !Sub arn:aws:s3:::fulfilment-output-test/${Stage}/*
+
+  ZuoraQuerierLambda:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      FunctionName:
+          !Sub zuora_fulfilment_querier-${Stage}
+      Description: "Trigger zuora export"
+      Handler: "querier.handler"
+      Role: !GetAtt [ FulfilmentWorkersLambdaRole, Arn ]
+      Code:
+        S3Bucket: fulfilment-workers-dist
+        S3Key: zuora-fulfilment-querier.zip
+      MemorySize: 512
+      Runtime: nodejs6.10
+      Timeout: 300
+      Environment:
+        Variables:
+          'Stage': !Sub ${Stage}
+  ResultsFetcherLambda:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      FunctionName:
+          !Sub zuora_fulfilment_fetcher-${Stage}
+      Description: "Fetch zuora export results"
+      Handler: "main.handler"
+      Role: !GetAtt [ FulfilmentWorkersLambdaRole, Arn ]
+      Code:
+        S3Bucket: fulfilment-workers-dist
+        S3Key: zuora-fulfilment-fetcher.zip
+      MemorySize: 512
+      Runtime: nodejs6.10
+      Timeout: 300
+      Environment:
+        Variables:
+          'Stage': !Sub ${Stage}
+  FulfilmentExporterLambda:
+      Type: "AWS::Lambda::Function"
+      Properties:
+        FunctionName:
+            !Sub zuora_fulfilment_exporter-${Stage}
+        Description: "Fetch generate fulfilment file"
+        Handler: "fetcher.handler"
+        Role: !GetAtt [ FulfilmentWorkersLambdaRole, Arn ]
+        Code:
+          S3Bucket: fulfilment-workers-dist
+          S3Key: zuora-fulfilment-exporter.zip
+        MemorySize: 512
+        Runtime: nodejs6.10
+        Timeout: 300
+        Environment:
+          Variables:
+            'Stage': !Sub ${Stage}
+  StatesExecutionRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          Effect: "Allow"
+          Principal:
+            Service: !Sub states.${AWS::Region}.amazonaws.com
+          Action: "sts:AssumeRole"
+      Path: "/"
+      Policies:
+        - PolicyName: StatesExecutionPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "lambda:InvokeFunction"
+                Resource: "*"
+
+  FulfilmentStateMachineTEST:
+    Type: "AWS::StepFunctions::StateMachine"
+    Properties:
+      DefinitionString:
+        !Sub
+          - |-
+           {
+             "Comment": "fulfilment test",
+             "StartAt": "QueryZuora",
+             "States": {
+               "QueryZuora": {
+                 "Type": "Task",
+                 "Resource": "${querierArn}",
+                 "Next": "WaitSomeTime"
+               },
+               "WaitSomeTime": {
+                 "Type": "Wait",
+                 "Seconds": 10,
+                 "Next": "FetchResults"
+               },
+               "FetchResults": {
+                 "Type": "Task",
+                 "Resource": "${fetcherArn}",
+                 "Next": "GenerateFulfilmentFile",
+                 "Retry": [
+                    {
+                     "ErrorEquals": ["zuora_job_pending"],
+                     "IntervalSeconds": 30,
+                     "MaxAttempts": 10,
+                     "BackoffRate": 1.0
+                   }]
+               },
+               "GenerateFulfilmentFile": {
+                 "Type": "Task",
+                 "Resource": "${exporterArn}",
+                 "End": true
+               }
+             }
+           }
+          - {
+            querierArn: !GetAtt [ ZuoraQuerierLambda, Arn ],
+            fetcherArn: !GetAtt [ ResultsFetcherLambda, Arn ],
+            exporterArn: !GetAtt [ FulfilmentExporterLambda, Arn ]
+          }
+      RoleArn: !GetAtt [ StatesExecutionRole, Arn ]
