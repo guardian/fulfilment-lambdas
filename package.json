@@ -3,10 +3,8 @@
   "version": "0.0.1",
   "description": "Lambdas to fulfil guardian subscriptions",
   "isAwsLambda": true,
-  "cloudformation": "cloudformation.yaml",
   "projectName": "MemSub::Fulfilment::Lambdas",
   "riffraffFile": "riff-raff.yaml",
-  "cloudformationAppTag": "fulfilment-lambdas-cloudformation",
   "buildDir": "dist",
   "devDependencies": {
     "babel-cli": "^6.24.1",
