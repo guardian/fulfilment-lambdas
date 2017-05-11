@@ -1,8 +1,6 @@
 import {fetchConfig} from './config'
-import AWS  from 'aws-sdk'
-let request = require('request');
-let moment = require('moment');
-let s3 = new AWS.S3();
+import request  from 'request'
+import moment from 'moment'
 
 function queryZuora(deliveryDate, config){
 	let promise = new Promise((resolve, reject) => {
