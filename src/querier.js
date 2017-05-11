@@ -1,6 +1,5 @@
 import {fetchConfig} from './config'
-
-let AWS = require('aws-sdk');
+import AWS  from 'aws-sdk'
 let request = require('request');
 let moment = require('moment');
 let s3 = new AWS.S3();
@@ -96,9 +95,9 @@ function queryZuora(deliveryDate, config){
 
 
 
-exports.handler = (input, context, callback) => {
+export function handler(input, context, callback){
 	fetchConfig()
 	.then(config=> queryZuora(input.deliveryDate, config))
 	.then(jobId => callback(null, {"jobId":jobId, "deliveryDate":input.deliveryDate}))
 	.catch(error => callback(error));
-};
+}
