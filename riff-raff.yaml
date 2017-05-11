@@ -10,6 +10,8 @@ deployments:
       prefixStack: false
       fileName: 'fulfilment-lambdas.zip'
       functionNames:
+        - zuora_fulfilment_querier-
+        - zuora_fulfilment_fetcher-
        #get from cloudformation
 #  fulfilment-node-stub-cloudformation:
 #  N.B.: cloudformation deployment not quite finished
