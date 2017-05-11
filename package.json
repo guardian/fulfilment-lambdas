@@ -1,0 +1,33 @@
+{
+  "name": "fulfilment-lambdas",
+  "version": "0.0.1",
+  "description": "Lambdas to fulfil guardian subscriptions",
+  "isAwsLambda": true,
+  "cloudformation": "cloudformation.yaml",
+  "projectName": "MemSub::Fulfilment::Lambdas",
+  "riffraffFile": "riff-raff.yaml",
+  "cloudformationAppTag": "fulfilment-lambdas-cloudformation",
+  "buildDir": "dist",
+  "devDependencies": {
+    "babel-cli": "^6.24.1",
+    "babel-core": "^6.24.1",
+    "babel-preset-env": "^1.4.0",
+    "lambda-local": "ashiina/lambda-local#316f6c743f6305385655b00db7d8349dac174c1c",
+    "node-riffraff-artefact": "^2.0.1"
+  },
+  "scripts": {
+    "riffraff-artefact": "./node_modules/.bin/riffraff-artefact",
+    "dist": "yarn install --production --modules-folder dist/node_modules",
+    "compile": "babel src -d dist",
+    "riffraff": "VERBOSE=true ARTEFACT_PATH=$PWD yarn riffraff-artefact",
+    "local": "yarn run:index && yarn run:hello",
+    "run:index": "lambda-local -l dist/index.js -e event.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 10 -E {\\\"Stage\\\":\\\"CODE\\\"}",
+    "run:querier": "lambda-local -l dist/querier.js -e test/querier.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 10 -E {\\\"Stage\\\":\\\"CODE\\\"}",
+    "clean": "rm -rf dist && rm -rf target"
+  },
+  "dependencies": {
+    "lodash-es": "^4.17.4",
+    "moment": "^2.18.1",
+    "request": "^2.81.0"
+  }
+}
