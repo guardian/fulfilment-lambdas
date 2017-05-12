@@ -67,7 +67,7 @@ Resources:
       Role: !GetAtt [ FulfilmentWorkersLambdaRole, Arn ]
       Code:
         S3Bucket: fulfilment-workers-dist
-        S3Key: zuora-fulfilment-querier.zip
+        S3Key: fulfilment-lambdas.zip
       MemorySize: 512
       Runtime: nodejs6.10
       Timeout: 300
@@ -80,11 +80,11 @@ Resources:
       FunctionName:
           !Sub zuora_fulfilment_fetcher-${Stage}
       Description: "Fetch zuora export results"
-      Handler: "main.handler"
+      Handler: "fetcher.handler"
       Role: !GetAtt [ FulfilmentWorkersLambdaRole, Arn ]
       Code:
         S3Bucket: fulfilment-workers-dist
-        S3Key: zuora-fulfilment-fetcher.zip
+        S3Key: fulfilment-lambdas.zip
       MemorySize: 512
       Runtime: nodejs6.10
       Timeout: 300
@@ -97,11 +97,11 @@ Resources:
         FunctionName:
             !Sub zuora_fulfilment_exporter-${Stage}
         Description: "Fetch generate fulfilment file"
-        Handler: "fetcher.handler"
+        Handler: "exporter.handler"
         Role: !GetAtt [ FulfilmentWorkersLambdaRole, Arn ]
         Code:
           S3Bucket: fulfilment-workers-dist
-          S3Key: zuora-fulfilment-exporter.zip
+          S3Key: fulfilment-lambdas.zip
         MemorySize: 512
         Runtime: nodejs6.10
         Timeout: 300

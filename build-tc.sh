@@ -22,7 +22,8 @@ PATH="$PATH:${YARN_LOCATION}/dist/bin/"
 # Installing packages via yarn
 
 echo "INSTALLING PRODUCTION DEPENDENCIES"
-yarn dist
+yarn dist > /dev/null
+# This is a really noisy command.
 
 echo "INSTALLING BUILD DEPENDENCIES"
 yarn install

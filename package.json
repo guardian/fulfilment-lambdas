@@ -6,7 +6,7 @@
   "projectName": "MemSub::Fulfilment::Lambdas",
   "riffraffFile": "riff-raff.yaml",
   "buildDir": "dist",
-  "cloudformation":false,
+  "cloudformation": false,
   "devDependencies": {
     "babel-cli": "^6.24.1",
     "babel-core": "^6.24.1",
@@ -26,6 +26,7 @@
     "clean": "rm -rf dist && rm -rf target"
   },
   "dependencies": {
+    "fast-csv": "2.4.0",
     "lodash-es": "^4.17.4",
     "moment": "^2.18.1",
     "request": "^2.81.0"
