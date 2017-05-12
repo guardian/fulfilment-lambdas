@@ -9,8 +9,8 @@ export function fetchConfig() {
             reject(`invalid stage: ${stage}, please fix Stage env variable`);
             return;
         }
-        const key = 'zuora.private.json';
-        const bucket = `subscriptions-private/${stage}`;
+        const key = 'fulfilment.private.json';
+        const bucket = `fulfilment-private/${stage}`;
         console.log(`loading ${stage} configuration from ${bucket}/${key}`);
 
         s3.getObject(
@@ -20,7 +20,7 @@ export function fetchConfig() {
                     reject(err);
                 else {
                     const json = JSON.parse(new Buffer(data.Body));
-                    resolve(json.DEV.zuora.api);
+                    resolve(json.zuora.api);
                 }
             });
     })
