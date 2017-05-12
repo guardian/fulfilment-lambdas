@@ -1,12 +1,11 @@
-'use strict';
+import AWS from 'aws-sdk'
+import stream from 'stream'
+import request from 'request'
+import csv from 'fast-csv'
+import fs from 'fs'
+import moment from 'moment'
 
-let AWS = require('aws-sdk');
 let s3 = new AWS.S3({signatureVersion: 'v4' });
-const stream = require('stream');
-const request = require('request');
-const csv = require('fast-csv');
-const fs = require('fs');
-const moment = require('moment');
 
 //input headers
 const ADDRESS_1 = 'SoldToContact.Address1';
@@ -38,9 +37,10 @@ const outputHeaders = [CUSTOMER_REFERENCE, 'Contract ID', CUSTOMER_FULL_NAME, 'C
 const BUCKET = 'fulfilment-output-test';
 const HOLIDAYS_QUERY_NAME = 'HolidaySuspensions';
 const SUBSCRIPTIONS_QUERY_NAME = 'Subscriptions';
-let stage = process.env.Stage;
 
-exports.handler = (input, context, callback) => {
+const stage = process.env.Stage;
+
+export function handler (input, context, callback) {
 
     function getDownloadStreamFromBucket(queryName) {
         let fileName = getFileName(queryName);
