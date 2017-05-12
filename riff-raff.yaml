@@ -6,7 +6,7 @@ deployments:
   fulfilment-lambdas:
     type: aws-lambda
     parameters:
-      bucket: fulfilment-workers-dist
+      bucket: fulfilment-lambdas-dist
       prefixStack: false
       fileName: 'fulfilment-lambdas.zip'
       functionNames:
