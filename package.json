@@ -20,7 +20,7 @@
     "compile": "babel src -d dist",
     "riffraff": "VERBOSE=true ARTEFACT_PATH=$PWD yarn riffraff-artefact",
     "local": "yarn run:index && yarn run:hello",
-    "run:index": "lambda-local -l dist/index.js -e event.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 10 -E {\\\"Stage\\\":\\\"CODE\\\"}",
+    "run:exporter": "lambda-local -l dist/exporter.js -e test/exporter.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 10 -E {\\\"Stage\\\":\\\"CODE\\\"}",
     "run:querier": "lambda-local -l dist/querier.js -e test/querier.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 10 -E {\\\"Stage\\\":\\\"CODE\\\"}",
     "run:fetcher": "lambda-local -l dist/fetcher.js -e test/fetcher.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 10 -E {\\\"Stage\\\":\\\"CODE\\\"}",
     "clean": "rm -rf dist && rm -rf target"

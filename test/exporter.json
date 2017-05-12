@@ -1,0 +1,13 @@
+{
+ "deliveryDate": "2017-05-03",
+        "results": [
+                {
+                        "queryName": "Subscriptions",
+                        "fileName": "Subscriptions_2017-05-03.csv"
+                },
+                {
+                        "queryName": "HolidaySuspensions",
+                        "fileName": "HolidaySuspensions_2017-05-03.csv"
+                }
+        ]
+}
