@@ -17,10 +17,12 @@ export function fetchConfig() {
             { Bucket: bucket, Key: key },
             function (err, data) {
                 if (err)
-                    reject(err);
+                    reject(getError('s3_download_error', `Error fetching config for S3 : ${err}`));
                 else {
                     const json = JSON.parse(new Buffer(data.Body));
-                    resolve(json.zuora.api);
+                    var config = json.zuora.api;
+                    config.stage = stage;
+                    resolve(config);
                 }
             });
     })
