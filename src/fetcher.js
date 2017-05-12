@@ -1,6 +1,7 @@
 import AWS from 'aws-sdk'
 import request  from 'request'
 import moment from 'moment'
+import {fetchConfig} from './config'
 
 let UPLOAD_BUCKET = 'fulfilment-output-test';
 let CONFIG_BUCKET = 'fulfilment-private';
@@ -106,31 +107,6 @@ function getJobResult(jobId, config){
 	return promise;
 }
 
-let fetchConfig = new Promise((resolve, reject) => {
-
-	let stage = process.env.Stage;
-	if(stage != 'CODE' && stage != 'PROD') {
-		reject(`invalid stage: ${stage}, please fix Stage env variable`);
-		return;
-	}
-	const key = 'fulfilment.private.json';
-	const bucket = `${CONFIG_BUCKET}/${stage}`;
-	console.log(`loading ${stage} configuration from ${bucket}/${key}`);
-
-	s3.getObject(
-		{Bucket: bucket, Key: key}, 
-		function(err, data){ 
-			if(err) 
-				reject(getError('s3_download_error',`Error fetching config for S3 : ${err}`)); 
-			else {
-				const json = JSON.parse(new Buffer(data.Body));
-				var config = json.zuora.api;
-				config.stage = stage;
-				resolve(config);
-			}
-		});
-});
-
 let getError = function(name, message) {
        let CustomError = function () {
             this.name = name;
@@ -141,7 +117,7 @@ let getError = function(name, message) {
     } 
 
 exports.handler = (input, context, callback) => {
-	fetchConfig
+	fetchConfig()
 	.then(config => 
 		getJobResult(input.jobId, config)
 		.then(batches => 
