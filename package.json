@@ -13,6 +13,7 @@
     "babel-preset-env": "^1.4.0",
     "lambda-local": "ashiina/lambda-local#316f6c743f6305385655b00db7d8349dac174c1c",
     "node-riffraff-artefact": "^2.0.1",
+    "snazzy": "^7.0.0",
     "standard": "^10.0.2"
   },
   "scripts": {
@@ -25,7 +26,7 @@
     "run:querier": "lambda-local -l dist/querier.js -e test/querier.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 10 -E {\\\"Stage\\\":\\\"CODE\\\"}",
     "run:fetcher": "lambda-local -l dist/fetcher.js -e test/fetcher.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 10 -E {\\\"Stage\\\":\\\"CODE\\\"}",
     "clean": "rm -rf dist && rm -rf target",
-    "lint":"standard"
+    "lint": "standard | snazzy"
   },
   "dependencies": {
     "fast-csv": "2.4.0",
