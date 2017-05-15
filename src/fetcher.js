@@ -1,6 +1,6 @@
 import AWS from 'aws-sdk'
 import request from 'request'
-import {fetchConfig} from './config'
+import { fetchConfig } from './config'
 import NamedError from './NamedError'
 
 let UPLOAD_BUCKET = 'fulfilment-output-test'
@@ -12,10 +12,10 @@ function fetchFile (batch, deliveryDate, config) {
     console.log(`fetching file from zuora with id ${batch.fileId}`)
     const options = {
       method: 'GET',
-      uri: `${config.url}/apps/api/batch-query/file/${batch.fileId}`,
+      uri: `${config.zuora.apiurl}/apps/api/batch-query/file/${batch.fileId}`,
       json: true,
       headers: {
-        'Authorization': 'Basic ' + Buffer.from(`${config.username}:${config.password}`).toString('base64'),
+        'Authorization': 'Basic ' + Buffer.from(`${config.zuora.apiusername}:${config.zuora.apipassword}`).toString('base64'),
         'Content-Type': 'application/json'
       }
     }
@@ -41,7 +41,7 @@ function fetchFile (batch, deliveryDate, config) {
 }
 function uploadFile (fileData, config) {
   let promise = new Promise((resolve, reject) => {
-    let savePath = `${config.stage}/zuoraExport/${fileData.fileName}`
+    let savePath = `${config.zuora.apistage}/zuoraExport/${fileData.fileName}`
     let params = {
       Bucket: UPLOAD_BUCKET,
       Key: savePath,
@@ -68,10 +68,10 @@ function getJobResult (jobId, config) {
     console.log(`getting job results for jobId=${jobId}`)
     const options = {
       method: 'GET',
-      uri: `${config.url}/apps/api/batch-query/jobs/${jobId}`,
+      uri: `${config.zuora.apiurl}/apps/api/batch-query/jobs/${jobId}`,
       json: true,
       headers: {
-        'Authorization': 'Basic ' + Buffer.from(`${config.username}:${config.password}`).toString('base64'),
+        'Authorization': 'Basic ' + Buffer.from(`${config.zuora.apiusername}:${config.zuora.apipassword}`).toString('base64'),
         'Content-Type': 'application/json'
       }
     }
@@ -104,15 +104,15 @@ function getJobResult (jobId, config) {
 
 export function handler (input, context, callback) {
   fetchConfig()
-  .then(config =>
-    getJobResult(input.jobId, config)
-    .then(batches =>
-      Promise.all(batches.map(batch => fetchFile(batch, input.deliveryDate, config).then(filedata => uploadFile(filedata, config))))
-      )
-    )
-  .then(res => callback(null, {deliveryDate: input.deliveryDate, results: res}))
-  .catch(e => {
-    console.log(e)
-    callback(e)
-  })
+    .then(config => {
+      getJobResult(input.jobId, config)
+        .then(batches =>
+          Promise.all(batches.map(batch => fetchFile(batch, input.deliveryDate, config).then(filedata => uploadFile(filedata, config))))
+        )
+    })
+    .then(res => callback(null, { deliveryDate: input.deliveryDate, results: res }))
+    .catch(e => {
+      console.log(e)
+      callback(e)
+    })
 }
