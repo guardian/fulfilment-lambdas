@@ -5,7 +5,7 @@ import NamedError from './NamedError'
 
 let UPLOAD_BUCKET = 'fulfilment-output-test'
 
-let uploadS3 = new AWS.S3()
+let uploadS3 = new AWS.S3({ signatureVersion: 'v4' })
 
 function fetchFile (batch, deliveryDate, config) {
   let promise = new Promise((resolve, reject) => {
@@ -24,7 +24,7 @@ function fetchFile (batch, deliveryDate, config) {
         reject(new NamedError('api_call_error', error))
         return
       }
-      if (response.statusCode !== '200') {
+      if (response.statusCode !== 200) {
         reject(new NamedError('api_call_error', `error response status ${response.statusCode} when getting batch ${batch.name}`))
       } else {
         // TODO SEE HOW TO DETECT FAILURES OR ANY OTHER SPECIAL CASE HERE
@@ -81,7 +81,7 @@ function getJobResult (jobId, config) {
         return
       }
 
-      if (response.statusCode !== '200') {
+      if (response.statusCode !== 200) {
         reject(new NamedError('api_call_error', `error response status ${response.statusCode} while getting job result`))
       } else if (body.status !== 'completed') {
         if (body.status !== 'error' && body.status !== 'aborted') {
@@ -111,5 +111,8 @@ export function handler (input, context, callback) {
       )
     )
   .then(res => callback(null, {deliveryDate: input.deliveryDate, results: res}))
-  .catch(e => callback(e))
+  .catch(e => {
+    console.log(e)
+    callback(e)
+  })
 }

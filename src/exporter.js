@@ -2,7 +2,7 @@ import AWS from 'aws-sdk'
 import csv from 'fast-csv'
 import moment from 'moment'
 
-let s3 = new AWS.S3()
+let s3 = new AWS.S3({ signatureVersion: 'v4' })
 
 // input headers
 const ADDRESS_1 = 'SoldToContact.Address1'

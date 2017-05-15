@@ -78,7 +78,7 @@ function queryZuora (deliveryDate, config) {
 
       console.log('statusCode:', response && response.statusCode)
       console.log('body:', body)
-      if (response.statusCode !== '200') {
+      if (response.statusCode !== 200) {
         reject(new Error(`error response status ${response.statusCode}`))
       } else if (body.errorCode) {
         reject(new Error(`zuora error! code: ${body.errorCode} : ${body.message}`))
