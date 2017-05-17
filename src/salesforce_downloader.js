@@ -17,9 +17,7 @@ export function handler (input, context, callback) {
   })
 }
 
-async function authenticate () {
-  console.log('Fetching config from S3.')
-  let config = await fetchConfig()
+async function authenticate (config) {
   console.log('Authenticating with Salesforce.')
   let url = `https://${config.salesforce.api.salesforceUrl}/services/oauth2/token`
   let auth = {
@@ -42,7 +40,10 @@ async function authenticate () {
 }
 
 async function q () {
-  const prefix = 'CODE/salesforce_output/'
+  console.log('Fetching config from S3.')
+  let config = await fetchConfig()
+
+  const prefix = `${config.stage}/salesforce_output/`
   const bucket = 'fulfilment-output-test'
 
   console.log('Fetching existing files in S3: ', bucket, prefix)
@@ -54,7 +55,7 @@ async function q () {
 
   let keys = resp.Contents.map(r => { return r.Key.slice(prefix.length) })
 
-  let sf = await authenticate()
+  let sf = await authenticate(config)
   console.log('Fetching file list from Salesforce.')
   let documentQuery = await sf.getp(`/services/data/v20.0/query?q=SELECT Id, Name FROM Document WHERE FolderId= '00lg0000000QnEL'`)
   console.log('Parsing response.')
