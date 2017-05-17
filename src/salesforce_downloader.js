@@ -50,7 +50,6 @@ async function q () {
   const resp = await s3.listObjectsV2({
     Bucket: bucket,
     Prefix: prefix
-
   }).promise()
 
   let keys = resp.Contents.map(r => { return r.Key.slice(prefix.length) })
