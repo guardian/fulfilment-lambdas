@@ -28,6 +28,12 @@ yarn dist > /dev/null
 echo "INSTALLING BUILD DEPENDENCIES"
 yarn install
 
+echo "LINTING"
+yarn standard
+
+echo "CHECKING TYPES"
+yarn flow
+
 echo "TRANSPILING"
 yarn compile
 
