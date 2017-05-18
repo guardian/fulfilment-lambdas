@@ -4,7 +4,7 @@ import rp from 'request-promise-native'
 import AWS from 'aws-sdk'
 import stream from 'stream'
 
-const s3 = new AWS.S3({ signatureVersion: 'v4' })
+let s3 = new AWS.S3({ signatureVersion: 'v4' })
 
 export function handler (input, context, callback) {
   q().then((r) => {
@@ -67,7 +67,7 @@ async function q () {
 
   let uploads = filtered.map(doc => {
     console.log('Starting download of ', doc.Name)
-    let dl = sf.get(doc.attributes.url)
+    let dl = sf.get(`${doc.attributes.url}/Body`)
     let st = new stream.PassThrough()
     dl.pipe(st)
     let params = {
