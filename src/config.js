@@ -3,9 +3,10 @@ import NamedError from './NamedError'
 let s3 = new AWS.S3()
 
 export function fetchConfig () {
+  console.log('Fetching configuration file from S3.')
   return new Promise((resolve, reject) => {
-    let stage = process.env.Stage
-    if (stage !== 'CODE' && stage !== 'PROD') {
+    let stage: ?string = process.env.Stage
+    if (stage == null || !['CODE', 'PROD'].includes(stage)) {
       reject(new Error(`invalid stage: ${stage}, please fix Stage env variable`))
       return
     }
@@ -17,10 +18,12 @@ export function fetchConfig () {
             { Bucket: bucket, Key: key },
             function (err, data) {
               if (err) { reject(new NamedError('s3_download_error', `Error fetching config for S3 : ${err}`)) } else {
-                const json = JSON.parse(Buffer.from(data.Body))
-                var config = json.zuora.api
-                config.stage = stage
-                resolve(config)
+                let json = JSON.parse(Buffer.from(data.Body))
+                console.log('Config succesfully downloaded and parsed.')
+                resolve({
+                  stage: stage,
+                  ...json
+                })
               }
             })
   })
