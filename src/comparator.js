@@ -12,16 +12,14 @@ type S3Path = {
 const s3 = new AWS.S3({ signatureVersion: 'v4' })
 
 export function handler (input, context, callback) {
-  compare().then(() => callback(null, 'hello')).catch((e) => {
+  compare().then((result) => callback(null, result)).catch((e) => {
     console.log(e)
     callback(e)
   })
 }
 
 async function compare () {
-  console.log('start')
   let config = await fetchConfig()
-  console.log('aaa')
   const bucket = 'fulfilment-output-test'
   const sfprefix = `${config.stage}/salesforce_output/`
   const guprefix = `${config.stage}/fulfilment_output/`
