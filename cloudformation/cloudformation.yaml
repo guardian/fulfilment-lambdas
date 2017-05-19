@@ -91,6 +91,23 @@ Resources:
       Environment:
         Variables:
           'Stage': !Sub ${Stage}
+  SalesforceDownloaderLambda:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      FunctionName:
+          !Sub zuora_fulfilment_salesforce_downloader-${Stage}
+      Description: "Fetch salesforce fulfilment files"
+      Handler: "salesforce_downloader.handler"
+      Role: !GetAtt [ FulfilmentWorkersLambdaRole, Arn ]
+      Code:
+        S3Bucket: fulfilment-lambdas-dist
+        S3Key: !Sub membership/${Stage}/fulfilment-lambdas/fulfilment-lambdas.zip
+      MemorySize: 512
+      Runtime: nodejs6.10
+      Timeout: 300
+      Environment:
+        Variables:
+          'Stage': !Sub ${Stage}
   FulfilmentExporterLambda:
       Type: "AWS::Lambda::Function"
       Properties:
