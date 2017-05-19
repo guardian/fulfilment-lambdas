@@ -69,7 +69,9 @@ async function compare () {
   let logCache = []
 
   let log = (entry) => {
-    console.log(entry)
+    if (config.stage === 'CODE') {
+      console.log(entry)
+    }
     logCache.push(entry)
   }
 
@@ -86,12 +88,12 @@ async function compare () {
     if (s.length !== g.length) {
       log(`Differing numbers of fulfilments generated for ${id}. Salesforce: ${s.length} File: ${g.length}`)
     }
-    delete guOutput[id]
+    delete guOutput[id] // Removes keys from gu if they're in salesforce fulfilment
   })
+// At this stage, this only includes keys not present in salesforce file
   Object.keys(guOutput).forEach((id) => {
     log(`${id} found in fulfilment file but not in Salesforce output.`)
   })
-  log(null)
   return s3.upload({
     ACL: 'private',
     ServerSideEncryption: 'aws:kms',
@@ -105,20 +107,21 @@ function notEmpty (str) {
 }
 
 function fetchCSV (path: S3Path) {
-  let customers = {}
+  type customer = {'Customer Reference':string}
+  // Flow note: at least this field is required, more still meets type
+  let customers: {[string]:[customer]} = {}
   console.log(`Fetching ${path.Key} from ${path.Bucket}`)
   let csvStream = s3.getObject(path).createReadStream()
   console.log('hey :)')
   return new Promise((resolve, reject) => {
-    let reader = csv.parse({headers: true}).on('data', (data) => {
+    let reader = csv.parse({headers: true}).on('data', (data:customer) => {
       let id = data['Customer Reference']
       if (id in customers) {
         console.log(`Duplicate id found ${id}`)
-        let old = customers[id]
-        customers[id] = [data, ...old]
+        customers[id].push(data)
         return
       }
-      customers[id] = data
+      customers[id] = [data]
     }).on('end', () => {
       resolve(customers)
     })
