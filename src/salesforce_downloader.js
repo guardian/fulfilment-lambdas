@@ -3,7 +3,7 @@ import request from 'request'
 import rp from 'request-promise-native'
 import AWS from 'aws-sdk'
 import stream from 'stream'
-
+import NamedError from './NamedError'
 let s3 = new AWS.S3({ signatureVersion: 'v4' })
 
 export function handler (input, context, callback) {
@@ -55,8 +55,16 @@ async function q () {
   let keys = resp.Contents.map(r => { return r.Key.slice(prefix.length) })
 
   let sf = await authenticate(config)
+  console.log('Getting home delivery folder')
+  let folderQuery = await sf.getp(`/services/data/v20.0/query?q=SELECT Id, Name FROM Folder WHERE Name= 'HOME_DELIVERY_FULFILMENT'`)
+  let folderResult = JSON.parse(folderQuery)
+  if (folderResult.totalSize !== 1) {
+    console.log('Could not find fulfilment folder', folderResult)
+    throw new NamedError('Could not find folder', 'Could not find folder')
+  }
+  let folder = folderResult.records[0].Id
   console.log('Fetching file list from Salesforce.')
-  let documentQuery = await sf.getp(`/services/data/v20.0/query?q=SELECT Id, Name FROM Document WHERE FolderId= '00lg0000000QnEL'`)
+  let documentQuery = await sf.getp(`/services/data/v20.0/query?q=SELECT Id, Name FROM Document WHERE FolderId= '${folder}'`)
   console.log('Parsing response.')
   let {records: documents} = JSON.parse(documentQuery)
   console.log('Ignoring existing files:', keys)
