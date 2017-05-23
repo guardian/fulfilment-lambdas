@@ -118,7 +118,7 @@ async function asyncHandler (input) {
   console.log('Downloading job results.')
   let uploads = await Promise.all(files)
   console.log('Generating upload')
-  let r = uploads.map(data => uploadFile(data, config))
+  let result = uploads.map(data => uploadFile(data, config))
   console.log('Returning.')
-  return Promise.all(r)
+  return Promise.all(result)
 }
