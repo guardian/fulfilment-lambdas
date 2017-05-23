@@ -26,7 +26,7 @@ function queryZuora (deliveryDate, config) {
            Product.Name = 'Newspaper Delivery' AND 
            RatePlanCharge.EffectiveStartDate <= '${deliveryDate}' AND
            RatePlanCharge.EffectiveEndDate >= '${deliveryDate}' AND
-           RatePlanCharge.MRR != 0`
+           (RatePlanCharge.MRR != 0 OR ProductRatePlan.FrontendId__c != 'EchoLegacy')`
 
     const holidaySuspensionQuery = `
       SELECT 
