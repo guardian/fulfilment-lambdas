@@ -8,7 +8,7 @@ let UPLOAD_BUCKET = 'fulfilment-output-test'
 let uploadS3 = new AWS.S3({ signatureVersion: 'v4' })
 
 function fetchFile (batch, deliveryDate, config) {
-  let promise = new Promise((resolve, reject) => {
+  return new Promise((resolve, reject) => {
     console.log(`fetching file from zuora with id ${batch.fileId}`)
     const options = {
       method: 'GET',
@@ -37,7 +37,6 @@ function fetchFile (batch, deliveryDate, config) {
       }
     })
   })
-  return promise
 }
 function uploadFile (fileData, config) {
   let promise = new Promise((resolve, reject) => {
@@ -63,8 +62,9 @@ function uploadFile (fileData, config) {
   })
   return promise
 }
+
 function getJobResult (jobId, config) {
-  let promise = new Promise((resolve, reject) => {
+  return new Promise((resolve, reject) => {
     console.log(`getting job results for jobId=${jobId}`)
     const options = {
       method: 'GET',
@@ -75,7 +75,8 @@ function getJobResult (jobId, config) {
         'Content-Type': 'application/json'
       }
     }
-    request(options, function (error, response, body) {
+    request(options, (error, response, body) => {
+      console.log('Job result received.')
       if (error) {
         reject(new NamedError('api_call_error', error))
         return
@@ -99,20 +100,25 @@ function getJobResult (jobId, config) {
       }
     })
   })
-  return promise
 }
 
 export function handler (input, context, callback) {
-  fetchConfig()
-    .then(config => {
-      getJobResult(input.jobId, config)
-        .then(batches =>
-          Promise.all(batches.map(batch => fetchFile(batch, input.deliveryDate, config).then(filedata => uploadFile(filedata, config))))
-        )
-    })
-    .then(res => callback(null, { deliveryDate: input.deliveryDate, results: res }))
-    .catch(e => {
-      console.log(e)
-      callback(e)
-    })
+  asyncHandler(input).then(res => callback(null, { deliveryDate: input.deliveryDate, results: res })).catch(e => {
+    console.log(e)
+    callback(e)
+  })
+}
+
+async function asyncHandler (input) {
+  let config = await fetchConfig()
+  console.log('Config fetched succesfully.')
+  let batches = await getJobResult(input.jobId, config)
+  console.log('Job results returned.')
+  let files = batches.map(batch => fetchFile(batch, input.deliveryDate, config))
+  console.log('Downloading job results.')
+  let uploads = await Promise.all(files)
+  console.log('Generating upload')
+  let r = uploads.map(data => uploadFile(data, config))
+  console.log('Returning.')
+  return Promise.all(r)
 }
