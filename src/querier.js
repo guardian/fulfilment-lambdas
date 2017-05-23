@@ -4,7 +4,7 @@ import moment from 'moment'
 
 function queryZuora (deliveryDate, config) {
   let promise = new Promise((resolve, reject) => {
-    const deliveryDay = moment(deliveryDate, 'yyyy-mm-dd').format('dddd')
+    const deliveryDay = moment(deliveryDate, 'YYYY-MM-DD').format('dddd')
     const subsQuery = `
         SELECT 
             RateplanCharge.quantity,
