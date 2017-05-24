@@ -38,7 +38,8 @@ function queryZuora (deliveryDate, config) {
        ProductRatePlanCharge.ProductType__c = 'Adjustment' AND 
        RateplanCharge.Name = 'Holiday Credit' AND 
        RatePlanCharge.EffectiveStartDate <= '${deliveryDate}' AND
-       RatePlanCharge.HolidayEnd__c >= '${deliveryDate}'`
+       RatePlanCharge.HolidayEnd__c >= '${deliveryDate}' AND
+       RatePlan.AmendmentType != 'RemoveProduct'`
 
     const options = {
       method: 'POST',
