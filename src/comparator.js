@@ -112,7 +112,7 @@ function fetchCSV (path: S3Path) {
   let customers: {[string]:[customer]} = {}
   console.log(`Fetching ${path.Key} from ${path.Bucket}`)
   let csvStream = s3.getObject(path).createReadStream()
-  console.log('hey :)')
+  console.log('Initialising parser.')
   return new Promise((resolve, reject) => {
     let reader = csv.parse({headers: true}).on('data', (data:customer) => {
       let id = data['Customer Reference']
@@ -126,7 +126,6 @@ function fetchCSV (path: S3Path) {
       resolve(customers)
     })
     csvStream.pipe(reader)
-    console.log('piped')
   })
 }
 
