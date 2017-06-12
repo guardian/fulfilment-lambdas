@@ -14,7 +14,7 @@ deployments:
         - zuora_fulfilment_fetcher-
         - zuora_fulfilment_exporter-
         - zuora_fulfilment_salesforce_downloader-
-        - zuora_fulfilment_comparator
+        - zuora_fulfilment_comparator-
        #get from cloudformation
 #  fulfilment-node-stub-cloudformation:
 #  N.B.: cloudformation deployment not quite finished
