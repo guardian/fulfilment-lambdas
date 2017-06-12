@@ -54,7 +54,7 @@ async function compare () {
   console.log('In both systems', joint)
 
   const unchecked = differenceWith(joint, logkeys, (a, b) => {
-    return a === logFileNameFor(b)
+    return b === logFileNameFor(a)
   })
   console.log('remaining to check', unchecked)
 
