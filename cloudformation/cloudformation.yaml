@@ -169,7 +169,7 @@ Resources:
                   - "lambda:InvokeFunction"
                 Resource: "*"
 
-  FulfilmentStateMachine_[STAGE]: #TODO see how to generate a different name for prod and code
+  FulfilmentStateMachine_[STAGE]:
     Type: "AWS::StepFunctions::StateMachine"
     Properties:
       DefinitionString:

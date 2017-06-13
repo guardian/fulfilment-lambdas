@@ -2,3 +2,5 @@ dist
 target
 node_modules
 .idea/
+cloudformation/prod.yaml
+cloudformation/code.yaml
