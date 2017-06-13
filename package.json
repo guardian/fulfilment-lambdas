@@ -18,6 +18,7 @@
     "flow-bin": "^0.46.0",
     "lambda-local": "ashiina/lambda-local#316f6c743f6305385655b00db7d8349dac174c1c",
     "node-riffraff-artefact": "^2.0.1",
+    "replace-x": "^1.1.1",
     "snazzy": "^7.0.0",
     "standard": "^10.0.2",
     "standard-flow": "^1.0.0"
@@ -28,12 +29,15 @@
     "compile": "babel src -d dist",
     "riffraff": "VERBOSE=true ARTEFACT_PATH=$PWD yarn riffraff-artefact",
     "local": "yarn run:index && yarn run:hello",
+    "cloudform": "yarn cloudform:prod & yarn cloudform:code",
+    "cloudform:prod": "cp cloudformation/cloudformation.yaml cloudformation/prod.yaml && replace-x '_\\[STAGE\\]' 'PROD' cloudformation/prod.yaml",
+    "cloudform:code": "cp cloudformation/cloudformation.yaml cloudformation/code.yaml && replace-x '_\\[STAGE\\]' 'CODE' cloudformation/code.yaml",
     "run:exporter": "lambda-local -l dist/exporter.js -e test/exporter.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
     "run:querier": "lambda-local -l dist/querier.js -e test/querier.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
     "run:fetcher": "lambda-local -l dist/fetcher.js -e test/fetcher.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
     "run:sf": "lambda-local -l dist/salesforce_downloader.js -e test/fetcher.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
     "run:comparator": "lambda-local -l dist/comparator.js -e test/fetcher.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
-    "clean": "rm -rf dist && rm -rf target",
+    "clean": "rm -rf dist && rm -rf target && rm -f cloudformation/prod.yaml && rm -f  cloudformation/code.yaml",
     "lint": "standard | snazzy"
   },
   "dependencies": {
