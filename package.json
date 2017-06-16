@@ -36,11 +36,12 @@
     "run:querier": "lambda-local -l dist/querier.js -e test/querier.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
     "run:fetcher": "lambda-local -l dist/fetcher.js -e test/fetcher.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
     "run:sf": "lambda-local -l dist/salesforce_downloader.js -e test/fetcher.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
-    "run:comparator": "lambda-local -l dist/comparator.js -e test/fetcher.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
+    "run:comparator": "lambda-local -l dist/comparator.js -e test/fetcher.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"PROD\\\"}",
     "clean": "rm -rf dist && rm -rf target && rm -f cloudformation/prod.yaml && rm -f  cloudformation/code.yaml",
     "lint": "standard | snazzy"
   },
   "dependencies": {
+    "deep-diff": "^0.3.8",
     "fast-csv": "2.4.0",
     "lodash-es": "^4.17.4",
     "moment": "^2.18.1",
@@ -51,6 +52,9 @@
     "plugins": [
       "flowtype"
     ],
-    "parser": "babel-eslint"
+    "parser": "babel-eslint",
+    "ignore":[
+      "flow-typed/*"
+    ]
   }
 }
