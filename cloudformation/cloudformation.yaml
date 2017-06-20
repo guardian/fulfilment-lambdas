@@ -63,6 +63,23 @@ Resources:
                            Action:
                            - s3:ListBucket
                            Resource: arn:aws:s3:::fulfilment-output-test
+  FulfilmentTriggerLambda:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      FunctionName:
+          !Sub fulfilment_trigger-${Stage}
+      Description: "Trigger fulfilment step functions"
+      Handler: "fulfilmentTrigger.handler"
+      Role: !GetAtt [ FulfilmentWorkersLambdaRole, Arn ]
+      Code:
+        S3Bucket: fulfilment-lambdas-dist
+        S3Key: !Sub membership/${Stage}/fulfilment-lambdas/fulfilment-lambdas.zip
+      MemorySize: 512
+      Runtime: nodejs6.10
+      Timeout: 300
+      Environment:
+        Variables:
+          'Stage': !Sub ${Stage}
   ZuoraQuerierLambda:
     Type: "AWS::Lambda::Function"
     Properties:
@@ -226,3 +243,56 @@ Resources:
             exporterArn: !GetAtt [ FulfilmentExporterLambda, Arn ]
           }
       RoleArn: !GetAtt [ StatesExecutionRole, Arn ]
+
+      FulfilmentAPIPermission:
+              Type: AWS::Lambda::Permission
+              Properties:
+                  Action: lambda:invokeFunction
+                  FunctionName: !Sub fulfilment_trigger-${Stage}
+                  Principal: apigateway.amazonaws.com
+              DependsOn: FulfilmentTriggerLambda
+          FulfilmentAPI:
+              Type: "AWS::ApiGateway::RestApi"
+              Properties:
+                  Description: triggers fulfilment file generation
+                  Name: !Sub fulfilment-api-${Stage}
+
+          FulfilmentProxyResource:
+              Type: AWS::ApiGateway::Resource
+              Properties:
+                  RestApiId: !Ref FulfilmentAPI
+                  ParentId: !GetAtt [FulfilmentAPI, RootResourceId]
+                  PathPart: fulfilment
+              DependsOn: FulfilmentAPI
+
+          FulfilmentMethod:
+              Type: AWS::ApiGateway::Method
+              Properties:
+                  AuthorizationType: NONE
+                  RestApiId: !Ref FulfilmentAPI
+                  ResourceId: !Ref FulfilmentProxyResource
+                  HttpMethod: POST
+                  Integration:
+                    Type: AWS_PROXY
+                    IntegrationHttpMethod: POST
+                    Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FulfilmentTriggerLambda.Arn}/invocations
+              DependsOn:
+              - FulfilmentAPI
+              - FulfilmentTriggerLambda
+              - FulfilmentProxyResource
+
+          FulfilmentAPIStage:
+              Type: AWS::ApiGateway::Stage
+              Properties:
+                  Description: Stage for fulfilment-api
+                  RestApiId: !Ref FulfilmentAPI
+                  DeploymentId: !Ref FulfilmentAPIDeployment
+                  StageName: !Sub ${Stage}
+              DependsOn: FulfilmentMethod
+
+          FulfilmentAPIDeployment:
+              Type: AWS::ApiGateway::Deployment
+              Properties:
+                  Description: Deploys fulfilment-api into an environment/stage
+                  RestApiId: !Ref FulfilmentAPI
+              DependsOn: FulfilmentMethod
