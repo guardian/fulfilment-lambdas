@@ -182,7 +182,13 @@ Resources:
                "QueryZuora": {
                  "Type": "Task",
                  "Resource": "${querierArn}",
-                 "Next": "WaitSomeTime"
+                 "Next": "WaitSomeTime",
+                 "Retry": [
+                    {
+                     "ErrorEquals": ["States.ALL"],
+                     "IntervalSeconds": 30,
+                     "MaxAttempts": 3
+                   }]
                },
                "WaitSomeTime": {
                  "Type": "Wait",
@@ -195,7 +201,7 @@ Resources:
                  "Next": "GenerateFulfilmentFile",
                  "Retry": [
                     {
-                     "ErrorEquals": ["zuora_job_pending"],
+                     "ErrorEquals": ["States.ALL"],
                      "IntervalSeconds": 30,
                      "MaxAttempts": 10,
                      "BackoffRate": 1.0
@@ -204,7 +210,13 @@ Resources:
                "GenerateFulfilmentFile": {
                  "Type": "Task",
                  "Resource": "${exporterArn}",
-                 "End": true
+                 "End": true,
+                 "Retry": [
+                    {
+                     "ErrorEquals": ["States.ALL"],
+                     "IntervalSeconds": 30,
+                     "MaxAttempts": 3
+                   }]
                }
              }
            }
