@@ -244,55 +244,56 @@ Resources:
           }
       RoleArn: !GetAtt [ StatesExecutionRole, Arn ]
 
-      FulfilmentAPIPermission:
-              Type: AWS::Lambda::Permission
-              Properties:
-                  Action: lambda:invokeFunction
-                  FunctionName: !Sub fulfilment_trigger-${Stage}
-                  Principal: apigateway.amazonaws.com
-              DependsOn: FulfilmentTriggerLambda
-          FulfilmentAPI:
-              Type: "AWS::ApiGateway::RestApi"
-              Properties:
-                  Description: triggers fulfilment file generation
-                  Name: !Sub fulfilment-api-${Stage}
+  FulfilmentAPIPermission:
+          Type: AWS::Lambda::Permission
+          Properties:
+              Action: lambda:invokeFunction
+              FunctionName: !Sub fulfilment_trigger-${Stage}
+              Principal: apigateway.amazonaws.com
+          DependsOn: FulfilmentTriggerLambda
 
-          FulfilmentProxyResource:
-              Type: AWS::ApiGateway::Resource
-              Properties:
-                  RestApiId: !Ref FulfilmentAPI
-                  ParentId: !GetAtt [FulfilmentAPI, RootResourceId]
-                  PathPart: fulfilment
-              DependsOn: FulfilmentAPI
+  FulfilmentAPI:
+      Type: "AWS::ApiGateway::RestApi"
+      Properties:
+          Description: triggers fulfilment file generation
+          Name: !Sub fulfilment-api-${Stage}
 
-          FulfilmentMethod:
-              Type: AWS::ApiGateway::Method
-              Properties:
-                  AuthorizationType: NONE
-                  RestApiId: !Ref FulfilmentAPI
-                  ResourceId: !Ref FulfilmentProxyResource
-                  HttpMethod: POST
-                  Integration:
-                    Type: AWS_PROXY
-                    IntegrationHttpMethod: POST
-                    Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FulfilmentTriggerLambda.Arn}/invocations
-              DependsOn:
-              - FulfilmentAPI
-              - FulfilmentTriggerLambda
-              - FulfilmentProxyResource
+  FulfilmentProxyResource:
+      Type: AWS::ApiGateway::Resource
+      Properties:
+          RestApiId: !Ref FulfilmentAPI
+          ParentId: !GetAtt [FulfilmentAPI, RootResourceId]
+          PathPart: fulfilment
+      DependsOn: FulfilmentAPI
 
-          FulfilmentAPIStage:
-              Type: AWS::ApiGateway::Stage
-              Properties:
-                  Description: Stage for fulfilment-api
-                  RestApiId: !Ref FulfilmentAPI
-                  DeploymentId: !Ref FulfilmentAPIDeployment
-                  StageName: !Sub ${Stage}
-              DependsOn: FulfilmentMethod
+  FulfilmentMethod:
+      Type: AWS::ApiGateway::Method
+      Properties:
+          AuthorizationType: NONE
+          RestApiId: !Ref FulfilmentAPI
+          ResourceId: !Ref FulfilmentProxyResource
+          HttpMethod: POST
+          Integration:
+            Type: AWS_PROXY
+            IntegrationHttpMethod: POST
+            Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FulfilmentTriggerLambda.Arn}/invocations
+      DependsOn:
+      - FulfilmentAPI
+      - FulfilmentTriggerLambda
+      - FulfilmentProxyResource
 
-          FulfilmentAPIDeployment:
-              Type: AWS::ApiGateway::Deployment
-              Properties:
-                  Description: Deploys fulfilment-api into an environment/stage
-                  RestApiId: !Ref FulfilmentAPI
-              DependsOn: FulfilmentMethod
+  FulfilmentAPIStage:
+      Type: AWS::ApiGateway::Stage
+      Properties:
+          Description: Stage for fulfilment-api
+          RestApiId: !Ref FulfilmentAPI
+          DeploymentId: !Ref FulfilmentAPIDeployment
+          StageName: !Sub ${Stage}
+      DependsOn: FulfilmentMethod
+
+  FulfilmentAPIDeployment:
+      Type: AWS::ApiGateway::Deployment
+      Properties:
+          Description: Deploys fulfilment-api into an environment/stage
+          RestApiId: !Ref FulfilmentAPI
+      DependsOn: FulfilmentMethod
