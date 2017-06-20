@@ -41,6 +41,7 @@
     "lint": "standard | snazzy"
   },
   "dependencies": {
+    "deep-diff": "^0.3.8",
     "fast-csv": "2.4.0",
     "lodash-es": "^4.17.4",
     "moment": "^2.18.1",
@@ -51,6 +52,9 @@
     "plugins": [
       "flowtype"
     ],
-    "parser": "babel-eslint"
+    "parser": "babel-eslint",
+    "ignore":[
+      "flow-typed/*"
+    ]
   }
 }

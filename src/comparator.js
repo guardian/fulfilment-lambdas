@@ -1,8 +1,11 @@
+// @flow
 import AWS from 'aws-sdk'
 import csv from 'fast-csv'
 import {fetchConfig} from './config'
 import intersectionWith from 'lodash/intersectionWith'
 import differenceWith from 'lodash/differenceWith'
+import diff from 'deep-diff'
+import type Difference from 'deep-diff'
 
 type S3Path = {
   Bucket: string,
@@ -11,7 +14,7 @@ type S3Path = {
 
 const s3 = new AWS.S3({ signatureVersion: 'v4' })
 
-export function handler (input, context, callback) {
+export function handler (input:?any, context:?any, callback:Function) {
   compare().then((result) => callback(null, result)).catch((e) => {
     console.log(e)
     callback(e)
@@ -68,7 +71,7 @@ async function compare () {
 
   let logCache = []
 
-  let log = (entry) => {
+  let log = (entry:string) => {
     if (config.stage === 'CODE') {
       console.log(entry)
     }
@@ -85,10 +88,16 @@ async function compare () {
     }
     let s = sfOutput[id]
     let g = guOutput[id]
+    delete guOutput[id] // Removes keys from gu if they're in salesforce fulfilment
     if (s.length !== g.length) {
       log(`Differing numbers of fulfilments generated for ${id}. Salesforce: ${s.length} File: ${g.length}`)
+      return
     }
-    delete guOutput[id] // Removes keys from gu if they're in salesforce fulfilment
+    if (s.length > 1) {
+      log(`Multiple subscriptions for ${id} comparing [0] against [0]`)
+    }
+    let differences = diff(s[0], g[0])
+    renderDifference(differences).map(log)
   })
 // At this stage, this only includes keys not present in salesforce file
   Object.keys(guOutput).forEach((id) => {
@@ -109,7 +118,7 @@ function notEmpty (str) {
 function fetchCSV (path: S3Path) {
   type customer = {'Customer Reference':string}
   // Flow note: at least this field is required, more still meets type
-  let customers: {[string]:[customer]} = {}
+  let customers: {[string]:Array<customer>} = {}
   console.log(`Fetching ${path.Key} from ${path.Bucket}`)
   let csvStream = s3.getObject(path).createReadStream()
   console.log('Initialising parser.')
@@ -142,4 +151,18 @@ function sfFilenameFor (filename:string) {
 
 function logFileNameFor (filename: string) {
   return filename.replace('csv', 'log')
+}
+
+function renderDifference (diff: Array<Difference>):Array<string> {
+  return diff.map((d:Difference) => {
+    switch (d.kind) {
+      case 'N':
+        return `New field found at ${d.path}`
+      case 'D':
+        return `Field deleted from ${d.path} `
+      case 'E':
+        return `Field ${d.path} changed from ${d.lhs} to ${d.rhs}`
+    }
+    return `Unidentified change at ${d.path}`
+  })
 }
