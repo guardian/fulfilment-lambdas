@@ -5,7 +5,8 @@ import {fetchConfig} from './config'
 import intersectionWith from 'lodash/intersectionWith'
 import differenceWith from 'lodash/differenceWith'
 import diff from 'deep-diff'
-import type Difference from 'deep-diff'
+import type {Difference} from 'deep-diff'
+import QuoteRemover from './lib/QuoteRemover'
 
 type S3Path = {
   Bucket: string,
@@ -96,8 +97,10 @@ async function compare () {
     if (s.length > 1) {
       log(`Multiple subscriptions for ${id} comparing [0] against [0]`)
     }
-    let differences = diff(s[0], g[0])
-    renderDifference(differences).map(log)
+    let differences: ?Array<Difference> = diff(s[0], g[0])
+    if (differences != null) {
+      renderDifference(differences).map(log)
+    }
   })
 // At this stage, this only includes keys not present in salesforce file
   Object.keys(guOutput).forEach((id) => {
@@ -134,7 +137,7 @@ function fetchCSV (path: S3Path) {
     }).on('end', () => {
       resolve(customers)
     })
-    csvStream.pipe(reader)
+    csvStream.pipe(new QuoteRemover()).pipe(reader)
   })
 }
 
@@ -155,14 +158,17 @@ function logFileNameFor (filename: string) {
 
 function renderDifference (diff: Array<Difference>):Array<string> {
   return diff.map((d:Difference) => {
-    switch (d.kind) {
-      case 'N':
-        return `New field found at ${d.path}`
-      case 'D':
-        return `Field deleted from ${d.path} `
-      case 'E':
-        return `Field ${d.path} changed from ${d.lhs} to ${d.rhs}`
+    let path = d.path.join()
+    if (typeof d.lhs === 'string' && typeof d.rhs === 'string') {
+      switch (d.kind) {
+        case 'N':
+          return `New field found at ${path}`
+        case 'D':
+          return `Field deleted from ${path} `
+        case 'E':
+          return `Field ${path} changed from ${d.lhs} to ${d.rhs}`
+      }
     }
-    return `Unidentified change at ${d.path}`
+    return `Unidentified change at ${path}`
   })
 }
