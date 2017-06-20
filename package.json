@@ -8,6 +8,7 @@
   "buildDir": "dist",
   "cloudformation": false,
   "devDependencies": {
+    "ava": "^0.19.1",
     "babel-cli": "^6.24.1",
     "babel-core": "^6.24.1",
     "babel-eslint": "^7.2.3",
@@ -38,7 +39,8 @@
     "run:sf": "lambda-local -l dist/salesforce_downloader.js -e test/fetcher.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
     "run:comparator": "lambda-local -l dist/comparator.js -e test/fetcher.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
     "clean": "rm -rf dist && rm -rf target && rm -f cloudformation/prod.yaml && rm -f  cloudformation/code.yaml",
-    "lint": "standard | snazzy"
+    "lint": "standard | snazzy",
+    "test": "ava test/*.js"
   },
   "dependencies": {
     "deep-diff": "^0.3.8",
@@ -48,12 +50,15 @@
     "request": "^2.81.0",
     "request-promise-native": "^1.0.4"
   },
+   "ava": {
+    "require": ["babel-register"]
+  },
   "standard": {
     "plugins": [
       "flowtype"
     ],
     "parser": "babel-eslint",
-    "ignore":[
+    "ignore": [
       "flow-typed/*"
     ]
   }
