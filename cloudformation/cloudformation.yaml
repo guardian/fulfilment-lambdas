@@ -79,7 +79,9 @@ Resources:
       Timeout: 300
       Environment:
         Variables:
-          'Stage': !Sub ${Stage}
+           'Stage': !Sub ${Stage}
+           'StateMachine': !Ref FulfilmentStateMachine_[STAGE]
+    DependsOn: FulfilmentStateMachine_[STAGE]
   ZuoraQuerierLambda:
     Type: "AWS::Lambda::Function"
     Properties:
