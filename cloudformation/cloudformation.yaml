@@ -63,6 +63,37 @@ Resources:
                            Action:
                            - s3:ListBucket
                            Resource: arn:aws:s3:::fulfilment-output-test
+  fulfilmentTriggerRole:
+          Type: AWS::IAM::Role
+          Properties:
+              RoleName: !Sub FulfilmentTrigger-${Stage}
+              AssumeRolePolicyDocument:
+                  Statement:
+                      - Effect: Allow
+                        Principal:
+                            Service:
+                               - lambda.amazonaws.com
+                        Action:
+                            - sts:AssumeRole
+              Path: /
+              Policies:
+                  - PolicyName: LambdaPolicy
+                    PolicyDocument:
+                        Statement:
+                            - Effect: Allow
+                              Action:
+                              - logs:CreateLogGroup
+                              - logs:CreateLogStream
+                              - logs:PutLogEvents
+                              - lambda:InvokeFunction
+                              Resource: "*"
+                  - PolicyName: TriggerStateMchine
+                    PolicyDocument:
+                        Statement:
+                           - Effect: Allow
+                             Action:
+                             - states:StartExecution
+                             Resource: !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:FulfilmentStateMachine${Stage}*"
   FulfilmentTriggerLambda:
     Type: "AWS::Lambda::Function"
     Properties:
@@ -70,7 +101,7 @@ Resources:
           !Sub fulfilment_trigger-${Stage}
       Description: "Trigger fulfilment step functions"
       Handler: "fulfilmentTrigger.handler"
-      Role: !GetAtt [ FulfilmentWorkersLambdaRole, Arn ]
+      Role: !GetAtt [ fulfilmentTriggerRole, Arn ]
       Code:
         S3Bucket: fulfilment-lambdas-dist
         S3Key: !Sub membership/${Stage}/fulfilment-lambdas/fulfilment-lambdas.zip
