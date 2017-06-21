@@ -12,7 +12,6 @@ function getParams (date) {
   let params = {}
   params.stateMachineArn = process.env.StateMachine
   params.input = `{"deliveryDate" : "${date}"}`
-  console.log(params)
   return params
 }
 
@@ -69,7 +68,6 @@ function range (amount) {
 
 
 export function handler (input, context, callback) {
-  console.log(input)
   let body = JSON.parse(input.body)
   if (!body.amount || !body.date) {
     callback(null, getErrorResponse(BAD_REQUEST, 'missing amount or date'))
