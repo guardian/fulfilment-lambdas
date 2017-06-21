@@ -87,7 +87,10 @@ export function handler (input, context, callback) {
       console.log(res)
       callback(null, okRes)
     })
-    .catch(error => callback(serverError))
+    .catch(error => {
+      console.log(error)
+      callback(serverError)
+    })
 }
 function validateToken (expectedToken, providedToken) {
   return new Promise((resolve, reject) => {
