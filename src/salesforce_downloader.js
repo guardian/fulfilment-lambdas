@@ -1,9 +1,8 @@
-import { fetchConfig } from './config'
-import request from 'request'
-import rp from 'request-promise-native'
+import { fetchConfig } from './lib/config'
+import { authenticate } from './lib/salesforceAuthenticator'
 import AWS from 'aws-sdk'
 import stream from 'stream'
-import NamedError from './NamedError'
+import NamedError from './lib/NamedError'
 let s3 = new AWS.S3({ signatureVersion: 'v4' })
 
 export function handler (input, context, callback) {
@@ -15,28 +14,6 @@ export function handler (input, context, callback) {
     console.log('oh no  ')
     callback(e)
   })
-}
-
-async function authenticate (config) {
-  console.log('Authenticating with Salesforce.')
-  let url = `https://${config.salesforce.api.salesforceUrl}/services/oauth2/token`
-  let auth = {
-    'grant_type': 'password',
-    'client_id': config.salesforce.api.consumer_key,
-    'client_secret': config.salesforce.api.consumer_secret,
-    'username': config.salesforce.api.username,
-    'password': `${config.salesforce.api.password}${config.salesforce.api.token}`
-  }
-  let result = await rp.post(url, { form: auth })
-  let j = JSON.parse(result)
-  return {
-    get: function (endpoint: string) {
-      return request.get({ uri: `${j.instance_url}${endpoint}`, headers: { 'Authorization': `Bearer ${j.access_token}` } })
-    },
-    getp: async function (endpoint: string) {
-      return rp.get({ uri: `${j.instance_url}${endpoint}`, headers: { 'Authorization': `Bearer ${j.access_token}` } })
-    }
-  }
 }
 
 async function q () {
