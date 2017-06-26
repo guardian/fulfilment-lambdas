@@ -1,7 +1,7 @@
 // @flow
 import AWS from 'aws-sdk'
 import csv from 'fast-csv'
-import {fetchConfig} from './config'
+import {fetchConfig} from './lib/config'
 import intersectionWith from 'lodash/intersectionWith'
 import differenceWith from 'lodash/differenceWith'
 import diff from 'deep-diff'

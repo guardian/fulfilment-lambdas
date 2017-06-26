@@ -1,4 +1,4 @@
-import {fetchConfig} from './config'
+import {fetchConfig} from './lib/config'
 import request from 'request'
 import moment from 'moment'
 

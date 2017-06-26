@@ -1,7 +1,7 @@
 import AWS from 'aws-sdk'
 import request from 'request'
-import { fetchConfig } from './config'
-import NamedError from './NamedError'
+import { fetchConfig } from './lib/config'
+import NamedError from './lib/NamedError'
 
 let UPLOAD_BUCKET = 'fulfilment-output-test'
 
