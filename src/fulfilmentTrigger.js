@@ -1,11 +1,10 @@
-import { fetchConfig } from './config'
+import { fetchConfig } from './lib/config'
 import request from 'request'
 import moment from 'moment'
 import AWS from 'aws-sdk'
 const stepfunctions = new AWS.StepFunctions()
 const DATE_FORMAT = 'YYYY-MM-DD'
 const BAD_REQUEST = '400'
-const UNAUTHORIZED = '401'
 const MAX_DAYS = 5
 function getParams (date) {
   let params = {}
@@ -21,23 +20,17 @@ let okRes = {
   },
   'body': '{"message":"ok"}'
 }
-
-function getErrorResponse (status, message) {
-  let res = {}
-  let headers = {}
-  let body = {}
-
-  headers['Content-Type'] = 'application/json'
-  body['message'] = message
-
-  res['statusCode'] = status
-  res['headers'] = headers
-  res['body'] = JSON.stringify(body)
-
-  return res
+class ErrorResponse {
+  constructor (status, message) {
+    this['statusCode'] = status
+    let body = {'message': message}
+    this.body = JSON.stringify(body)
+    this.headers = {'Content-Type': 'application/json'}
+  }
 }
 
-let serverError = getErrorResponse('500', 'Unexpected server error')
+let serverError = new ErrorResponse('500', 'Unexpected server error')
+let unauthorizedError = new ErrorResponse('401', "Unauthorized")
 
 function range (amount) {
   let resArray = []
@@ -54,8 +47,7 @@ function validateToken (expectedToken, providedToken) {
     }
     else {
       console.log('failed token authentication')
-      //TODO RETURN STATUS 401 IF THIS HAPPENS
-      reject('invalid token')
+      reject(unauthorizedError)
     }
   })
 }
@@ -65,7 +57,7 @@ export function getHandler (dependencies) {
 
     function returnError (status, message) {
       console.log(message)
-      callback(null, getErrorResponse(status, message))
+      callback(null, new ErrorResponse(status, message))
     }
 
     function triggerLambdas (startDate, amount) {
@@ -107,7 +99,12 @@ export function getHandler (dependencies) {
       })
       .catch(error => {
         console.log(error)
-        callback(null, serverError)
+        if (error instanceof ErrorResponse) {
+          callback(null, error)
+        }
+        else {
+          callback(null, serverError)
+        }
       })
   }
 }
@@ -125,7 +122,7 @@ function triggerFulfilmentForDate (date: String) {
     })
   })
 }
-//todo see if there is a nicer way of doing this
+
 export function handler (input, context, callback) {
   getHandler({
     fetchConfig: fetchConfig,
