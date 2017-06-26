@@ -28,11 +28,11 @@ function getErrorResponse (status, message) {
   let body = {}
 
   headers['Content-Type'] = 'application/json'
-  body['message'] = JSON.stringify(message)
+  body['message'] = message
 
   res['statusCode'] = status
   res['headers'] = headers
-  res['body'] = body
+  res['body'] = JSON.stringify(body)
 
   return res
 }

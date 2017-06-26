@@ -40,9 +40,9 @@ function errorResponse (status, message) {
   let res = {}
   let body = {}
   let headers = {}
-  body.message = JSON.stringify(message)
+  body.message = message
   headers['Content-Type'] = 'application/json'
-  res.body = body
+  res.body = JSON.stringify(body)
   res.headers = headers
   res.statusCode = status
   return res
