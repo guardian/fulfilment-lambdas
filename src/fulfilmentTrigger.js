@@ -1,12 +1,11 @@
-
-import {fetchConfig} from './config'
+import { fetchConfig } from './config'
 import request from 'request'
 import moment from 'moment'
 import AWS from 'aws-sdk'
 const stepfunctions = new AWS.StepFunctions()
-const DATE_FORMAT = "YYYY-MM-DD"
-const BAD_REQUEST = "400"
-const UNAUTHORIZED = "401"
+const DATE_FORMAT = 'YYYY-MM-DD'
+const BAD_REQUEST = '400'
+const UNAUTHORIZED = '401'
 const MAX_DAYS = 5
 function getParams (date) {
   let params = {}
@@ -25,17 +24,20 @@ let okRes = {
 
 function getErrorResponse (status, message) {
   let res = {}
-  res.statusCode = status
-  res.headers = {}
-  res.headers["Content-Type"]= "application/json"
-  res.body = {}
-  res.body.message = JSON.stringify(message)
+  let headers = {}
+  let body = {}
+
+  headers['Content-Type'] = 'application/json'
+  body['message'] = JSON.stringify(message)
+
+  res['statusCode'] = status
+  res['headers'] = headers
+  res['body'] = body
+
   return res
 }
 
-let serverError = getErrorResponse("500", "Unexpected server error")
-
-
+let serverError = getErrorResponse('500', 'Unexpected server error')
 
 function range (amount) {
   let resArray = []
@@ -51,20 +53,19 @@ function validateToken (expectedToken, providedToken) {
       resolve()
     }
     else {
-      console.log("failed token authentication")
+      console.log('failed token authentication')
       //TODO RETURN STATUS 401 IF THIS HAPPENS
       reject('invalid token')
     }
   })
 }
 
-
 export function getHandler (dependencies) {
   return function handle (input, context, callback) {
 
-    function returnError(status, message) {
+    function returnError (status, message) {
       console.log(message)
-      callback(null, getErrorResponse(BAD_REQUEST, message))
+      callback(null, getErrorResponse(status, message))
     }
 
     function triggerLambdas (startDate, amount) {
@@ -75,11 +76,12 @@ export function getHandler (dependencies) {
       )
       return Promise.all(results)
     }
+
     async function asyncHandler (startDate, amount, providedToken) {
       let config = await dependencies.fetchConfig()
       console.log('Config fetched succesfully.')
       await validateToken(config.triggerLambda.expectedToken, providedToken)
-      console.log("token validated successfully")
+      console.log('token validated successfully')
       return triggerLambdas(startDate, amount)
     }
 
@@ -110,7 +112,7 @@ export function getHandler (dependencies) {
   }
 }
 
-function triggerFulfilmentForDate(date: String) {
+function triggerFulfilmentForDate (date: String) {
   return new Promise((resolve, reject) => {
     stepfunctions.startExecution(getParams(date), function (err, data) {
       if (err) {
@@ -124,7 +126,7 @@ function triggerFulfilmentForDate(date: String) {
   })
 }
 //todo see if there is a nicer way of doing this
-export function handler(input, context, callback) {
+export function handler (input, context, callback) {
   getHandler({
     fetchConfig: fetchConfig,
     triggerFulfilmentFor: triggerFulfilmentForDate
