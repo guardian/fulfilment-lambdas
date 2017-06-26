@@ -61,7 +61,10 @@ function validateToken (expectedToken, providedToken) {
 export function getHandler (dependencies) {
   return function handle (input, context, callback) {
 
-
+    function returnError(status, message) {
+      console.log(message)
+      callback(null, getErrorResponse(BAD_REQUEST, message))
+    }
 
     function triggerLambdas (startDate, amount) {
       let results = range(amount).map(offset => {
@@ -81,18 +84,17 @@ export function getHandler (dependencies) {
 
     let body = JSON.parse(input.body)
     if (!body.amount || !body.date) {
-        callback(null, getErrorResponse(BAD_REQUEST, 'missing amount or date'))
-        return
+      returnError(BAD_REQUEST, 'missing amount or date')
+      return
     }
     if (body.amount < 1 || body.amount > MAX_DAYS) {
-      callback(null, getErrorResponse(BAD_REQUEST, `amount should be a number between 1 and ${MAX_DAYS}`))
+      returnError(BAD_REQUEST, `amount should be a number between 1 and ${MAX_DAYS}`)
       return
     }
     let providedToken = input.headers.apiToken
     if (!providedToken) {
-      callback(null, getErrorResponse(BAD_REQUEST, 'ApiToken header missing'))
+      returnError(BAD_REQUEST, 'ApiToken header missing')
       return
-
     }
 
     asyncHandler(body.date, body.amount, providedToken)
