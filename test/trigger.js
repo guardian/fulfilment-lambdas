@@ -60,7 +60,6 @@ function assertExpectedResponse (test, expected) {
     test.end()
   }
 }
-//TODO THIS SHOULD RETURN ANOTHER STATUS CODE
 test.cb('should return error if wrong api token', t => {
   let handle = getHandler(fakeDependencies)
   t.plan(1)
