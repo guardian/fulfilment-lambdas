@@ -5,8 +5,8 @@ import moment from 'moment'
 import AWS from 'aws-sdk'
 const stepfunctions = new AWS.StepFunctions()
 const DATE_FORMAT = "YYYY-MM-DD"
-const BAD_REQUEST = 400
-const UNAUTHORIZED = 401
+const BAD_REQUEST = "400"
+const UNAUTHORIZED = "401"
 const MAX_DAYS = 5
 function getParams (date) {
   let params = {}
@@ -29,10 +29,11 @@ function getErrorResponse (status, message) {
   res.headers = {'Content-Type': 'application/json'}
   res.body = {}
   res.body.message = message
+  console.log(res)
   return res
 }
 
-let serverError = getErrorResponse(500, "Unexpected server error")
+let serverError = getErrorResponse("500", "Unexpected server error")
 
 
 

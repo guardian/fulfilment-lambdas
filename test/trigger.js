@@ -64,25 +64,25 @@ test.cb('should return error if wrong api token', t => {
   let handle = getHandler(fakeDependencies)
   t.plan(1)
   let wrongTokenInput = getFakeInput('wrongToken', '2017-06-12', 1)
-  handle(wrongTokenInput, {}, assertExpectedResponse(t, errorResponse(500, "Unexpected server error")))
+  handle(wrongTokenInput, {}, assertExpectedResponse(t, errorResponse("500", "Unexpected server error")))
 
 })
 test.cb('should return 400 error required parameters are missing', t => {
   let handle = getHandler(fakeDependencies)
   t.plan(1)
   let emptyRequest = { body:"{}"}
-  handle(emptyRequest, {}, assertExpectedResponse(t, errorResponse(400, "missing amount or date")))
+  handle(emptyRequest, {}, assertExpectedResponse(t, errorResponse("400", "missing amount or date")))
 })
 test.cb('should return 400 error no api token is provided', t => {
   let handle = getHandler(fakeDependencies)
   t.plan(1)
   let noApiToken = { headers:{}, body:"{\"date\":\"2017-01-02\", \"amount\":1}"}
-  handle(noApiToken, {}, assertExpectedResponse(t, errorResponse(400, "ApiToken header missing")))
+  handle(noApiToken, {}, assertExpectedResponse(t, errorResponse("400", "ApiToken header missing")))
 })
 test.cb('should return 400 error if too many days in request', t => {
   let handle = getHandler(fakeDependencies)
   t.plan(1)
   let tooManyDaysInput = getFakeInput('wrongToken', '2017-06-12', 21)
-  handle(tooManyDaysInput, {}, assertExpectedResponse(t, errorResponse(400, "amount should be a number between 1 and 5")))
+  handle(tooManyDaysInput, {}, assertExpectedResponse(t, errorResponse("400", "amount should be a number between 1 and 5")))
 
 })
