@@ -20,16 +20,16 @@ let okRes = {
   'headers': {
     'Content-Type': 'application/json'
   },
-  'body': 'ok'
+  'body': '{"message":"ok"}'
 }
 
 function getErrorResponse (status, message) {
   let res = {}
   res.statusCode = status
-  res.headers = {'Content-Type': 'application/json'}
+  res.headers = {}
+  res.headers["Content-Type"]= "application/json"
   res.body = {}
-  res.body.message = message
-  console.log(res)
+  res.body.message = JSON.stringify(message)
   return res
 }
 
