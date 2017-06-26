@@ -1,13 +1,13 @@
+
 import {fetchConfig} from './config'
 import request from 'request'
 import moment from 'moment'
 import AWS from 'aws-sdk'
-
-
-const stepfunctions = new AWS.StepFunctions();
+const stepfunctions = new AWS.StepFunctions()
 const DATE_FORMAT = "YYYY-MM-DD"
 const BAD_REQUEST = 400
 const UNAUTHORIZED = 401
+const MAX_DAYS = 5
 function getParams (date) {
   let params = {}
   params.stateMachineArn = process.env.StateMachine
@@ -34,28 +34,7 @@ function getErrorResponse (status, message) {
 
 let serverError = getErrorResponse(500, "Unexpected server error")
 
-function triggerFulfilmentFor(date: String) {
-  return new Promise((resolve, reject) => {
-    stepfunctions.startExecution(getParams(date), function (err, data) {
-      if (err) {
-        console.log(err, err.stack)
-        reject(err)
-      }
-      else {
-        resolve(data)
-      }
-    })
-  })
-}
 
-function triggerLambdas (startDate, amount) {
-  let results = range(amount).map(offset => {
-      let date = moment(startDate, DATE_FORMAT).add(offset, 'days').format(DATE_FORMAT)
-      return triggerFulfilmentFor(date)
-    }
-  )
-  return Promise.all(results)
-}
 
 function range (amount) {
   let resArray = []
@@ -65,31 +44,6 @@ function range (amount) {
   return resArray
 }
 
-
-
-export function handler (input, context, callback) {
-  let body = JSON.parse(input.body)
-  if (!body.amount || !body.date) {
-    callback(null, getErrorResponse(BAD_REQUEST, 'missing amount or date'))
-  }
-  if (body.amount < 1 || body.amount > 10) {
-    callback(null, getErrorResponse(BAD_REQUEST, 'amount should be a number between 1 and 10'))
-  }
-  let providedToken = input.headers.apiToken
-  if (!providedToken){
-    callback(null, getErrorResponse(BAD_REQUEST, 'ApiToken missing from request'))
-
-  }
-  asyncHandler(body.date, body.amount, providedToken)
-    .then(res => {
-      console.log(res)
-      callback(null, okRes)
-    })
-    .catch(error => {
-      console.log(error)
-      callback(serverError)
-    })
-}
 function validateToken (expectedToken, providedToken) {
   return new Promise((resolve, reject) => {
     if (expectedToken == providedToken) {
@@ -103,11 +57,75 @@ function validateToken (expectedToken, providedToken) {
   })
 }
 
-async function asyncHandler (startDate, amount, providedToken) {
-  let config = await fetchConfig()
-  console.log('Config fetched succesfully.')
-  await validateToken(config.triggerLambda.expectedToken, providedToken)
-  console.log("token validated successfully")
-  return triggerLambdas(startDate, amount)
 
+export function getHandler (dependencies) {
+  return function handle (input, context, callback) {
+
+
+
+    function triggerLambdas (startDate, amount) {
+      let results = range(amount).map(offset => {
+          let date = moment(startDate, DATE_FORMAT).add(offset, 'days').format(DATE_FORMAT)
+          return dependencies.triggerFulfilmentFor(date)
+        }
+      )
+      return Promise.all(results)
+    }
+    async function asyncHandler (startDate, amount, providedToken) {
+      let config = await dependencies.fetchConfig()
+      console.log('Config fetched succesfully.')
+      await validateToken(config.triggerLambda.expectedToken, providedToken)
+      console.log("token validated successfully")
+      return triggerLambdas(startDate, amount)
+    }
+
+    let body = JSON.parse(input.body)
+    if (!body.amount || !body.date) {
+        callback(null, getErrorResponse(BAD_REQUEST, 'missing amount or date'))
+        return
+    }
+    if (body.amount < 1 || body.amount > MAX_DAYS) {
+      callback(null, getErrorResponse(BAD_REQUEST, `amount should be a number between 1 and ${MAX_DAYS}`))
+      return
+    }
+    let providedToken = input.headers.apiToken
+    if (!providedToken) {
+      callback(null, getErrorResponse(BAD_REQUEST, 'ApiToken header missing'))
+      return
+
+    }
+
+    asyncHandler(body.date, body.amount, providedToken)
+      .then(res => {
+        console.log(res)
+        callback(null, okRes)
+      })
+      .catch(error => {
+        console.log(error)
+        callback(null, serverError)
+      })
+  }
 }
+
+function triggerFulfilmentForDate(date: String) {
+  return new Promise((resolve, reject) => {
+    stepfunctions.startExecution(getParams(date), function (err, data) {
+      if (err) {
+        console.log(err, err.stack)
+        reject(err)
+      }
+      else {
+        resolve(data)
+      }
+    })
+  })
+}
+//todo see if there is a nicer way of doing this
+export function handler(input, context, callback) {
+  getHandler({
+    fetchConfig: fetchConfig,
+    triggerFulfilmentFor: triggerFulfilmentForDate
+  })(input, context, callback)
+}
+
+
