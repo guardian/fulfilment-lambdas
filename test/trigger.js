@@ -1,17 +1,16 @@
 import { getHandler } from './../src/fulfilmentTrigger'
-
 import test from 'ava'
+import sinon from 'sinon'
 
-let fakeDependencies = {
-  triggerFulfilmentFor: function (date) {
-    return Promise.resolve({ok: 'ok'})
-  },
-  fetchConfig: function () {
-    return Promise.resolve({
-      triggerLambda: {expectedToken: 'testToken'}
-    })
+function getFakeDependencies () {
+  let fulfilmentTrigger = sinon.stub().returns(Promise.resolve({ok: 'ok'}))
+  let fetchConfig = sinon.stub().returns(Promise.resolve({triggerLambda: {expectedToken: 'testToken'}}))
+  return {
+    triggerFulfilmentFor: fulfilmentTrigger,
+    fetchConfig: fetchConfig
   }
 }
+
 
 function getFakeInput (token, date, amount) {
   let res = {}
@@ -47,8 +46,7 @@ function errorResponse (status, message) {
   res.statusCode = status
   return res
 }
-
-function assertExpectedResponse (test, expected) {
+function verify (test, fakeDeps, expectedResponse, expectedFulfilmentDays) {
   return function (err, res) {
     if (err) {
       let errDesc = JSON.stringify(err)
@@ -56,40 +54,57 @@ function assertExpectedResponse (test, expected) {
       return
     }
     let responseAsJson = JSON.parse(JSON.stringify(res))
-    test.deepEqual(responseAsJson, expected)
+    test.deepEqual(responseAsJson, expectedResponse)
+    test.deepEqual(fakeDeps.triggerFulfilmentFor.callCount, expectedFulfilmentDays.length, 'Unexpected number of calls to trigger fulfilment')
+
+    let allDates = new Set()
+    expectedFulfilmentDays.forEach(function(date){
+      test.true(fakeDeps.triggerFulfilmentFor.calledWith(date),`Fulfilment not triggered for ${date}` )
+    })
     test.end()
   }
 }
 test.cb('should return error if wrong api token', t => {
-  let handle = getHandler(fakeDependencies)
-  t.plan(1)
+
+  let deps = getFakeDependencies()
+  let handle = getHandler(deps)
+
   let wrongTokenInput = getFakeInput('wrongToken', '2017-06-12', 1)
-  handle(wrongTokenInput, {}, assertExpectedResponse(t, errorResponse('401', 'Unauthorized')))
+
+  let expectedResponse = errorResponse('401', 'Unauthorized')
+  let expectedFulfilmentDates = []
+  handle(wrongTokenInput, {}, verify(t, deps,expectedResponse , expectedFulfilmentDates))
 
 })
 test.cb('should return 400 error required parameters are missing', t => {
-  let handle = getHandler(fakeDependencies)
-  t.plan(1)
+  let deps = getFakeDependencies()
+  let handle = getHandler(deps)
   let emptyRequest = {body: '{}'}
-  handle(emptyRequest, {}, assertExpectedResponse(t, errorResponse('400', 'missing amount or date')))
+  let expectedResponse = errorResponse('400', 'missing amount or date')
+  let expectedFulfilments = []
+  handle(emptyRequest, {}, verify(t,deps, expectedResponse, expectedFulfilments))
 })
 test.cb('should return 400 error no api token is provided', t => {
-  let handle = getHandler(fakeDependencies)
-  t.plan(1)
+  let deps = getFakeDependencies()
+  let handle = getHandler(deps)
   let noApiToken = {headers: {}, body: '{"date":"2017-01-02", "amount":1}'}
-  handle(noApiToken, {}, assertExpectedResponse(t, errorResponse('400', 'ApiToken header missing')))
+  let expectedFulfilments = []
+  let expectedResponse =  errorResponse('400', 'ApiToken header missing')
+  handle(noApiToken, {}, verify(t,deps,expectedResponse, expectedFulfilments))
 })
 test.cb('should return 400 error if too many days in request', t => {
-  let handle = getHandler(fakeDependencies)
-  t.plan(1)
+  let deps = getFakeDependencies()
+  let handle = getHandler(deps)
   let tooManyDaysInput = getFakeInput('testToken', '2017-06-12', 21)
-  handle(tooManyDaysInput, {}, assertExpectedResponse(t, errorResponse('400', 'amount should be a number between 1 and 5')))
+  let expectedResponse = errorResponse('400', 'amount should be a number between 1 and 5')
+  let expectedFulfilments = []
+  handle(tooManyDaysInput, {}, verify(t,deps, expectedResponse, expectedFulfilments))
 
 })
 test.cb('should return 200 status on success', t => {
-  let handle = getHandler(fakeDependencies)
-  t.plan(1)
-  let tooManyDaysInput = getFakeInput('testToken', '2017-06-12', 1)
+  let deps = getFakeDependencies()
+  let handle = getHandler(deps)
+  let tooManyDaysInput = getFakeInput('testToken', '2017-06-12', 2)
   let successResponse = {
     'statusCode': '200',
     'headers': {
@@ -97,7 +112,7 @@ test.cb('should return 200 status on success', t => {
     },
     'body': '{"message":"ok"}'
   }
-
-  handle(tooManyDaysInput, {}, assertExpectedResponse(t, successResponse))
+  let expectedFulfilments = ['2017-06-12', '2017-06-13']
+  handle(tooManyDaysInput, {}, verify(t,deps, successResponse, expectedFulfilments))
 
 })

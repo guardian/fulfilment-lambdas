@@ -13,14 +13,7 @@ function getParams (date) {
   return params
 }
 
-let okRes = {
-  'statusCode': '200',
-  'headers': {
-    'Content-Type': 'application/json'
-  },
-  'body': '{"message":"ok"}'
-}
-class ErrorResponse {
+class ApiResponse {
   constructor (status, message) {
     this['statusCode'] = status
     let body = {'message': message}
@@ -28,9 +21,9 @@ class ErrorResponse {
     this.headers = {'Content-Type': 'application/json'}
   }
 }
-
-let serverError = new ErrorResponse('500', 'Unexpected server error')
-let unauthorizedError = new ErrorResponse('401', "Unauthorized")
+let okResponse = new ApiResponse('200', 'ok')
+let serverError = new ApiResponse('500', 'Unexpected server error')
+let unauthorizedError = new ApiResponse('401', "Unauthorized")
 
 function range (amount) {
   let resArray = []
@@ -57,7 +50,7 @@ export function getHandler (dependencies) {
 
     function returnError (status, message) {
       console.log(message)
-      callback(null, new ErrorResponse(status, message))
+      callback(null, new ApiResponse(status, message))
     }
 
     function triggerLambdas (startDate, amount) {
@@ -94,12 +87,12 @@ export function getHandler (dependencies) {
 
     asyncHandler(body.date, body.amount, providedToken)
       .then(res => {
-        console.log(res)
-        callback(null, okRes)
+        console.log("returning success api response")
+        callback(null, okResponse)
       })
       .catch(error => {
         console.log(error)
-        if (error instanceof ErrorResponse) {
+        if (error instanceof ApiResponse) {
           callback(null, error)
         }
         else {
