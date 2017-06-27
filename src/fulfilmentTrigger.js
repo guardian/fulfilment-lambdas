@@ -64,7 +64,7 @@ export function getHandler (dependencies) {
 
     async function asyncHandler (startDate, amount, providedToken) {
       let config = await dependencies.fetchConfig()
-      console.log('Config fetched succesfully.')
+      console.log('Config fetched successfully.')
       await validateToken(config.triggerLambda.expectedToken, providedToken)
       console.log('token validated successfully')
       return triggerLambdas(startDate, amount)

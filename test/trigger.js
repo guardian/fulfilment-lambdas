@@ -101,7 +101,7 @@ test.cb('should return 400 error if too many days in request', t => {
   handle(tooManyDaysInput, {}, verify(t,deps, expectedResponse, expectedFulfilments))
 
 })
-test.cb('should return 200 status on success', t => {
+test.cb('should return 200 status and trigger fulfilment on success', t => {
   let deps = getFakeDependencies()
   let handle = getHandler(deps)
   let tooManyDaysInput = getFakeInput('testToken', '2017-06-12', 2)
