@@ -66,52 +66,57 @@ async function compare () {
     return 'No files found to check.'
   }
 
-  let sfPath = {Bucket: bucket, Key: `${sfprefix}${sfFilenameFor(unchecked[0])}`}
-  let guPath = {Bucket: bucket, Key: `${guprefix}${unchecked[0]}`}
-  let logPath = {Bucket: bucket, Key: `${logprefix}${logFileNameFor(unchecked[0])}`}
+  async function check (filename: string) {
+    let sfPath = {Bucket: bucket, Key: `${sfprefix}${sfFilenameFor(filename)}`}
+    let guPath = {Bucket: bucket, Key: `${guprefix}${filename}`}
+    let logPath = {Bucket: bucket, Key: `${logprefix}${logFileNameFor(filename)}`}
 
-  let logCache = []
+    let logCache = []
 
-  let log = (entry:string) => {
-    if (config.stage === 'CODE') {
-      console.log(entry)
+    let log = (entry:string) => {
+      if (config.stage === 'CODE') {
+        console.log(entry)
+      }
+      logCache.push(entry)
     }
-    logCache.push(entry)
+
+    let sfOutput = await fetchCSV(sfPath)
+    let guOutput = await fetchCSV(guPath)
+
+    Object.keys(sfOutput).forEach((id) => {
+      if (guOutput[id] === undefined || guOutput[id] == null) {
+        log(`Subscription ${id} found in Salesforce Output, but not fulfilment file.`)
+        return
+      }
+      let s = sfOutput[id]
+      let g = guOutput[id]
+      delete guOutput[id] // Removes keys from gu if they're in salesforce fulfilment
+      if (s.length !== g.length) {
+        log(`Differing numbers of fulfilments generated for ${id}. Salesforce: ${s.length} File: ${g.length}`)
+        return
+      }
+      if (s.length > 1) {
+        log(`Multiple subscriptions for ${id} comparing [0] against [0]`)
+      }
+      let differences: ?Array<Difference> = diff(s[0], g[0])
+      if (differences != null) {
+        renderDifference(differences).map(log)
+      }
+    })
+// At this stage, this only includes keys not present in salesforce file
+    Object.keys(guOutput).forEach((id) => {
+      log(`${id} found in fulfilment file but not in Salesforce output.`)
+    })
+    return s3.upload({
+      ACL: 'private',
+      ServerSideEncryption: 'aws:kms',
+      Body: logCache.join('\n'),
+      ...logPath
+    }).promise()
   }
 
-  let sfOutput = await fetchCSV(sfPath)
-  let guOutput = await fetchCSV(guPath)
-
-  Object.keys(sfOutput).forEach((id) => {
-    if (guOutput[id] === undefined || guOutput[id] == null) {
-      log(`Subscription ${id} found in Salesforce Output, but not fulfilment file.`)
-      return
-    }
-    let s = sfOutput[id]
-    let g = guOutput[id]
-    delete guOutput[id] // Removes keys from gu if they're in salesforce fulfilment
-    if (s.length !== g.length) {
-      log(`Differing numbers of fulfilments generated for ${id}. Salesforce: ${s.length} File: ${g.length}`)
-      return
-    }
-    if (s.length > 1) {
-      log(`Multiple subscriptions for ${id} comparing [0] against [0]`)
-    }
-    let differences: ?Array<Difference> = diff(s[0], g[0])
-    if (differences != null) {
-      renderDifference(differences).map(log)
-    }
-  })
-// At this stage, this only includes keys not present in salesforce file
-  Object.keys(guOutput).forEach((id) => {
-    log(`${id} found in fulfilment file but not in Salesforce output.`)
-  })
-  return s3.upload({
-    ACL: 'private',
-    ServerSideEncryption: 'aws:kms',
-    Body: logCache.join('\n'),
-    ...logPath
-  }).promise()
+  let checked = unchecked.map(check)
+  return Promise.all(checked)
 }
 
 function notEmpty (str) {
