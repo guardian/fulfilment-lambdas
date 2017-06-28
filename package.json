@@ -21,7 +21,6 @@
     "lambda-local": "ashiina/lambda-local#316f6c743f6305385655b00db7d8349dac174c1c",
     "node-riffraff-artefact": "^2.0.1",
     "replace-x": "^1.1.1",
-    "sinon": "^2.3.5",
     "snazzy": "^7.0.0",
     "standard": "^10.0.2",
     "standard-flow": "^1.0.0"
