@@ -37,6 +37,9 @@ yarn flow
 echo "TRANSPILING"
 yarn compile
 
+echo "RUNNING UNIT TESTS"
+yarn test
+
 echo "BUNDLING AND UPLOADING TO RIFFRAFF"
 yarn riffraff
 

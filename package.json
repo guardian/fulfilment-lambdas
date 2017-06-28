@@ -29,7 +29,7 @@
     "riffraff-artefact": "./node_modules/.bin/riffraff-artefact",
     "dist": "yarn install --production --modules-folder dist/node_modules",
     "compile": "babel src -d dist",
-    "riffraff": "yarn test && VERBOSE=true ARTEFACT_PATH=$PWD yarn riffraff-artefact",
+    "riffraff": "VERBOSE=true ARTEFACT_PATH=$PWD yarn riffraff-artefact",
     "local": "yarn run:index && yarn run:hello",
     "cloudform": "yarn cloudform:prod & yarn cloudform:code",
     "cloudform:prod": "cp cloudformation/cloudformation.yaml cloudformation/prod.yaml && replace-x '_\\[STAGE\\]' 'PROD' cloudformation/prod.yaml",
