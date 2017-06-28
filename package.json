@@ -28,7 +28,7 @@
   },
   "scripts": {
     "riffraff-artefact": "./node_modules/.bin/riffraff-artefact",
-    "dist": "yarn install --production --modules-folder dist/node_modules",
+    "dist": "yarn install --production --modules-folder dist/node_modules --ignore-optional > /dev/null",
     "compile": "babel src -d dist",
     "riffraff": "VERBOSE=true ARTEFACT_PATH=$PWD yarn riffraff-artefact",
     "local": "yarn run:index && yarn run:hello",

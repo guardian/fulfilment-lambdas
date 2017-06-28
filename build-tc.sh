@@ -8,7 +8,7 @@ nvm install ${NODE_VERSION}
 nvm use ${NODE_VERSION}
 
 # Installing yarn
-YARN_VERSION="0.23.4"
+YARN_VERSION="0.24.6"
 YARN_LOCATION="tools/${YARN_VERSION}"
 
 if [ ! -d "$YARN_LOCATION" ]; then
@@ -22,26 +22,22 @@ PATH="$PATH:${YARN_LOCATION}/dist/bin/"
 # Installing packages via yarn
 
 echo "INSTALLING PRODUCTION DEPENDENCIES"
-yarn dist > /dev/null
-# This is a really noisy command.
+yarn dist || exit 1
 
 echo "INSTALLING BUILD DEPENDENCIES"
-yarn install
+yarn install  || exit 1
 
 echo "LINTING"
-yarn standard
+yarn lint  || exit 1
 
 echo "CHECKING TYPES"
-yarn flow
+yarn flow  || exit 1
 
 echo "TRANSPILING"
-yarn compile
+yarn compile || exit 1
 
 echo "RUNNING UNIT TESTS"
-yarn test
+yarn test || exit 1
 
 echo "BUNDLING AND UPLOADING TO RIFFRAFF"
-yarn riffraff
-
-
-
+yarn riffraff || exit 1
