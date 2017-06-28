@@ -1,18 +1,14 @@
-import {formatPostCode} from './../src/lib/formatters'
-import test from 'ava'
+/* eslint-env jest */
 
-test('postcode', t => {
-  let postcodes = [
-    {in: 'n19gu', out: 'N1 9GU'},
-    {in: 'n1 9gu', out: 'N1 9GU'}, // gu postcodes
-    {in: 'AA9A 9AA', out: 'AA9A 9AA'}, // valid formats from https://en.wikipedia.org/wiki/Postcodes_in_the_United_Kingdom
-    {in: 'A9 9AA', out: 'A9 9AA'},
-    {in: 'AA99 9AA', out: 'AA99 9AA'},
-    {in: 'A99 9AA', out: 'A99 9AA'},
-    {in: 'A9A 9AA', out: 'A9A 9AA'},
-    {in: 'AA9A9AA', out: 'AA9A 9AA'}]
-  t.plan(postcodes.length)
-  postcodes.map(p => {
-    t.true(formatPostCode(p.in) === p.out)
-  })
+import {formatPostCode} from './../src/lib/formatters'
+
+test('postcode formatting', () => {
+  expect(formatPostCode('n19gu')).toEqual('N1 9GU')
+  expect(formatPostCode('n1 9gu')).toEqual('N1 9GU') // gu postcodes
+  expect(formatPostCode('AA9A 9AA')).toEqual('AA9A 9AA') // valid formats from https://en.wikipedia.org/wiki/Postcodes_in_the_United_Kingdom
+  expect(formatPostCode('A9 9AA')).toEqual('A9 9AA')
+  expect(formatPostCode('AA99 9AA')).toEqual('AA99 9AA')
+  expect(formatPostCode('A99 9AA')).toEqual('A99 9AA')
+  expect(formatPostCode('A9A 9AA')).toEqual('A9A 9AA')
+  expect(formatPostCode('AA9A9AA')).toEqual('AA9A 9AA')
 })
