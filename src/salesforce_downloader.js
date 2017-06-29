@@ -1,10 +1,11 @@
+// @flow
 import { fetchConfig } from './lib/config'
 import { authenticate } from './lib/salesforceAuthenticator'
 import AWS from 'aws-sdk'
 import stream from 'stream'
 let s3 = new AWS.S3({ signatureVersion: 'v4' })
 
-export function handler (input, context, callback) {
+export function handler (input:?any, context:?any, callback:Function) {
   q().then((r) => {
     console.log(r)
     console.log('success')

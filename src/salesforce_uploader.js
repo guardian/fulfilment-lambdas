@@ -7,8 +7,8 @@ import { authenticate } from './lib/salesforceAuthenticator'
 const s3 = new AWS.S3({ signatureVersion: 'v4' })
 const BUCKET = 'fulfilment-output-test'
 
-export function handler (input: mixed, context, callback) {
-  if (!(input.path && typeof input.path === 'string')) {
+export function handler (input:?any, context:?any, callback:Function) {
+  if (input == null || typeof input.path !== 'string') {
     callback(new NamedError('inputError', 'Input did not contain filename'))
     return
   }
