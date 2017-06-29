@@ -34,7 +34,7 @@ async function q () {
   console.log('Getting home delivery folder')
   let folder = await sf.getFolderId('HOME_DELIVERY_FULFILMENT')
   console.log('Fetching file list from Salesforce.')
-  let documentQuery = await sf.getp(`/services/data/v20.0/query?q=SELECT Id, Name FROM Document WHERE FolderId= '${folder}'`)
+  let documentQuery = await sf.get(`/services/data/v20.0/query?q=SELECT Id, Name FROM Document WHERE FolderId= '${folder}'`)
   console.log('Parsing response.')
   let {records: documents} = JSON.parse(documentQuery)
   console.log('Ignoring existing files:', keys)
@@ -45,7 +45,7 @@ async function q () {
 
   let uploads = filtered.map(doc => {
     console.log('Starting download of ', doc.Name)
-    let dl = sf.get(`${doc.attributes.url}/Body`)
+    let dl = sf.getStream(`${doc.attributes.url}/Body`)
     let st = new stream.PassThrough()
     dl.pipe(st)
     let params = {
