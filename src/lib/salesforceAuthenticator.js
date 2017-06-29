@@ -60,6 +60,10 @@ export class Salesforce {
       throw new Error(`Failed to parse salesforce attempt when listing folder ${folderId.name} (${folderId.folderId}) contents.`)
     }
     let j = JSON.parse(response)
-    return j.documents
+    console.log(j)
+    if (j == null || j.records == null) {
+      throw new Error('No records received from Salesforce')
+    }
+    return j.records // Todo: make this return an [document]
   }
 }

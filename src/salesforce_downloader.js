@@ -6,7 +6,7 @@ import stream from 'stream'
 let s3 = new AWS.S3({ signatureVersion: 'v4' })
 
 export function handler (input:?any, context:?any, callback:Function) {
-  q().then((r) => {
+  downloader().then((r) => {
     console.log(r)
     console.log('success')
     callback(null, r)
@@ -16,7 +16,7 @@ export function handler (input:?any, context:?any, callback:Function) {
   })
 }
 
-async function q () {
+async function downloader () {
   console.log('Fetching config from S3.')
   let config = await fetchConfig()
 
@@ -31,11 +31,11 @@ async function q () {
 
   let keys = resp.Contents.map(r => { return r.Key.slice(prefix.length) })
 
-  let sf = await authenticate(config)
+  let salesforce = await authenticate(config)
   console.log('Getting home delivery folder')
-  let folder = await sf.getFolderId('HOME_DELIVERY_FULFILMENT')
-  console.log('Fetching file list from Salesforce.')
-  let documents = await sf.getDocuments(folder)
+  let folder = await salesforce.getFolderId('HOME_DELIVERY_FULFILMENT')
+  console.log('Fetching file list from Salesalesforceorce.')
+  let documents = await salesforce.getDocuments(folder)
   console.log('Ignoring existing files:', keys)
 
   let filtered = documents.filter((d) => {
@@ -44,7 +44,7 @@ async function q () {
 
   let uploads = filtered.map(doc => {
     console.log('Starting download of ', doc.Name)
-    let dl = sf.getStream(`${doc.attributes.url}/Body`)
+    let dl = salesforce.getStream(`${doc.attributes.url}/Body`)
     let st = new stream.PassThrough()
     dl.pipe(st)
     let params = {
