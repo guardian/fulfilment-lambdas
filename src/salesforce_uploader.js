@@ -1,3 +1,4 @@
+// @flow
 import { fetchConfig } from './lib/config'
 import AWS from 'aws-sdk'
 import NamedError from './lib/NamedError'

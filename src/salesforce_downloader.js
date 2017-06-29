@@ -34,9 +34,7 @@ async function q () {
   console.log('Getting home delivery folder')
   let folder = await sf.getFolderId('HOME_DELIVERY_FULFILMENT')
   console.log('Fetching file list from Salesforce.')
-  let documentQuery = await sf.get(`/services/data/v20.0/query?q=SELECT Id, Name FROM Document WHERE FolderId= '${folder}'`)
-  console.log('Parsing response.')
-  let {records: documents} = JSON.parse(documentQuery)
+  let documents = await sf.getDocuments(folder)
   console.log('Ignoring existing files:', keys)
 
   let filtered = documents.filter((d) => {
