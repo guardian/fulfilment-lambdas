@@ -44,8 +44,8 @@ export async function authenticate (config: Config) {
     getp: async function (endpoint: string) {
       return rp.get({ uri: `${j.instance_url}${endpoint}`, headers: { 'Authorization': `Bearer ${j.access_token}` } })
     },
-    getFulfilmentFolder: async function () {
-      let endpoint = `/services/data/v20.0/query?q=SELECT Id, Name FROM Folder WHERE Name= 'HOME_DELIVERY_FULFILMENT'`
+    getFolderId: async function (name: string) {
+      let endpoint = `/services/data/v20.0/query?q=SELECT Id, Name FROM Folder WHERE Name= '${name}'`
       let folderQuery = await rp.get({ uri: `${j.instance_url}${endpoint}`, headers: { 'Authorization': `Bearer ${j.access_token}` } })
       let folderResult = JSON.parse(folderQuery)
       if (folderResult.totalSize !== 1) {
