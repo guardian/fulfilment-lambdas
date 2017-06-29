@@ -32,7 +32,7 @@ async function q () {
 
   let sf = await authenticate(config)
   console.log('Getting home delivery folder')
-  let folder = await sf.getFulfilmentFolder()
+  let folder = await sf.getFolderId('HOME_DELIVERY_FULFILMENT')
   console.log('Fetching file list from Salesforce.')
   let documentQuery = await sf.getp(`/services/data/v20.0/query?q=SELECT Id, Name FROM Document WHERE FolderId= '${folder}'`)
   console.log('Parsing response.')
