@@ -15,6 +15,7 @@
     "babel-plugin-transform-object-rest-spread": "^6.23.0",
     "babel-preset-env": "1.5.2",
     "babel-preset-flow": "^6.23.0",
+    "eslint-plugin-flowtype": "^2.34.1",
     "eslint-plugin-import": "^2.2.0",
     "flow-bin": "^0.49.1",
     "jest": "^20.0.4",
@@ -22,12 +23,11 @@
     "node-riffraff-artefact": "^2.0.1",
     "replace-x": "^1.1.1",
     "snazzy": "^7.0.0",
-    "standard": "^10.0.2",
-    "standard-flow": "^1.0.0"
+    "standard": "^10.0.2"
   },
   "scripts": {
     "riffraff-artefact": "./node_modules/.bin/riffraff-artefact",
-    "dist": "yarn install --production --modules-folder dist/node_modules --ignore-optional > /dev/null",
+    "dist": "mv node_modules node_modules_bak && yarn install --frozen-lockfile --production --modules-folder dist/node_modules > /dev/null && rm -rf node_modules/ && mv node_modules_bak node_modules",
     "compile": "babel src -d dist",
     "riffraff": "VERBOSE=true ARTEFACT_PATH=$PWD yarn riffraff-artefact",
     "local": "yarn run:index && yarn run:hello",

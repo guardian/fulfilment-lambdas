@@ -20,15 +20,11 @@ fi
 PATH="$PATH:${YARN_LOCATION}/dist/bin/"
 
 # Installing packages via yarn
+echo "INSTALLING BUILD DEPENDENCIES"
+yarn install || exit 1
 
 echo "CHECKING YARN LOCKFILE UNCHANGED BY BUILD"
 yarn check || exit 1
-
-echo "INSTALLING PRODUCTION DEPENDENCIES"
-yarn dist || exit 1
-
-echo "INSTALLING BUILD DEPENDENCIES"
-yarn install || exit 1
 
 echo "LINTING"
 yarn lint  || exit 1
@@ -41,6 +37,9 @@ yarn compile || exit 1
 
 echo "RUNNING UNIT TESTS"
 yarn test || exit 1
+
+echo "INSTALLING PRODUCTION DEPENDENCIES"
+yarn dist || exit 1
 
 echo "BUNDLING AND UPLOADING TO RIFFRAFF"
 yarn riffraff || exit 1
