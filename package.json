@@ -42,13 +42,8 @@
     "run:sfup": "lambda-local -l dist/salesforce_uploader.js -e test/upload.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
     "run:comparator": "lambda-local -l dist/comparator.js -e test/fetcher.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
     "clean": "rm -rf dist && rm -rf target && rm -f cloudformation/prod.yaml && rm -f  cloudformation/code.yaml",
-<<<<<<< HEAD
     "lint": "standard | snazzy",
     "test": "jest"
-=======
-    "test": "ava test/*.js",
-    "lint": "standard | snazzy && flow"
->>>>>>> A lamda to upload files to the HD fulfilment folder in salesforce.
   },
   "dependencies": {
     "deep-diff": "^0.3.8",

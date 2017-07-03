@@ -33,7 +33,7 @@ async function downloader () {
 
   let salesforce = await authenticate(config)
   console.log('Getting home delivery folder')
-  let folder = await salesforce.getFolderId('HOME_DELIVERY_FULFILMENT')
+  let folder = config.salesforce.downloadFolder
   console.log('Fetching file list from Salesalesforceorce.')
   let documents = await salesforce.getDocuments(folder)
   console.log('Ignoring existing files:', keys)

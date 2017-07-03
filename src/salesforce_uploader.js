@@ -27,7 +27,7 @@ async function uploader (input: { path: string }) {
   const config = await fetchConfig()
   const salesforce = await authenticate(config)
   console.log('Finding fulfilment folder.')
-  const folder = await salesforce.getFolderId('HOME_DELIVERY_FULFILMENT')
+  const folder = config.salesforce.uploadFolder
   console.log(folder)
   // get file from s3 as stream
 

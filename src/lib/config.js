@@ -1,6 +1,8 @@
 // @flow
 import AWS from 'aws-sdk'
 import NamedError from './NamedError'
+import type {folder} from './salesforceAuthenticator'
+
 let s3 = new AWS.S3()
 
 export type Stage = 'CODE' | 'PROD'
@@ -22,7 +24,9 @@ export type Config = {
       password: string,
       token: string,
       salesforceUrl: string
-    }
+    },
+      uploadFolder: folder,
+      downloadFolder: folder
   }
 }
 

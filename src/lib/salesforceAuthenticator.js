@@ -2,9 +2,8 @@
 import request from 'request'
 import rp from 'request-promise-native'
 import type {Config} from './config'
-import NamedError from './NamedError'
 
-type folder = {
+export type folder = {
   folderId: string,
   name: string
 }
@@ -44,15 +43,6 @@ export class Salesforce {
       headers: this.headers,
       formData: form
     })
-  }
-  async getFolderId (name: string):Promise<folder> {
-    let folderQuery = await this.get(`/services/data/v20.0/query?q=SELECT Id, Name FROM Folder WHERE Name= '${name}'`)
-    let folderResult = JSON.parse(folderQuery)
-    if (folderResult.totalSize !== 1) {
-      console.log('Could not find fulfilment folder', folderResult)
-      throw new NamedError('Could not find folder', 'Could not find folder')
-    }
-    return {folderId: folderResult.records[0].Id, name: name}
   }
   async getDocuments (folderId: folder) {
     let response = await this.get(`/services/data/v20.0/query?q=SELECT Id, Name FROM Document WHERE FolderId= '${folderId.folderId}'`)
