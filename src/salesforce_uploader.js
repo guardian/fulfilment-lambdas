@@ -33,12 +33,12 @@ async function uploader (input: { path: string }) {
 
   let options = { Bucket: BUCKET, Key: `${config.stage}/${input.path}` }
   console.log(`Retreiving file ${options.Key} from S3 bucket ${options.Bucket}.`)
-  let d = await s3.getObject(options).promise()
+  let fileToUpload = await s3.getObject(options).promise()
 
   // build a little json
   let message = {
-    'Description': 'a test file',
-    'Keywords': 'hello!',
+    'Description': `Home Delivery Fulfilment file ${input.path}`,
+    'Keywords': 'fulfilment',
     'FolderId': folder,
     'Name': input.path,
     'Type': 'csv'
@@ -55,7 +55,7 @@ async function uploader (input: { path: string }) {
         contentType: 'application/json'
       }
     },
-    Body: { value: d.Body, options: { contentType: 'text/csv', filename: input.path } }
+    Body: { value: fileToUpload.Body, options: { contentType: 'text/csv', filename: input.path } }
   }
 
   return salesforce.post(url, form)
