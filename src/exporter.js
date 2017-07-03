@@ -17,7 +17,7 @@ const POSTAL_CODE = 'SoldToContact.PostalCode'
 const SUBSCRIPTION_NAME = 'Subscription.Name'
 const QUANTITY = 'RatePlanCharge.Quantity'
 const WORK_PHONE = 'SoldToContact.WorkPhone'
-const CONTACT_DESCRIPTION = 'SoldToContact.Description'
+const DELIVERY_INSTRUCTIONS = 'Account.SpecialDeliveryInstructions__c'
 // output headers
 const CUSTOMER_REFERENCE = 'Customer Reference'
 const CUSTOMER_FULL_NAME = 'Customer Full Name'
@@ -118,7 +118,7 @@ export function handler (input, context, callback) {
                 outputCsvRow[DELIVERY_DATE] = deliveryDate
                 outputCsvRow[CHARGE_DAY] = chargeDay
                 outputCsvRow[CUSTOMER_PHONE] = data[WORK_PHONE]
-                outputCsvRow[ADDITIONAL_INFORMATION] = data[CONTACT_DESCRIPTION]
+                outputCsvRow[ADDITIONAL_INFORMATION] = data[DELIVERY_INSTRUCTIONS]
                 writeCSVStream.write(outputCsvRow)
               }
             })

@@ -18,7 +18,7 @@ function queryZuora (deliveryDate, config) {
               SoldToContact.PostalCode, 
               SoldToContact.State,
               SoldToContact.workPhone,
-              SoldToContact.description
+              Account.SpecialDeliveryInstructions__c
           FROM 
             rateplancharge 
           WHERE
