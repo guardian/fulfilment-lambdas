@@ -1,16 +1,15 @@
-import { getHandler } from './../src/fulfilmentTrigger'
-import test from 'ava'
-import sinon from 'sinon'
+/* eslint-env jest */
+
+import { getHandler } from '../src/fulfilmentTrigger'
 
 function getFakeDependencies () {
-  let fulfilmentTrigger = sinon.stub().returns(Promise.resolve({ok: 'ok'}))
-  let fetchConfig = sinon.stub().returns(Promise.resolve({triggerLambda: {expectedToken: 'testToken'}}))
+  let fulfilmentTrigger = jest.fn(() => Promise.resolve({ok: 'ok'}))
+  let fetchConfig = jest.fn(() => Promise.resolve({triggerLambda: {expectedToken: 'testToken'}}))
   return {
     triggerFulfilmentFor: fulfilmentTrigger,
     fetchConfig: fetchConfig
   }
 }
-
 
 function getFakeInput (token, date, amount) {
   let res = {}
@@ -24,17 +23,6 @@ function getFakeInput (token, date, amount) {
   return res
 }
 
-function getCallback (test) {
-  return function (err, res) {
-    if (err) {
-      test.fail(err)
-    }
-    else {
-      test.pass()
-    }
-    test.end()
-  }
-}
 function errorResponse (status, message) {
   let res = {}
   let body = {}
@@ -46,7 +34,7 @@ function errorResponse (status, message) {
   res.statusCode = status
   return res
 }
-function verify (test, fakeDeps, expectedResponse, expectedFulfilmentDays) {
+function verify (done, fakeDeps, expectedResponse, expectedFulfilmentDays) {
   return function (err, res) {
     if (err) {
       let errDesc = JSON.stringify(err)
@@ -54,18 +42,22 @@ function verify (test, fakeDeps, expectedResponse, expectedFulfilmentDays) {
       return
     }
     let responseAsJson = JSON.parse(JSON.stringify(res))
-    test.deepEqual(responseAsJson, expectedResponse)
-    test.deepEqual(fakeDeps.triggerFulfilmentFor.callCount, expectedFulfilmentDays.length, 'Unexpected number of calls to trigger fulfilment')
+    try {
+      expect(responseAsJson).toEqual(expectedResponse)
 
-    let allDates = new Set()
-    expectedFulfilmentDays.forEach(function(date){
-      test.true(fakeDeps.triggerFulfilmentFor.calledWith(date),`Fulfilment not triggered for ${date}` )
-    })
-    test.end()
+      expect(fakeDeps.triggerFulfilmentFor.mock.calls.length).toBe(expectedFulfilmentDays.length)
+
+      expectedFulfilmentDays.forEach(function (date) {
+        expect(fakeDeps.triggerFulfilmentFor).toBeCalledWith(date)
+      })
+      done()
+    } catch (error) {
+      done.fail(error)
+    }
   }
 }
-test.cb('should return error if wrong api token', t => {
 
+test('should return error if api token is wrong', done => {
   let deps = getFakeDependencies()
   let handle = getHandler(deps)
 
@@ -73,35 +65,34 @@ test.cb('should return error if wrong api token', t => {
 
   let expectedResponse = errorResponse('401', 'Unauthorized')
   let expectedFulfilmentDates = []
-  handle(wrongTokenInput, {}, verify(t, deps,expectedResponse , expectedFulfilmentDates))
-
+  handle(wrongTokenInput, {}, verify(done, deps, expectedResponse, expectedFulfilmentDates))
 })
-test.cb('should return 400 error required parameters are missing', t => {
+
+test('should return 400 error required parameters are missing', done => {
   let deps = getFakeDependencies()
   let handle = getHandler(deps)
   let emptyRequest = {body: '{}'}
   let expectedResponse = errorResponse('400', 'missing amount or date')
   let expectedFulfilments = []
-  handle(emptyRequest, {}, verify(t,deps, expectedResponse, expectedFulfilments))
+  handle(emptyRequest, {}, verify(done, deps, expectedResponse, expectedFulfilments))
 })
-test.cb('should return 400 error no api token is provided', t => {
+test('should return 400 error no api token is provided', done => {
   let deps = getFakeDependencies()
   let handle = getHandler(deps)
   let noApiToken = {headers: {}, body: '{"date":"2017-01-02", "amount":1}'}
   let expectedFulfilments = []
-  let expectedResponse =  errorResponse('400', 'ApiToken header missing')
-  handle(noApiToken, {}, verify(t,deps,expectedResponse, expectedFulfilments))
+  let expectedResponse = errorResponse('400', 'ApiToken header missing')
+  handle(noApiToken, {}, verify(done, deps, expectedResponse, expectedFulfilments))
 })
-test.cb('should return 400 error if too many days in request', t => {
+test('should return 400 error if too many days in request', done => {
   let deps = getFakeDependencies()
   let handle = getHandler(deps)
   let tooManyDaysInput = getFakeInput('testToken', '2017-06-12', 21)
   let expectedResponse = errorResponse('400', 'amount should be a number between 1 and 5')
   let expectedFulfilments = []
-  handle(tooManyDaysInput, {}, verify(t,deps, expectedResponse, expectedFulfilments))
-
+  handle(tooManyDaysInput, {}, verify(done, deps, expectedResponse, expectedFulfilments))
 })
-test.cb('should return 200 status and trigger fulfilment on success', t => {
+test('should return 200 status and trigger fulfilment on success', done => {
   let deps = getFakeDependencies()
   let handle = getHandler(deps)
   let input = getFakeInput('testToken', '2017-06-12', 2)
@@ -113,6 +104,5 @@ test.cb('should return 200 status and trigger fulfilment on success', t => {
     'body': '{"message":"ok"}'
   }
   let expectedFulfilments = ['2017-06-12', '2017-06-13']
-  handle(input, {}, verify(t,deps, successResponse, expectedFulfilments))
-
+  handle(input, {}, verify(done, deps, successResponse, expectedFulfilments))
 })

@@ -1,5 +1,4 @@
 import { fetchConfig } from './lib/config'
-import request from 'request'
 import moment from 'moment'
 import AWS from 'aws-sdk'
 const stepfunctions = new AWS.StepFunctions()
@@ -23,7 +22,7 @@ class ApiResponse {
 }
 let okResponse = new ApiResponse('200', 'ok')
 let serverError = new ApiResponse('500', 'Unexpected server error')
-let unauthorizedError = new ApiResponse('401', "Unauthorized")
+let unauthorizedError = new ApiResponse('401', 'Unauthorized')
 
 function range (amount) {
   let resArray = []
@@ -35,10 +34,9 @@ function range (amount) {
 
 function validateToken (expectedToken, providedToken) {
   return new Promise((resolve, reject) => {
-    if (expectedToken == providedToken) {
+    if (expectedToken === providedToken) {
       resolve()
-    }
-    else {
+    } else {
       console.log('failed token authentication')
       reject(unauthorizedError)
     }
@@ -47,7 +45,6 @@ function validateToken (expectedToken, providedToken) {
 
 export function getHandler (dependencies) {
   return function handle (input, context, callback) {
-
     function returnError (status, message) {
       console.log(message)
       callback(null, new ApiResponse(status, message))
@@ -55,9 +52,9 @@ export function getHandler (dependencies) {
 
     function triggerLambdas (startDate, amount) {
       let results = range(amount).map(offset => {
-          let date = moment(startDate, DATE_FORMAT).add(offset, 'days').format(DATE_FORMAT)
-          return dependencies.triggerFulfilmentFor(date)
-        }
+        let date = moment(startDate, DATE_FORMAT).add(offset, 'days').format(DATE_FORMAT)
+        return dependencies.triggerFulfilmentFor(date)
+      }
       )
       return Promise.all(results)
     }
@@ -87,15 +84,14 @@ export function getHandler (dependencies) {
 
     asyncHandler(body.date, body.amount, providedToken)
       .then(res => {
-        console.log("returning success api response")
+        console.log('returning success api response')
         callback(null, okResponse)
       })
       .catch(error => {
         console.log(error)
         if (error instanceof ApiResponse) {
           callback(null, error)
-        }
-        else {
+        } else {
           callback(null, serverError)
         }
       })
@@ -108,8 +104,7 @@ function triggerFulfilmentForDate (date: String) {
       if (err) {
         console.log(err, err.stack)
         reject(err)
-      }
-      else {
+      } else {
         resolve(data)
       }
     })
@@ -122,5 +117,3 @@ export function handler (input, context, callback) {
     triggerFulfilmentFor: triggerFulfilmentForDate
   })(input, context, callback)
 }
-
-
