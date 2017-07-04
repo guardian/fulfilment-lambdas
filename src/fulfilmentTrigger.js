@@ -5,7 +5,6 @@ const DATE_FORMAT = 'YYYY-MM-DD'
 const BAD_REQUEST = '400'
 const MAX_DAYS = 5
 
-
 class ApiResponse {
   constructor (status, message) {
     this['statusCode'] = status
@@ -45,10 +44,9 @@ export function handle (input, context, callback) {
 
   function triggerLambdas (startDate, amount) {
     let results = range(amount).map(offset => {
-        let date = moment(startDate, DATE_FORMAT).add(offset, 'days').format(DATE_FORMAT)
-        return triggerStateMachine(`{"deliveryDate" : "${date}"}`, process.env.StateMachine)
-      }
-    )
+      let date = moment(startDate, DATE_FORMAT).add(offset, 'days').format(DATE_FORMAT)
+      return triggerStateMachine(`{"deliveryDate" : "${date}"}`, process.env.StateMachine)
+    })
     return Promise.all(results)
   }
 
@@ -89,7 +87,3 @@ export function handle (input, context, callback) {
       }
     })
 }
-
-
-
-

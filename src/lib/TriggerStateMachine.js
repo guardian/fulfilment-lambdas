@@ -8,7 +8,6 @@ function getParams (input, stateMachineArn) {
   return params
 }
 
-
 export function triggerStateMachine (input, stateMachineArn) {
   return new Promise((resolve, reject) => {
     stepfunctions.startExecution(getParams(input, stateMachineArn), function (err, data) {
