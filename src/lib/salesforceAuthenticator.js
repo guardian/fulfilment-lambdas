@@ -3,6 +3,11 @@ import request from 'request'
 import rp from 'request-promise-native'
 import type {Config} from './config'
 
+export type folder = {
+  folderId: string,
+  name: string
+}
+
 export async function authenticate (config: Config) {
   console.log('Authenticating with Salesforce.')
 
@@ -16,12 +21,39 @@ export async function authenticate (config: Config) {
   }
   let result = await rp.post(url, { form: auth })
   let j = JSON.parse(result)
-  return {
-    get: function (endpoint: string) {
-      return request.get({ uri: `${j.instance_url}${endpoint}`, headers: { 'Authorization': `Bearer ${j.access_token}` } })
-    },
-    getp: async function (endpoint: string) {
-      return rp.get({ uri: `${j.instance_url}${endpoint}`, headers: { 'Authorization': `Bearer ${j.access_token}` } })
+  return new Salesforce(j.instance_url, j.access_token)
+}
+
+export class Salesforce {
+  url: string
+  headers: Object
+  constructor (url: string, token: string) {
+    this.url = url
+    this.headers = { 'Authorization': `Bearer ${token}` }
+  }
+  getStream (endpoint: string) {
+    return request.get({ uri: `${this.url}${endpoint}`, headers: this.headers })
+  }
+  get (endpoint: string) {
+    return rp.get({ uri: `${this.url}${endpoint}`, headers: this.headers })
+  }
+  post (endpoint: string, form: mixed) {
+    return rp.post({
+      uri: `${this.url}${endpoint}`,
+      headers: this.headers,
+      formData: form
+    })
+  }
+  async getDocuments (folderId: folder) {
+    let response = await this.get(`/services/data/v20.0/query?q=SELECT Id, Name FROM Document WHERE FolderId= '${folderId.folderId}'`)
+    if (response == null) {
+      throw new Error(`Failed to parse salesforce attempt when listing folder ${folderId.name} (${folderId.folderId}) contents.`)
     }
+    let j = JSON.parse(response)
+    console.log(j)
+    if (j == null || j.records == null) {
+      throw new Error('No records received from Salesforce')
+    }
+    return j.records // Todo: make this return an [document]
   }
 }

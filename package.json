@@ -39,6 +39,7 @@
     "run:fetcher": "lambda-local -l dist/fetcher.js -e test/fetcher.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
     "run:trigger": "lambda-local -l dist/fulfilmentTrigger.js -e test/trigger.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"\\,\\\"StateMachine\\\":\\\"'STATE_MACHINE_ARN_HERE'\\\"}",
     "run:sf": "lambda-local -l dist/salesforce_downloader.js -e test/fetcher.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
+    "run:sfup": "lambda-local -l dist/salesforce_uploader.js -e test/upload.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
     "run:comparator": "lambda-local -l dist/comparator.js -e test/fetcher.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
     "clean": "rm -rf dist && rm -rf target && rm -f cloudformation/prod.yaml && rm -f  cloudformation/code.yaml",
     "lint": "standard | snazzy",
