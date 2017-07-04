@@ -36,7 +36,7 @@ function validateToken (expectedToken, providedToken) {
   })
 }
 
-export function handle (input, context, callback) {
+export function handler (input, context, callback) {
   function returnError (status, message) {
     console.log(message)
     callback(null, new ApiResponse(status, message))

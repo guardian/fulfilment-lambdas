@@ -1,6 +1,6 @@
 /* eslint-env jest */
 
-import { handle } from '../src/fulfilmentTrigger'
+import { handler } from '../src/fulfilmentTrigger'
 
 jest.mock('../src/lib/TriggerStateMachine', () => {
   return {
@@ -79,26 +79,26 @@ test('should return error if api token is wrong', done => {
   let wrongTokenInput = getFakeInput('wrongToken', '2017-06-12', 1)
   let expectedResponse = errorResponse('401', 'Unauthorized')
   let expectedFulfilmentDates = []
-  handle(wrongTokenInput, {}, verify(done, expectedResponse, expectedFulfilmentDates))
+  handler(wrongTokenInput, {}, verify(done, expectedResponse, expectedFulfilmentDates))
 })
 
 test('should return 400 error required parameters are missing', done => {
   let emptyRequest = {body: '{}'}
   let expectedResponse = errorResponse('400', 'missing amount or date')
   let expectedFulfilments = []
-  handle(emptyRequest, {}, verify(done, expectedResponse, expectedFulfilments))
+  handler(emptyRequest, {}, verify(done, expectedResponse, expectedFulfilments))
 })
 test('should return 400 error no api token is provided', done => {
   let noApiToken = {headers: {}, body: '{"date":"2017-01-02", "amount":1}'}
   let expectedFulfilments = []
   let expectedResponse = errorResponse('400', 'ApiToken header missing')
-  handle(noApiToken, {}, verify(done, expectedResponse, expectedFulfilments))
+  handler(noApiToken, {}, verify(done, expectedResponse, expectedFulfilments))
 })
 test('should return 400 error if too many days in request', done => {
   let tooManyDaysInput = getFakeInput('testToken', '2017-06-12', 21)
   let expectedResponse = errorResponse('400', 'amount should be a number between 1 and 5')
   let expectedFulfilments = []
-  handle(tooManyDaysInput, {}, verify(done, expectedResponse, expectedFulfilments))
+  handler(tooManyDaysInput, {}, verify(done, expectedResponse, expectedFulfilments))
 })
 test('should return 200 status and trigger fulfilment on success', done => {
   let input = getFakeInput('testToken', '2017-06-12', 2)
@@ -110,12 +110,12 @@ test('should return 200 status and trigger fulfilment on success', done => {
     'body': '{"message":"ok"}'
   }
   let expectedFulfilments = ['2017-06-12', '2017-06-13']
-  handle(input, {}, verify(done, successResponse, expectedFulfilments))
+  handler(input, {}, verify(done, successResponse, expectedFulfilments))
 })
 
 test('should return error if api token is wrong', done => {
   let wrongTokenInput = getFakeInput('wrongToken', '2017-06-12', 1)
   let expectedResponse = errorResponse('401', 'Unauthorized')
   let expectedFulfilmentDates = []
-  handle(wrongTokenInput, {}, verify(done, expectedResponse, expectedFulfilmentDates))
+  handler(wrongTokenInput, {}, verify(done, expectedResponse, expectedFulfilmentDates))
 })
