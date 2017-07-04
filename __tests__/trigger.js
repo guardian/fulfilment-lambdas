@@ -1,15 +1,29 @@
 /* eslint-env jest */
 
-import { getHandler } from '../src/fulfilmentTrigger'
+import { handle } from '../src/fulfilmentTrigger'
 
-function getFakeDependencies () {
-  let fulfilmentTrigger = jest.fn(() => Promise.resolve({ok: 'ok'}))
-  let fetchConfig = jest.fn(() => Promise.resolve({triggerLambda: {expectedToken: 'testToken'}}))
+jest.mock('../src/lib/TriggerStateMachine', () => {
   return {
-    triggerFulfilmentFor: fulfilmentTrigger,
-    fetchConfig: fetchConfig
+    triggerStateMachine: jest.fn(() => Promise.resolve({ok: 'ok'}))
   }
-}
+})
+
+jest.mock('../src/lib/config', () => {
+  let fakeResponse = {
+    triggerLambda: {
+      expectedToken: 'testToken'
+    }
+  }
+  return {
+    fetchConfig: jest.fn(() => Promise.resolve(fakeResponse))
+  }
+})
+
+let fakeMod = require('../src/lib/TriggerStateMachine')
+let fulfilmentTrigger = fakeMod.triggerStateMachine
+
+let fakeStateMachineArn = 'StateMachineARN'
+process.env.StateMachine = fakeStateMachineArn
 
 function getFakeInput (token, date, amount) {
   let res = {}
@@ -34,7 +48,7 @@ function errorResponse (status, message) {
   res.statusCode = status
   return res
 }
-function verify (done, fakeDeps, expectedResponse, expectedFulfilmentDays) {
+function verify (done, expectedResponse, expectedFulfilmentDays) {
   return function (err, res) {
     if (err) {
       let errDesc = JSON.stringify(err)
@@ -45,10 +59,10 @@ function verify (done, fakeDeps, expectedResponse, expectedFulfilmentDays) {
     try {
       expect(responseAsJson).toEqual(expectedResponse)
 
-      expect(fakeDeps.triggerFulfilmentFor.mock.calls.length).toBe(expectedFulfilmentDays.length)
+      expect(fulfilmentTrigger.mock.calls.length).toBe(expectedFulfilmentDays.length)
 
       expectedFulfilmentDays.forEach(function (date) {
-        expect(fakeDeps.triggerFulfilmentFor).toBeCalledWith(date)
+        expect(fulfilmentTrigger).toHaveBeenCalledWith(`{"deliveryDate" : "${date}"}`, fakeStateMachineArn)
       })
       done()
     } catch (error) {
@@ -57,44 +71,36 @@ function verify (done, fakeDeps, expectedResponse, expectedFulfilmentDays) {
   }
 }
 
+beforeEach(() => {
+  fulfilmentTrigger.mock.calls = []
+})
+
 test('should return error if api token is wrong', done => {
-  let deps = getFakeDependencies()
-  let handle = getHandler(deps)
-
   let wrongTokenInput = getFakeInput('wrongToken', '2017-06-12', 1)
-
   let expectedResponse = errorResponse('401', 'Unauthorized')
   let expectedFulfilmentDates = []
-  handle(wrongTokenInput, {}, verify(done, deps, expectedResponse, expectedFulfilmentDates))
+  handle(wrongTokenInput, {}, verify(done, expectedResponse, expectedFulfilmentDates))
 })
 
 test('should return 400 error required parameters are missing', done => {
-  let deps = getFakeDependencies()
-  let handle = getHandler(deps)
   let emptyRequest = {body: '{}'}
   let expectedResponse = errorResponse('400', 'missing amount or date')
   let expectedFulfilments = []
-  handle(emptyRequest, {}, verify(done, deps, expectedResponse, expectedFulfilments))
+  handle(emptyRequest, {}, verify(done, expectedResponse, expectedFulfilments))
 })
 test('should return 400 error no api token is provided', done => {
-  let deps = getFakeDependencies()
-  let handle = getHandler(deps)
   let noApiToken = {headers: {}, body: '{"date":"2017-01-02", "amount":1}'}
   let expectedFulfilments = []
   let expectedResponse = errorResponse('400', 'ApiToken header missing')
-  handle(noApiToken, {}, verify(done, deps, expectedResponse, expectedFulfilments))
+  handle(noApiToken, {}, verify(done, expectedResponse, expectedFulfilments))
 })
 test('should return 400 error if too many days in request', done => {
-  let deps = getFakeDependencies()
-  let handle = getHandler(deps)
   let tooManyDaysInput = getFakeInput('testToken', '2017-06-12', 21)
   let expectedResponse = errorResponse('400', 'amount should be a number between 1 and 5')
   let expectedFulfilments = []
-  handle(tooManyDaysInput, {}, verify(done, deps, expectedResponse, expectedFulfilments))
+  handle(tooManyDaysInput, {}, verify(done, expectedResponse, expectedFulfilments))
 })
 test('should return 200 status and trigger fulfilment on success', done => {
-  let deps = getFakeDependencies()
-  let handle = getHandler(deps)
   let input = getFakeInput('testToken', '2017-06-12', 2)
   let successResponse = {
     'statusCode': '200',
@@ -104,5 +110,12 @@ test('should return 200 status and trigger fulfilment on success', done => {
     'body': '{"message":"ok"}'
   }
   let expectedFulfilments = ['2017-06-12', '2017-06-13']
-  handle(input, {}, verify(done, deps, successResponse, expectedFulfilments))
+  handle(input, {}, verify(done, successResponse, expectedFulfilments))
+})
+
+test('should return error if api token is wrong', done => {
+  let wrongTokenInput = getFakeInput('wrongToken', '2017-06-12', 1)
+  let expectedResponse = errorResponse('401', 'Unauthorized')
+  let expectedFulfilmentDates = []
+  handle(wrongTokenInput, {}, verify(done, expectedResponse, expectedFulfilmentDates))
 })
