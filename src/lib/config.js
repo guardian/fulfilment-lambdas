@@ -23,10 +23,10 @@ export type Config = {
       username: string,
       password: string,
       token: string,
-      salesforceUrl: string,
+      salesforceUrl: string
     },
-    uploadFolder: folder,
-    downloadFolder: folder
+      uploadFolder: folder,
+      downloadFolder: folder
   },
   triggerLambda: {
     expectedToken: string
