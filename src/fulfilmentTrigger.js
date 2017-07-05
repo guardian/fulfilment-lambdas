@@ -1,3 +1,5 @@
+// @flow
+
 import { fetchConfig } from './lib/config'
 import { triggerStateMachine } from './lib/TriggerStateMachine'
 import moment from 'moment'
@@ -6,10 +8,14 @@ const BAD_REQUEST = '400'
 const MAX_DAYS = 5
 
 class ApiResponse {
+  body: string
+  statusCode: string
+  headers: { 'Content-Type': string }
+
   constructor (status, message) {
-    this['statusCode'] = status
     let body = {'message': message}
     this.body = JSON.stringify(body)
+    this.statusCode = status
     this.headers = {'Content-Type': 'application/json'}
   }
 }
@@ -35,8 +41,15 @@ function validateToken (expectedToken, providedToken) {
     }
   })
 }
+type inputHeaders = {
+  apiToken ?: string
+}
+type apiGatewayLambdaInput = {
+  body: string,
+  headers: inputHeaders
 
-export function handler (input, context, callback) {
+}
+export function handler (input: apiGatewayLambdaInput, context: any, callback: (error: any, apiResponse: ApiResponse) => void) {
   function returnError (status, message) {
     console.log(message)
     callback(null, new ApiResponse(status, message))

@@ -23,6 +23,9 @@ export type Config = {
       token: string,
       salesforceUrl: string
     }
+  },
+  triggerLambda: {
+    expectedToken: string
   }
 }
 
