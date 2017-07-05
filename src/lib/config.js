@@ -27,6 +27,9 @@ export type Config = {
     },
       uploadFolder: folder,
       downloadFolder: folder
+  },
+  triggerLambda: {
+    expectedToken: string
   }
 }
 
