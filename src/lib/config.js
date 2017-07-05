@@ -23,14 +23,14 @@ export type Config = {
       username: string,
       password: string,
       token: string,
-      salesforceUrl: string
-    }
+      salesforceUrl: string,
+    },
+    uploadFolder: folder,
+    downloadFolder: folder
   },
   triggerLambda: {
     expectedToken: string
-  },
-  uploadFolder: folder,
-  downloadFolder: folder
+  }
 }
 
 const stages:Array<string> = ['CODE', 'PROD']
