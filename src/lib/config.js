@@ -28,10 +28,9 @@ export type Config = {
   },
   triggerLambda: {
     expectedToken: string
-    },
-      uploadFolder: folder,
-      downloadFolder: folder
-  }
+  },
+  uploadFolder: folder,
+  downloadFolder: folder
 }
 
 const stages:Array<string> = ['CODE', 'PROD']
