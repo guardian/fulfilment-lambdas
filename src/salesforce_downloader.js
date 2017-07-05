@@ -1,12 +1,12 @@
+// @flow
 import { fetchConfig } from './lib/config'
 import { authenticate } from './lib/salesforceAuthenticator'
 import AWS from 'aws-sdk'
 import stream from 'stream'
-import NamedError from './lib/NamedError'
 let s3 = new AWS.S3({ signatureVersion: 'v4' })
 
-export function handler (input, context, callback) {
-  q().then((r) => {
+export function handler (input:?any, context:?any, callback:Function) {
+  downloader().then((r) => {
     console.log(r)
     console.log('success')
     callback(null, r)
@@ -16,7 +16,7 @@ export function handler (input, context, callback) {
   })
 }
 
-async function q () {
+async function downloader () {
   console.log('Fetching config from S3.')
   let config = await fetchConfig()
 
@@ -31,19 +31,11 @@ async function q () {
 
   let keys = resp.Contents.map(r => { return r.Key.slice(prefix.length) })
 
-  let sf = await authenticate(config)
+  let salesforce = await authenticate(config)
   console.log('Getting home delivery folder')
-  let folderQuery = await sf.getp(`/services/data/v20.0/query?q=SELECT Id, Name FROM Folder WHERE Name= 'HOME_DELIVERY_FULFILMENT'`)
-  let folderResult = JSON.parse(folderQuery)
-  if (folderResult.totalSize !== 1) {
-    console.log('Could not find fulfilment folder', folderResult)
-    throw new NamedError('Could not find folder', 'Could not find folder')
-  }
-  let folder = folderResult.records[0].Id
-  console.log('Fetching file list from Salesforce.')
-  let documentQuery = await sf.getp(`/services/data/v20.0/query?q=SELECT Id, Name FROM Document WHERE FolderId= '${folder}'`)
-  console.log('Parsing response.')
-  let {records: documents} = JSON.parse(documentQuery)
+  let folder = config.salesforce.downloadFolder
+  console.log('Fetching file list from Saleforce.')
+  let documents = await salesforce.getDocuments(folder)
   console.log('Ignoring existing files:', keys)
 
   let filtered = documents.filter((d) => {
@@ -52,7 +44,7 @@ async function q () {
 
   let uploads = filtered.map(doc => {
     console.log('Starting download of ', doc.Name)
-    let dl = sf.get(`${doc.attributes.url}/Body`)
+    let dl = salesforce.getStream(`${doc.attributes.url}/Body`)
     let st = new stream.PassThrough()
     dl.pipe(st)
     let params = {
