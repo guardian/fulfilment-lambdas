@@ -1,9 +1,7 @@
-import AWS from 'aws-sdk'
 import csv from 'fast-csv'
 import moment from 'moment'
-import {formatPostCode} from './lib/formatters'
-
-let s3 = new AWS.S3({ signatureVersion: 'v4' })
+import { formatPostCode } from './lib/formatters'
+import { upload, createReadStream } from './lib/storage'
 
 // input headers
 const ADDRESS_1 = 'SoldToContact.Address1'
@@ -37,24 +35,25 @@ const BUCKET = 'fulfilment-output-test'
 const HOLIDAYS_QUERY_NAME = 'HolidaySuspensions'
 const SUBSCRIPTIONS_QUERY_NAME = 'Subscriptions'
 
-const stage = process.env.Stage
-
 export function handler (input, context, callback) {
+
+  let stage = process.env.Stage
+
   function getDownloadStreamFromBucket (queryName) {
+    console.log(`getting results file for query: ${queryName}`)
     let fileName = getFileName(queryName)
     if (!fileName) {
       callback(new Error(`Invalid input cannot find unique query called ${queryName}`))
     }
-    let key = `${stage}/zuoraExport/${fileName}`
-    console.log(`reading ${queryName} file from ${BUCKET}/${key}`)
-    let options = {Bucket: BUCKET, Key: key}
-    return s3.getObject(options).createReadStream()
+    let path = `${stage}/zuoraExport/${fileName}`
+    return createReadStream(path)
   }
 
   function getFileName (queryName) {
     function isTargetQuery (result) {
       return result.queryName === queryName
     }
+
     let filtered = input.results.filter(isTargetQuery)
 
     if (filtered.length !== 1) {
@@ -65,6 +64,7 @@ export function handler (input, context, callback) {
   }
 
   let sentDate = moment().format('DD/MM/YYYY')
+
   let chargeDay = moment(input.deliveryDate, 'YYYY-MM-DD').format('dddd')
   let deliveryDate = moment(input.deliveryDate, 'YYYY-MM-DD').format('DD/MM/YYYY')
 
@@ -74,19 +74,18 @@ export function handler (input, context, callback) {
     let csvStream = csv.parse({
       headers: true
     })
-            .on('data', function (data) {
-              let subName = data['Subscription.Name']
-              suspendedSubs.add(subName)
-            })
-            .on('end', function () {
-              resolve(suspendedSubs)
-            })
-
+      .on('data', function (data) {
+        let subName = data['Subscription.Name']
+        suspendedSubs.add(subName)
+      })
+      .on('end', function () {
+        resolve(suspendedSubs)
+      })
     getDownloadStreamFromBucket(HOLIDAYS_QUERY_NAME)
-            .on('error', function (err) {
-              reject(new Error(`error reading holidaySuspensions: ${err}`))
-            })
-            .pipe(csvStream)
+      .on('error', function (err) {
+        reject(new Error(`error reading holidaySuspensions: ${err}`))
+      })
+      .pipe(csvStream)
   })
 
   function processSubs (holidaySuspensions) {
@@ -99,50 +98,44 @@ export function handler (input, context, callback) {
     let csvStream = csv.parse({
       headers: true
     })
-            .on('data-invalid', function (data) {
-                // TODO CAN WE LOG PII?
-              console.log('ignoring invalid data: ' + data)
-            })
-            .on('data', function (data) {
-              let subscriptionName = data[SUBSCRIPTION_NAME]
-              if (!holidaySuspensions.has(subscriptionName)) {
-                let outputCsvRow = {}
-                outputCsvRow[CUSTOMER_REFERENCE] = subscriptionName
-                outputCsvRow[CUSTOMER_TOWN] = data[CITY]
-                outputCsvRow[CUSTOMER_POSTCODE] = formatPostCode(data[POSTAL_CODE])
-                outputCsvRow[CUSTOMER_ADDRESS_LINE_1] = data[ADDRESS_1]
-                outputCsvRow[CUSTOMER_ADDRESS_LINE_2] = data[ADDRESS_2]
-                outputCsvRow[CUSTOMER_FULL_NAME] = data[FIRST_NAME] + ' ' + data[LAST_NAME]
-                outputCsvRow[DELIVERY_QUANTITY] = data[QUANTITY]
-                outputCsvRow[SENT_DATE] = sentDate
-                outputCsvRow[DELIVERY_DATE] = deliveryDate
-                outputCsvRow[CHARGE_DAY] = chargeDay
-                outputCsvRow[CUSTOMER_PHONE] = data[WORK_PHONE]
-                outputCsvRow[ADDITIONAL_INFORMATION] = data[DELIVERY_INSTRUCTIONS]
-                writeCSVStream.write(outputCsvRow)
-              }
-            })
-            .on('end', function () {
-              writeCSVStream.end()
-            })
+      .on('data-invalid', function (data) {
+        // TODO CAN WE LOG PII?
+        console.log('ignoring invalid data: ' + data)
+      })
+      .on('data', function (data) {
+        let subscriptionName = data[SUBSCRIPTION_NAME]
+        if (!holidaySuspensions.has(subscriptionName)) {
+          let outputCsvRow = {}
+          outputCsvRow[CUSTOMER_REFERENCE] = subscriptionName
+          outputCsvRow[CUSTOMER_TOWN] = data[CITY]
+          outputCsvRow[CUSTOMER_POSTCODE] = formatPostCode(data[POSTAL_CODE])
+          outputCsvRow[CUSTOMER_ADDRESS_LINE_1] = data[ADDRESS_1]
+          outputCsvRow[CUSTOMER_ADDRESS_LINE_2] = data[ADDRESS_2]
+          outputCsvRow[CUSTOMER_FULL_NAME] = data[FIRST_NAME] + ' ' + data[LAST_NAME]
+          outputCsvRow[DELIVERY_QUANTITY] = data[QUANTITY]
+          outputCsvRow[SENT_DATE] = sentDate
+          outputCsvRow[DELIVERY_DATE] = deliveryDate
+          outputCsvRow[CHARGE_DAY] = chargeDay
+          outputCsvRow[CUSTOMER_PHONE] = data[WORK_PHONE]
+          outputCsvRow[ADDITIONAL_INFORMATION] = data[DELIVERY_INSTRUCTIONS]
+          writeCSVStream.write(outputCsvRow)
+        }
+      })
+      .on('end', function () {
+        writeCSVStream.end()
+      })
 
     getDownloadStreamFromBucket(SUBSCRIPTIONS_QUERY_NAME)
-        .on('error', function (err) {
-          callback(new Error(`error reading holidaySuspensions: ${err}`))
-        })
-        .pipe(csvStream)
+      .on('error', function (err) {
+        callback(new Error(`error reading holidaySuspensions: ${err}`))
+      })
+      .pipe(csvStream)
 
     let dateSuffix = moment(input.deliveryDate, 'YYYY-MM-DD').format('DD_MM_YYYY')
     let outputFileName = `HOME_DELIVERY_${chargeDay}_${dateSuffix}.csv`
     let outputLocation = `${stage}/fulfilment_output/${outputFileName}`
-    console.log(`saving fulfilment file to ${BUCKET}/${outputLocation}`)
-    let params = {
-      Bucket: BUCKET,
-      Key: outputLocation,
-      Body: writeCSVStream,
-      ServerSideEncryption: 'aws:kms'
-    }
-    s3.upload(params).send(function (err, data) {
+
+    upload(writeCSVStream, outputLocation, function (err, data) {
       if (err) {
         console.log('ERROR ' + err)
         callback(err)
@@ -156,9 +149,14 @@ export function handler (input, context, callback) {
 
   console.log(`stage is ${stage}`)
 
+  if (!stage) {
+    callback(new Error('missing stage env variable'))
+    return
+  }
+
   if (stage !== 'CODE' && stage !== 'PROD') {
     callback(new Error(`invalid stage: ${stage}, please fix Stage env variable`))
     return
   }
   getHolidaySuspensions.then(processSubs).catch(error => callback(error))
-};
+}

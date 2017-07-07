@@ -52,7 +52,7 @@ function verify (done, expectedResponse, expectedFulfilmentDays) {
   return function (err, res) {
     if (err) {
       let errDesc = JSON.stringify(err)
-      test.fail(`Unexpected error Response ${errDesc}`)
+      done.fail(`Unexpected error Response ${errDesc}`)
       return
     }
     let responseAsJson = JSON.parse(JSON.stringify(res))
