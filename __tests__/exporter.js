@@ -54,31 +54,61 @@ function verify (done, expectedError, expectedResponse, expectedFileName) {
         done()
         return
       }
-      let responseAsJson = JSON.parse(JSON.stringify(res))
 
-      expect(responseAsJson).toEqual(expectedResponse)
-
-      getTestFile(expectedFileName, function (err, expectedContents) {
-        if (err) {
-          done.fail(err)
-          return
-        }
-        expect(expectedContents).toEqual(mockOutput)
-        done()
-      })
+      if (expectedResponse) {
+        let responseAsJson = JSON.parse(JSON.stringify(res))
+        expect(responseAsJson).toEqual(expectedResponse)
+      }
+      if (expectedFileName) {
+        getTestFile(expectedFileName, function (err, expectedContents) {
+          if (err) {
+            done.fail(err)
+            return
+          }
+          expect(expectedContents).toEqual(mockOutput)
+          done()
+        })
+      }
     } catch (error) {
       done.fail(error)
     }
   }
 }
 
-process.env.Stage = 'CODE'
-
 beforeEach(() => {
-
+  process.env.Stage = 'CODE'
 })
 
-test('should return error on invalid date')
+test('should return error on missing query subscriptions query result', done => {
+  let input = {
+    deliveryDate: '2017-07-06',
+    results: [
+      {
+        queryName: 'HolidaySuspensions',
+        fileName: 'HolidaySuspensions_2017-07-06.csv'
+      }
+    ]
+  }
+  let expectedError = new Error('Invalid input cannot find unique query called Subscriptions')
+  handler(input, {}, verify(done, expectedError, null, null))
+})
+
+test('should return error on invalid stage value', done => {
+  process.env.Stage = 'SOMETHING'
+
+  let input = {
+    deliveryDate: '2017-07-06',
+    results: [
+      {
+        queryName: 'HolidaySuspensions',
+        fileName: 'HolidaySuspensions_2017-07-06.csv'
+      }
+    ]
+  }
+  let expectedError = new Error('invalid stage: SOMETHING, please fix Stage env variable')
+  handler(input, {}, verify(done, expectedError, null, null))
+})
+
 test('should generate correct fulfilment file', done => {
   let input = {
     deliveryDate: '2017-07-06',

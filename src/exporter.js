@@ -30,18 +30,7 @@ const outputHeaders = [CUSTOMER_REFERENCE, 'Contract ID', CUSTOMER_FULL_NAME, 'C
 const HOLIDAYS_QUERY_NAME = 'HolidaySuspensions'
 const SUBSCRIPTIONS_QUERY_NAME = 'Subscriptions'
 
-export function handler (input, context, callback) {
-  let stage = process.env.Stage
-  function getDownloadStreamFromBucket (queryName) {
-    console.log(`getting results file for query: ${queryName}`)
-    let fileName = getFileName(queryName)
-    if (!fileName) {
-      callback(new Error(`Invalid input cannot find unique query called ${queryName}`))
-    }
-    let path = `${stage}/zuoraExport/${fileName}`
-    return createReadStream(path)
-  }
-
+function getDownloadStreamFromBucket (input, stage, queryName) {
   function getFileName (queryName) {
     function isTargetQuery (result) {
       return result.queryName === queryName
@@ -56,12 +45,20 @@ export function handler (input, context, callback) {
     }
   }
 
-  let sentDate = moment().format('DD/MM/YYYY')
+  return new Promise((resolve, reject) => {
+    console.log(`getting results file for query: ${queryName}`)
+    let fileName = getFileName(queryName)
+    if (!fileName) {
+      reject(new Error(`Invalid input cannot find unique query called ${queryName}`))
+      return
+    }
+    let path = `${stage}/zuoraExport/${fileName}`
+    resolve(createReadStream(path))
+  })
+}
 
-  let chargeDay = moment(input.deliveryDate, 'YYYY-MM-DD').format('dddd')
-  let deliveryDate = moment(input.deliveryDate, 'YYYY-MM-DD').format('DD/MM/YYYY')
-
-  let getHolidaySuspensions = new Promise((resolve, reject) => {
+function getHolidaySuspensions (downloadStream) {
+  return new Promise((resolve, reject) => {
     let suspendedSubs = new Set()
 
     let csvStream = csv.parse({
@@ -74,16 +71,20 @@ export function handler (input, context, callback) {
       .on('end', function () {
         resolve(suspendedSubs)
       })
-    getDownloadStreamFromBucket(HOLIDAYS_QUERY_NAME)
-      .on('error', function (err) {
-        reject(new Error(`error reading holidaySuspensions: ${err}`))
-      })
+
+    downloadStream.on('error', function (err) {
+      reject(new Error(`error reading holidaySuspensions: ${err}`))
+    })
       .pipe(csvStream)
   })
+}
+function processSubs (downloadStream, inputDeliveryDate, stage, holidaySuspensions) {
+  let sentDate = moment().format('DD/MM/YYYY')
+  let chargeDay = moment(inputDeliveryDate, 'YYYY-MM-DD').format('dddd')
+  let deliveryDate = moment(inputDeliveryDate, 'YYYY-MM-DD').format('DD/MM/YYYY')
 
-  function processSubs (holidaySuspensions) {
+  return new Promise((resolve, reject) => {
     console.log('loaded ' + holidaySuspensions.size + ' holiday suspensions')
-
     let writeCSVStream = csv.createWriteStream({
       headers: outputHeaders
     })
@@ -118,38 +119,58 @@ export function handler (input, context, callback) {
         writeCSVStream.end()
       })
 
-    getDownloadStreamFromBucket(SUBSCRIPTIONS_QUERY_NAME)
-      .on('error', function (err) {
-        callback(new Error(`error reading holidaySuspensions: ${err}`))
-      })
+    downloadStream.on('error', function (err) {
+      reject(new Error(`error reading holidaySuspensions: ${err}`))
+    })
       .pipe(csvStream)
 
-    let dateSuffix = moment(input.deliveryDate, 'YYYY-MM-DD').format('DD_MM_YYYY')
+    let dateSuffix = moment(inputDeliveryDate, 'YYYY-MM-DD').format('DD_MM_YYYY')
     let outputFileName = `HOME_DELIVERY_${chargeDay}_${dateSuffix}.csv`
     let outputLocation = `${stage}/fulfilment_output/${outputFileName}`
 
     upload(writeCSVStream, outputLocation, function (err, data) {
       if (err) {
         console.log('ERROR ' + err)
-        callback(err)
+        reject(err)
       } else {
-        callback(null, {
-          fulfilmentFile: outputFileName
-        })
+        resolve(outputFileName)
       }
     })
-  }
+  })
+}
 
-  console.log(`stage is ${stage}`)
+function getStage () {
+  return new Promise((resolve, reject) => {
+    let stage = process.env.Stage
+    if (!stage) {
+      reject(new Error('missing stage env variable'))
+      return
+    }
 
-  if (!stage) {
-    callback(new Error('missing stage env variable'))
-    return
-  }
+    if (stage !== 'CODE' && stage !== 'PROD') {
+      reject(new Error(`invalid stage: ${stage}, please fix Stage env variable`))
+      return
+    }
+    console.log(`stage is ${stage}`)
 
-  if (stage !== 'CODE' && stage !== 'PROD') {
-    callback(new Error(`invalid stage: ${stage}, please fix Stage env variable`))
-    return
-  }
-  getHolidaySuspensions.then(processSubs).catch(error => callback(error))
+    resolve(stage)
+  })
+}
+
+async function asyncHandler (input) {
+  let stage = await getStage()
+  let holidaySuspensionsStream = await getDownloadStreamFromBucket(input, stage, HOLIDAYS_QUERY_NAME)
+  let holidaySuspensions = await getHolidaySuspensions(holidaySuspensionsStream)
+  let subscriptionsStream = await getDownloadStreamFromBucket(input, stage, SUBSCRIPTIONS_QUERY_NAME)
+  let outputFileName = await processSubs(subscriptionsStream, input.deliveryDate, stage, holidaySuspensions)
+  return outputFileName
+}
+
+export function handler (input, context, callback) {
+  asyncHandler(input)
+    .then(outputFileName => callback(null, {fulfilmentFile: outputFileName}))
+    .catch(e => {
+      console.log(e)
+      callback(e)
+    })
 }
