@@ -77,6 +77,7 @@ function verify (done, expectedError, expectedResponse, expectedFileName) {
 
 beforeEach(() => {
   process.env.Stage = 'CODE'
+  mockOutput = null
 })
 
 test('should return error on missing query subscriptions query result', done => {
