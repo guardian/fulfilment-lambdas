@@ -80,7 +80,8 @@ beforeEach(() => {
 
 })
 
-test('some test', done => {
+test('should return error on invalid date')
+test('should generate correct fulfilment file', done => {
 
   let input = {
   deliveryDate: "2017-07-06",
