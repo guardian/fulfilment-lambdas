@@ -109,6 +109,20 @@ test('should return error on invalid stage value', done => {
   handler(input, {}, verify(done, expectedError, null, null))
 })
 
+test('should return error on invalid deliveryDate', done => {
+  let input = {
+    deliveryDate: '2017-14-06',
+    results: [
+      {
+        queryName: 'HolidaySuspensions',
+        fileName: 'HolidaySuspensions_2017-07-06.csv'
+      }
+    ]
+  }
+  let expectedError = new Error('invalid deliverydate expected format YYYY-MM-DD')
+  handler(input, {}, verify(done, expectedError, null, null))
+})
+
 test('should generate correct fulfilment file', done => {
   let input = {
     deliveryDate: '2017-07-06',

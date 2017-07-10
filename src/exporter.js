@@ -30,13 +30,13 @@ const outputHeaders = [CUSTOMER_REFERENCE, 'Contract ID', CUSTOMER_FULL_NAME, 'C
 const HOLIDAYS_QUERY_NAME = 'HolidaySuspensions'
 const SUBSCRIPTIONS_QUERY_NAME = 'Subscriptions'
 
-function getDownloadStreamFromBucket (input, stage, queryName) {
+function getDownloadStream (results, stage, queryName) {
   function getFileName (queryName) {
     function isTargetQuery (result) {
       return result.queryName === queryName
     }
 
-    let filtered = input.results.filter(isTargetQuery)
+    let filtered = results.filter(isTargetQuery)
 
     if (filtered.length !== 1) {
       return null // not sure if there are options in js
@@ -78,10 +78,10 @@ function getHolidaySuspensions (downloadStream) {
       .pipe(csvStream)
   })
 }
-function processSubs (downloadStream, inputDeliveryDate, stage, holidaySuspensions) {
+function processSubs (downloadStream, deliveryDate, stage, holidaySuspensions) {
   let sentDate = moment().format('DD/MM/YYYY')
-  let chargeDay = moment(inputDeliveryDate, 'YYYY-MM-DD').format('dddd')
-  let deliveryDate = moment(inputDeliveryDate, 'YYYY-MM-DD').format('DD/MM/YYYY')
+  let chargeDay = deliveryDate.format('dddd')
+  let formattedDeliveryDate = deliveryDate.format('DD/MM/YYYY')
 
   return new Promise((resolve, reject) => {
     console.log('loaded ' + holidaySuspensions.size + ' holiday suspensions')
@@ -108,7 +108,7 @@ function processSubs (downloadStream, inputDeliveryDate, stage, holidaySuspensio
           outputCsvRow[CUSTOMER_FULL_NAME] = data[FIRST_NAME] + ' ' + data[LAST_NAME]
           outputCsvRow[DELIVERY_QUANTITY] = data[QUANTITY]
           outputCsvRow[SENT_DATE] = sentDate
-          outputCsvRow[DELIVERY_DATE] = deliveryDate
+          outputCsvRow[DELIVERY_DATE] = formattedDeliveryDate
           outputCsvRow[CHARGE_DAY] = chargeDay
           outputCsvRow[CUSTOMER_PHONE] = data[WORK_PHONE]
           outputCsvRow[ADDITIONAL_INFORMATION] = data[DELIVERY_INSTRUCTIONS]
@@ -124,7 +124,7 @@ function processSubs (downloadStream, inputDeliveryDate, stage, holidaySuspensio
     })
       .pipe(csvStream)
 
-    let dateSuffix = moment(inputDeliveryDate, 'YYYY-MM-DD').format('DD_MM_YYYY')
+    let dateSuffix = deliveryDate.format('DD_MM_YYYY')
     let outputFileName = `HOME_DELIVERY_${chargeDay}_${dateSuffix}.csv`
     let outputLocation = `${stage}/fulfilment_output/${outputFileName}`
 
@@ -152,17 +152,29 @@ function getStage () {
       return
     }
     console.log(`stage is ${stage}`)
-
     resolve(stage)
+  })
+}
+
+function getDeliveryDate (input) {
+  return new Promise((resolve, reject) => {
+    let deliveryDate = moment(input.deliveryDate, 'YYYY-MM-DD')
+    console.log('delivery date was ' + deliveryDate)
+    if (deliveryDate.isValid()) {
+      resolve(deliveryDate)
+    } else {
+      reject(new Error('invalid deliverydate expected format YYYY-MM-DD'))
+    }
   })
 }
 
 async function asyncHandler (input) {
   let stage = await getStage()
-  let holidaySuspensionsStream = await getDownloadStreamFromBucket(input, stage, HOLIDAYS_QUERY_NAME)
+  let deliveryDate = await getDeliveryDate(input)
+  let holidaySuspensionsStream = await getDownloadStream(input.results, stage, HOLIDAYS_QUERY_NAME)
   let holidaySuspensions = await getHolidaySuspensions(holidaySuspensionsStream)
-  let subscriptionsStream = await getDownloadStreamFromBucket(input, stage, SUBSCRIPTIONS_QUERY_NAME)
-  let outputFileName = await processSubs(subscriptionsStream, input.deliveryDate, stage, holidaySuspensions)
+  let subscriptionsStream = await getDownloadStream(input.results, stage, SUBSCRIPTIONS_QUERY_NAME)
+  let outputFileName = await processSubs(subscriptionsStream, deliveryDate, stage, holidaySuspensions)
   return outputFileName
 }
 
