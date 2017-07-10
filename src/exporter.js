@@ -2,16 +2,13 @@ import csv from 'fast-csv'
 import moment from 'moment'
 import { formatPostCode } from './lib/formatters'
 import { upload, createReadStream } from './lib/storage'
-
 // input headers
 const ADDRESS_1 = 'SoldToContact.Address1'
 const ADDRESS_2 = 'SoldToContact.Address2'
 const CITY = 'SoldToContact.City'
-// const COUNTRY = 'SoldToContact.Country'  TODO NOT USED?
 const FIRST_NAME = 'SoldToContact.FirstName'
 const LAST_NAME = 'SoldToContact.LastName'
 const POSTAL_CODE = 'SoldToContact.PostalCode'
-// const STATE = 'SoldToContact.State' TODO NOT USED?
 const SUBSCRIPTION_NAME = 'Subscription.Name'
 const QUANTITY = 'RatePlanCharge.Quantity'
 const WORK_PHONE = 'SoldToContact.WorkPhone'
@@ -29,16 +26,12 @@ const SENT_DATE = 'Sent Date'
 const DELIVERY_DATE = 'Delivery Date'
 const CHARGE_DAY = 'Charge day'
 const CUSTOMER_PHONE = 'Customer Telephone'
-
 const outputHeaders = [CUSTOMER_REFERENCE, 'Contract ID', CUSTOMER_FULL_NAME, 'Customer Job Title', 'Customer Company', 'Customer Department', CUSTOMER_ADDRESS_LINE_1, CUSTOMER_ADDRESS_LINE_2, 'Customer Address Line 3', CUSTOMER_TOWN, CUSTOMER_POSTCODE, DELIVERY_QUANTITY, CUSTOMER_PHONE, 'Property type', 'Front Door Access', 'Door Colour', 'House Details', 'Where to Leave', 'Landmarks', ADDITIONAL_INFORMATION, 'Letterbox', 'Source campaign', SENT_DATE, DELIVERY_DATE, 'Returned Date', 'Delivery problem', 'Delivery problem notes', CHARGE_DAY]
-const BUCKET = 'fulfilment-output-test'
 const HOLIDAYS_QUERY_NAME = 'HolidaySuspensions'
 const SUBSCRIPTIONS_QUERY_NAME = 'Subscriptions'
 
 export function handler (input, context, callback) {
-
   let stage = process.env.Stage
-
   function getDownloadStreamFromBucket (queryName) {
     console.log(`getting results file for query: ${queryName}`)
     let fileName = getFileName(queryName)
