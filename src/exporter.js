@@ -1,7 +1,9 @@
+// @flow
 import csv from 'fast-csv'
 import moment from 'moment'
 import { formatPostCode } from './lib/formatters'
 import { upload, createReadStream } from './lib/storage'
+import { ReadStream } from 'fs'
 // input headers
 const ADDRESS_1 = 'SoldToContact.Address1'
 const ADDRESS_2 = 'SoldToContact.Address2'
@@ -30,7 +32,16 @@ const outputHeaders = [CUSTOMER_REFERENCE, 'Contract ID', CUSTOMER_FULL_NAME, 'C
 const HOLIDAYS_QUERY_NAME = 'HolidaySuspensions'
 const SUBSCRIPTIONS_QUERY_NAME = 'Subscriptions'
 
-function getDownloadStream (results, stage, queryName) {
+type result = {
+  queryName: string,
+  fileName: string
+}
+type ExporterInput = {
+  deliveryDate: string,
+  results: Array<result>
+}
+
+function getDownloadStream (results: Array<result>, stage: string, queryName: string): Promise<ReadStream> {
   function getFileName (queryName) {
     function isTargetQuery (result) {
       return result.queryName === queryName
@@ -57,7 +68,7 @@ function getDownloadStream (results, stage, queryName) {
   })
 }
 
-function getHolidaySuspensions (downloadStream) {
+function getHolidaySuspensions (downloadStream: ReadStream): Promise<Set<string>> {
   return new Promise((resolve, reject) => {
     let suspendedSubs = new Set()
 
@@ -78,7 +89,7 @@ function getHolidaySuspensions (downloadStream) {
       .pipe(csvStream)
   })
 }
-function processSubs (downloadStream, deliveryDate, stage, holidaySuspensions) {
+function processSubs (downloadStream: ReadStream, deliveryDate: moment, stage: string, holidaySuspensions: Set<string>): Promise<string> {
   let sentDate = moment().format('DD/MM/YYYY')
   let chargeDay = deliveryDate.format('dddd')
   let formattedDeliveryDate = deliveryDate.format('DD/MM/YYYY')
@@ -139,7 +150,7 @@ function processSubs (downloadStream, deliveryDate, stage, holidaySuspensions) {
   })
 }
 
-function getStage () {
+function getStage (): Promise<string> {
   return new Promise((resolve, reject) => {
     let stage = process.env.Stage
     if (!stage) {
@@ -156,10 +167,9 @@ function getStage () {
   })
 }
 
-function getDeliveryDate (input) {
+function getDeliveryDate (input: ExporterInput): Promise<moment> {
   return new Promise((resolve, reject) => {
     let deliveryDate = moment(input.deliveryDate, 'YYYY-MM-DD')
-    console.log('delivery date was ' + deliveryDate)
     if (deliveryDate.isValid()) {
       resolve(deliveryDate)
     } else {
@@ -168,7 +178,7 @@ function getDeliveryDate (input) {
   })
 }
 
-async function asyncHandler (input) {
+async function asyncHandler (input: ExporterInput) {
   let stage = await getStage()
   let deliveryDate = await getDeliveryDate(input)
   let holidaySuspensionsStream = await getDownloadStream(input.results, stage, HOLIDAYS_QUERY_NAME)
@@ -178,7 +188,7 @@ async function asyncHandler (input) {
   return outputFileName
 }
 
-export function handler (input, context, callback) {
+export function handler (input: ExporterInput, context: ?any, callback: Function) {
   asyncHandler(input)
     .then(outputFileName => callback(null, {fulfilmentFile: outputFileName}))
     .catch(e => {
