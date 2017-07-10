@@ -21,13 +21,13 @@ function getTestFile (fileName, callback) {
 jest.mock('../src/lib/storage', () => {
   let fs = require('fs')
 
-  function streamToString (stream, cb) {
-    const chunks = []
-    stream.on('data', (chunk) => {
-      chunks.push(chunk.toString())
+  function streamToString (stream, callback) {
+    let parts = []
+    stream.on('data', (data) => {
+      parts.push(data.toString())
     })
     stream.on('end', () => {
-      cb(chunks.join(''))
+      callback(parts.join(''))
     })
   }
 
