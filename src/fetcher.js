@@ -1,11 +1,7 @@
-import AWS from 'aws-sdk'
 import request from 'request'
 import { fetchConfig } from './lib/config'
 import NamedError from './lib/NamedError'
-
-let UPLOAD_BUCKET = 'fulfilment-output-test'
-
-let uploadS3 = new AWS.S3({ signatureVersion: 'v4' })
+import { upload } from './lib/storage'
 
 function fetchFile (batch, deliveryDate, config) {
   return new Promise((resolve, reject) => {
@@ -41,17 +37,10 @@ function fetchFile (batch, deliveryDate, config) {
 function uploadFile (fileData, config) {
   let promise = new Promise((resolve, reject) => {
     let savePath = `${config.stage}/zuoraExport/${fileData.fileName}`
-    let params = {
-      Bucket: UPLOAD_BUCKET,
-      Key: savePath,
-      Body: fileData.data,
-      ServerSideEncryption: 'aws:kms'
-    }
-    uploadS3.upload(params).send(function (err, data) {
+    upload(fileData.data, savePath, function (err, data) {
       if (err) {
         reject(new NamedError('s3_upload_error', 'ERROR uploading results to S3 ' + err))
       } else {
-        console.log(`uploaded file to ${UPLOAD_BUCKET}/${savePath}`)
         let response = {
           queryName: fileData.batchName,
           fileName: fileData.fileName
