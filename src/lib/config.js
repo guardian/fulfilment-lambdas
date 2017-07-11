@@ -39,11 +39,9 @@ export function getStage (): Promise<Stage> {
     let stage = stages.find((stage) => { return stage === process.env.Stage })
     if (stage) {
       resolve(stage)
-    }
-    else {
+    } else {
       reject(new Error(`invalid stage: ${process.env.Stage || 'not found'}, please fix Stage env variable`))
     }
-
   })
 }
 
