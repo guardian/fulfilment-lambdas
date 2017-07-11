@@ -4,6 +4,8 @@ import moment from 'moment'
 import { formatPostCode } from './lib/formatters'
 import { upload, createReadStream } from './lib/storage'
 import { ReadStream } from 'fs'
+import {getStage} from './lib/config'
+
 // input headers
 const ADDRESS_1 = 'SoldToContact.Address1'
 const ADDRESS_2 = 'SoldToContact.Address2'
@@ -147,23 +149,6 @@ function processSubs (downloadStream: ReadStream, deliveryDate: moment, stage: s
         resolve(outputFileName)
       }
     })
-  })
-}
-
-function getStage (): Promise<string> {
-  return new Promise((resolve, reject) => {
-    let stage = process.env.Stage
-    if (!stage) {
-      reject(new Error('missing stage env variable'))
-      return
-    }
-
-    if (stage !== 'CODE' && stage !== 'PROD') {
-      reject(new Error(`invalid stage: ${stage}, please fix Stage env variable`))
-      return
-    }
-    console.log(`stage is ${stage}`)
-    resolve(stage)
   })
 }
 

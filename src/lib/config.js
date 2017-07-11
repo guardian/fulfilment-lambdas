@@ -6,6 +6,7 @@ import type {folder} from './salesforceAuthenticator'
 let s3 = new AWS.S3()
 
 export type Stage = 'CODE' | 'PROD'
+const stages: Array<Stage> = ['CODE', 'PROD']
 
 export type Config = {
   stage: Stage,
@@ -33,16 +34,22 @@ export type Config = {
   }
 }
 
-const stages:Array<string> = ['CODE', 'PROD']
-export function fetchConfig ():Promise<Config> {
+export function getStage (): Promise<Stage> {
+  return new Promise((resolve, reject) => {
+    let stage = stages.find((stage) => { return stage === process.env.Stage })
+    if (stage) {
+      resolve(stage)
+    }
+    else {
+      reject(new Error(`invalid stage: ${process.env.Stage || 'not found'}, please fix Stage env variable`))
+    }
+
+  })
+}
+
+function fetchConfigForStage (stage: Stage): Promise<Config> {
   console.log('Fetching configuration file from S3.')
   return new Promise((resolve, reject) => {
-    let maybeStage = stages.find((stage) => { return stage === process.env.Stage })
-    if (maybeStage == null) {
-      reject(new Error(`invalid stage: ${process.env.Stage || 'not found'}, please fix Stage env variable`))
-      return
-    }
-    let stage = maybeStage
     const key = 'fulfilment.private.json'
     const bucket = `fulfilment-private/${stage}`
     console.log(`loading ${stage} configuration from ${bucket}/${key}`)
@@ -60,4 +67,8 @@ export function fetchConfig ():Promise<Config> {
               }
             })
   })
+}
+
+export function fetchConfig (): Promise<Config> {
+  return getStage().then(fetchConfigForStage)
 }
