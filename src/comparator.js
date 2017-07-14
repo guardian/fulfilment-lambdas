@@ -16,7 +16,7 @@ type S3Path = {
 const s3 = new AWS.S3({ signatureVersion: 'v4' })
 
 export function handler (input:?any, context:?any, callback:Function) {
-  compare().then((result) => callback(null, result)).catch((e) => {
+  compare().then((result) => callback(null, {...input, ...result})).catch((e) => {
     console.log(e)
     callback(e)
   })

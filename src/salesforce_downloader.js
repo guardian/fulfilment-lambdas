@@ -9,7 +9,7 @@ export function handler (input:?any, context:?any, callback:Function) {
   downloader().then((r) => {
     console.log(r)
     console.log('success')
-    callback(null, r)
+    callback(null, {...input, ...r})
   }).catch(e => {
     console.log('oh no  ')
     callback(e)

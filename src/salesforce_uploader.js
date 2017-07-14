@@ -15,7 +15,7 @@ export function handler (input:?any, context:?any, callback:Function) {
   uploader(input).then((r) => {
     console.log(r)
     console.log('success')
-    callback(null, r)
+    callback(null, {...input, ...r})
   }).catch(e => {
     console.log('oh no  ')
     console.log(e)

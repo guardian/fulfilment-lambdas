@@ -92,7 +92,7 @@ function getJobResult (jobId, config) {
 }
 
 export function handler (input, context, callback) {
-  asyncHandler(input).then(res => callback(null, { deliveryDate: input.deliveryDate, results: res })).catch(e => {
+  asyncHandler(input).then(res => callback(null, { ...input, deliveryDate: input.deliveryDate, results: res })).catch(e => {
     console.log(e)
     callback(e)
   })
