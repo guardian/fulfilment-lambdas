@@ -13,12 +13,6 @@ export function handler (input:?any, context:?any, callback:Function) {
     return
   }
 
-  if (input.preventUpload !== null && input.preventUpload) {
-    callback(new NamedError('preventUploadError', 'Upload to salesforce disabled.'))
-    return
-  }
-  callback(new NamedError('inputError', 'Input did not contain filename'))
-
   uploader(input).then((r) => {
     console.log(r)
     console.log('success')
