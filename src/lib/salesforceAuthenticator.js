@@ -2,6 +2,7 @@
 import request from 'request'
 import rp from 'request-promise-native'
 import type {Config} from './config'
+import NamedError from './NamedError'
 
 export type folder = {
   folderId: string,
@@ -43,6 +44,42 @@ export class Salesforce {
       headers: this.headers,
       formData: form
     })
+  }
+  async uploadDocument (path: string, folder: folder, body: Buffer) {
+     // build a little json
+    let message = {
+      'Description': `Home Delivery Fulfilment file ${path}`,
+      'Keywords': 'fulfilment',
+      'FolderId': folder.folderId,
+      'Name': path,
+      'Type': 'csv'
+    }
+    console.log('Building SF upload.')
+
+    let url = '/services/data/v23.0/sobjects/Document/' // NOT FOR UPDATING
+
+  // don't try to make the form with a stream from s3 or by appending form sections
+    let form = {
+      entity_document: {
+        value: JSON.stringify(message),
+        options: {
+          contentType: 'application/json'
+        }
+      },
+      Body: { value: body, options: { contentType: 'text/csv', filename: path } }
+    }
+
+    let uploadResult = await this.post(url, form)
+    let parsed = JSON.parse(uploadResult)
+
+    if (parsed.id == null) {
+      throw new NamedError('Upload failed', 'Upload did not return an id')
+    }
+    let id = parsed.id
+    return {
+      id: id,
+      url: `${this.url}/${id}`
+    }
   }
   async getDocuments (folderId: folder) {
     let response = await this.get(`/services/data/v20.0/query?q=SELECT Id, Name FROM Document WHERE FolderId= '${folderId.folderId}'`)

@@ -36,30 +36,6 @@ async function uploader (input: { path: string }) {
   console.log(`Retreiving file ${options.Key} from S3 bucket ${options.Bucket}.`)
   let fileToUpload = await s3.getObject(options).promise()
 
-  // build a little json
-  let message = {
-    'Description': `Home Delivery Fulfilment file ${input.path}`,
-    'Keywords': 'fulfilment',
-    'FolderId': folder,
-    'Name': input.path,
-    'Type': 'csv'
-  }
-  console.log('Building SF upload.')
-
-  let url = '/services/data/v23.0/sobjects/Document/' // NOT FOR UPDATING
-
-  // don't try to make the form with a stream from s3 or by appending form sections
-  let form = {
-    entity_document: {
-      value: JSON.stringify(message),
-      options: {
-        contentType: 'application/json'
-      }
-    },
-    Body: { value: fileToUpload.Body, options: { contentType: 'text/csv', filename: input.path } }
-  }
-
-  return salesforce.post(url, form)
-
+  return salesforce.uploadDocument(input.path, folder, fileToUpload.Body)
   // make a request! https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/dome_sobject_insert_update_blob.htm
 }
