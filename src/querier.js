@@ -95,6 +95,6 @@ function queryZuora (deliveryDate, config) {
 export function handler (input, context, callback) {
   fetchConfig()
   .then(config => queryZuora(input.deliveryDate, config.zuora.api))
-  .then(jobId => callback(null, {'jobId': jobId, 'deliveryDate': input.deliveryDate}))
+  .then(jobId => callback(null, {...input, 'jobId': jobId, 'deliveryDate': input.deliveryDate}))
   .catch(error => callback(error))
 }

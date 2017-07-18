@@ -175,7 +175,7 @@ async function asyncHandler (input: ExporterInput) {
 
 export function handler (input: ExporterInput, context: ?any, callback: Function) {
   asyncHandler(input)
-    .then(outputFileName => callback(null, {fulfilmentFile: outputFileName}))
+    .then(outputFileName => callback(null, {...input, fulfilmentFile: outputFileName}))
     .catch(e => {
       console.log(e)
       callback(e)
