@@ -21,8 +21,8 @@ export function createReadStream (path) {
   return s3.getObject(options).createReadStream()
 }
 
-export function getObject(path) {
-  let options = { Bucket: BUCKET, Key: path }
+export function getObject (path) {
+  let options = {Bucket: BUCKET, Key: path}
   console.log(`Retreiving file ${options.Key} from S3 bucket ${options.Bucket}.`)
   return s3.getObject(options).promise()
 }

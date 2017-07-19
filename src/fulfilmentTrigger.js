@@ -57,10 +57,6 @@ export function handler (input: apiGatewayLambdaInput, context: any, callback: (
     callback(null, new ApiResponse(status, message))
   }
 
-  function fileNameFor(date) {
-    return
-  }
-
   async function uploadFileFor (date, stage, salesforce, sfFolder) {
     let s3FileName = date.format(DATE_FORMAT) + '_HOME_DELIVERY.csv'
     let s3Path = `${stage}/fulfilment_output/${s3FileName}`
@@ -83,14 +79,11 @@ export function handler (input: apiGatewayLambdaInput, context: any, callback: (
     const folder = config.salesforce.uploadFolder
     console.log(folder)
 
-
-
     let results = range(amount).map(offset => {
       let date = moment(startDate, DATE_FORMAT).add(offset, 'days')
       return uploadFileFor(date, config.stage, salesforce, folder)
     })
     return Promise.all(results)
-
   }
 
   let body = JSON.parse(input.body)
@@ -122,20 +115,3 @@ export function handler (input: apiGatewayLambdaInput, context: any, callback: (
       }
     })
 }
-
-
-// async function uploader (input: { path: string }) {
-//   const config = await fetchConfig()
-//   const salesforce = await authenticate(config)
-//   console.log('Finding fulfilment folder.')
-//   const folder = config.salesforce.uploadFolder
-//   console.log(folder)
-//   // get file from s3 as stream
-//
-//   let options = { Bucket: BUCKET, Key: `${config.stage}/${input.path}` }
-//   console.log(`Retreiving file ${options.Key} from S3 bucket ${options.Bucket}.`)
-//   let fileToUpload = await s3.getObject(options).promise()
-//
-//   return salesforce.uploadDocument(input.path, folder, fileToUpload.Body)
-//   // make a request! https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/dome_sobject_insert_update_blob.htm
-// }

@@ -3,19 +3,21 @@
 import { handler } from '../src/fulfilmentTrigger'
 import moment from 'moment'
 
-let mockSalesForce =  {
-  uploadDocument: jest.fn(() => Promise.resolve(""))
+let mockSalesForce = {
+  uploadDocument: jest.fn(() => Promise.resolve(''))
 }
 
 jest.mock('../src/lib/storage', () => {
   return {
-    getObject: (path) => { return Promise.resolve({Body: 'csv would be here'})}
+    getObject: (path) => {
+      return Promise.resolve({ Body: 'csv would be here' })
+    }
   }
 })
 
 jest.mock('../src/lib/salesforceAuthenticator', () => {
   return {
-    authenticate: (config) => { return Promise.resolve(mockSalesForce)}
+    authenticate: (config) => { return Promise.resolve(mockSalesForce) }
   }
 })
 
@@ -35,8 +37,6 @@ jest.mock('../src/lib/config', () => {
     fetchConfig: jest.fn(() => Promise.resolve(fakeResponse))
   }
 })
-
-
 
 function getFakeInput (token, date, amount) {
   let res = {}
@@ -75,16 +75,14 @@ function verify (done, expectedResponse, expectedFulfilmentDays) {
       expect(mockSalesForce.uploadDocument.mock.calls.length).toBe(expectedFulfilmentDays.length)
 
       let expectedFolder = {
-        folderId : "someFolderId",
-        name : "someFolderName"
+        folderId: 'someFolderId',
+        name: 'someFolderName'
       }
       expectedFulfilmentDays.forEach(function (date) {
-
-        let parsedDate = moment(date, "YYYY-MM-DD")
-        let dayOfTheWeek = parsedDate.format("dddd")
-        let formattedDate = parsedDate.format("DD_MM_YYYY")
+        let parsedDate = moment(date, 'YYYY-MM-DD')
+        let dayOfTheWeek = parsedDate.format('dddd')
+        let formattedDate = parsedDate.format('DD_MM_YYYY')
         let expectedFileName = `HOME_DELIVERY_${dayOfTheWeek}_${formattedDate}.csv`
-
         expect(mockSalesForce.uploadDocument).toHaveBeenCalledWith(expectedFileName, expectedFolder, 'csv would be here')
       })
       done()
