@@ -137,8 +137,7 @@ function processSubs (downloadStream: ReadStream, deliveryDate: moment, stage: s
     })
       .pipe(csvStream)
 
-    let dateSuffix = deliveryDate.format('DD_MM_YYYY')
-    let outputFileName = `HOME_DELIVERY_${chargeDay}_${dateSuffix}.csv`
+    let outputFileName = deliveryDate.format('YYYY_MM_DD') + '_HOME_DELIVERY.csv'
     let outputLocation = `${stage}/fulfilment_output/${outputFileName}`
 
     upload(writeCSVStream, outputLocation, function (err, data) {

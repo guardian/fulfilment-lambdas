@@ -1,7 +1,9 @@
 // @flow
 
 import { fetchConfig } from './lib/config'
-import { triggerStateMachine } from './lib/TriggerStateMachine'
+import { authenticate } from './lib/salesforceAuthenticator'
+import { getObject } from './lib/storage'
+
 import moment from 'moment'
 const DATE_FORMAT = 'YYYY-MM-DD'
 const BAD_REQUEST = '400'
@@ -55,12 +57,20 @@ export function handler (input: apiGatewayLambdaInput, context: any, callback: (
     callback(null, new ApiResponse(status, message))
   }
 
-  function triggerLambdas (startDate, amount) {
-    let results = range(amount).map(offset => {
-      let date = moment(startDate, DATE_FORMAT).add(offset, 'days').format(DATE_FORMAT)
-      return triggerStateMachine(`{"deliveryDate" : "${date}"}`, process.env.StateMachine)
-    })
-    return Promise.all(results)
+  function fileNameFor(date) {
+    return
+  }
+
+  async function uploadFileFor (date, stage, salesforce, sfFolder) {
+    let s3FileName = date.format(DATE_FORMAT) + '_HOME_DELIVERY.csv'
+    let s3Path = `${stage}/fulfilment_output/${s3FileName}`
+    let fileToUpload = await getObject(s3Path)
+
+    let dayOfTheWeek = date.format('dddd')
+    let dateSuffix = date.format('DD_MM_YYYY')
+    let outputFileName = `HOME_DELIVERY_${dayOfTheWeek}_${dateSuffix}.csv`
+    console.log(`uploading ${outputFileName} to ${sfFolder.name}`)
+    return salesforce.uploadDocument(outputFileName, sfFolder, fileToUpload.Body)
   }
 
   async function asyncHandler (startDate, amount, providedToken) {
@@ -68,7 +78,19 @@ export function handler (input: apiGatewayLambdaInput, context: any, callback: (
     console.log('Config fetched successfully.')
     await validateToken(config.triggerLambda.expectedToken, providedToken)
     console.log('token validated successfully')
-    return triggerLambdas(startDate, amount)
+    const salesforce = await authenticate(config)
+    console.log('Finding fulfilment folder.')
+    const folder = config.salesforce.uploadFolder
+    console.log(folder)
+
+
+
+    let results = range(amount).map(offset => {
+      let date = moment(startDate, DATE_FORMAT).add(offset, 'days')
+      return uploadFileFor(date, config.stage, salesforce, folder)
+    })
+    return Promise.all(results)
+
   }
 
   let body = JSON.parse(input.body)
@@ -100,3 +122,20 @@ export function handler (input: apiGatewayLambdaInput, context: any, callback: (
       }
     })
 }
+
+
+// async function uploader (input: { path: string }) {
+//   const config = await fetchConfig()
+//   const salesforce = await authenticate(config)
+//   console.log('Finding fulfilment folder.')
+//   const folder = config.salesforce.uploadFolder
+//   console.log(folder)
+//   // get file from s3 as stream
+//
+//   let options = { Bucket: BUCKET, Key: `${config.stage}/${input.path}` }
+//   console.log(`Retreiving file ${options.Key} from S3 bucket ${options.Bucket}.`)
+//   let fileToUpload = await s3.getObject(options).promise()
+//
+//   return salesforce.uploadDocument(input.path, folder, fileToUpload.Body)
+//   // make a request! https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/dome_sobject_insert_update_blob.htm
+// }

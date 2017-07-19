@@ -1,15 +1,32 @@
 /* eslint-env jest */
 
 import { handler } from '../src/fulfilmentTrigger'
+import moment from 'moment'
 
-jest.mock('../src/lib/TriggerStateMachine', () => {
+let mockSalesForce =  {
+  uploadDocument: jest.fn(() => Promise.resolve(""))
+}
+
+jest.mock('../src/lib/storage', () => {
   return {
-    triggerStateMachine: jest.fn(() => Promise.resolve({ok: 'ok'}))
+    getObject: (path) => { return Promise.resolve({Body: 'csv would be here'})}
+  }
+})
+
+jest.mock('../src/lib/salesforceAuthenticator', () => {
+  return {
+    authenticate: (config) => { return Promise.resolve(mockSalesForce)}
   }
 })
 
 jest.mock('../src/lib/config', () => {
   let fakeResponse = {
+    salesforce: {
+      uploadFolder: {
+        folderId: 'someFolderId',
+        name: 'someFolderName'
+      }
+    },
     triggerLambda: {
       expectedToken: 'testToken'
     }
@@ -19,11 +36,7 @@ jest.mock('../src/lib/config', () => {
   }
 })
 
-let fakeMod = require('../src/lib/TriggerStateMachine')
-let fulfilmentTrigger = fakeMod.triggerStateMachine
 
-let fakeStateMachineArn = 'StateMachineARN'
-process.env.StateMachine = fakeStateMachineArn
 
 function getFakeInput (token, date, amount) {
   let res = {}
@@ -59,10 +72,20 @@ function verify (done, expectedResponse, expectedFulfilmentDays) {
     try {
       expect(responseAsJson).toEqual(expectedResponse)
 
-      expect(fulfilmentTrigger.mock.calls.length).toBe(expectedFulfilmentDays.length)
+      expect(mockSalesForce.uploadDocument.mock.calls.length).toBe(expectedFulfilmentDays.length)
 
+      let expectedFolder = {
+        folderId : "someFolderId",
+        name : "someFolderName"
+      }
       expectedFulfilmentDays.forEach(function (date) {
-        expect(fulfilmentTrigger).toHaveBeenCalledWith(`{"deliveryDate" : "${date}"}`, fakeStateMachineArn)
+
+        let parsedDate = moment(date, "YYYY-MM-DD")
+        let dayOfTheWeek = parsedDate.format("dddd")
+        let formattedDate = parsedDate.format("DD_MM_YYYY")
+        let expectedFileName = `HOME_DELIVERY_${dayOfTheWeek}_${formattedDate}.csv`
+
+        expect(mockSalesForce.uploadDocument).toHaveBeenCalledWith(expectedFileName, expectedFolder, 'csv would be here')
       })
       done()
     } catch (error) {
@@ -72,7 +95,7 @@ function verify (done, expectedResponse, expectedFulfilmentDays) {
 }
 
 beforeEach(() => {
-  fulfilmentTrigger.mock.calls = []
+  mockSalesForce.uploadDocument.mock.calls = []
 })
 
 test('should return error if api token is wrong', done => {
