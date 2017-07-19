@@ -145,7 +145,7 @@ test('should return 200 status and trigger fulfilment on success', done => {
     'headers': {
       'Content-Type': 'application/json'
     },
-    'body': '{"message":[{"name":"HOME_DELIVERY_Monday_12_06_2017.csv","id":"documentId"},{"name":"HOME_DELIVERY_Tuesday_13_06_2017.csv","id":"documentId"}]}'
+    'body': '{"message":"ok"}", "files": [{"id": "documentId", "name": "HOME_DELIVERY_Monday_12_06_2017.csv"}, {"id": "documentId", "name": "HOME_DELIVERY_Tuesday_13_06_2017.csv"}], "headers": {"Content-Type": "application/json"}, "statusCode": "200"}'
   }
   let expectedFulfilments = ['2017-06-12', '2017-06-13']
   handler(input, {}, verify(done, successResponse, expectedFulfilments))

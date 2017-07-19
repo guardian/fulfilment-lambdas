@@ -14,15 +14,18 @@ class ApiResponse {
   statusCode: string
   headers: { 'Content-Type': string }
 
-  constructor (status, message) {
+  constructor (status, message, files = null) {
     let body = {'message': message}
     this.body = JSON.stringify(body)
     this.statusCode = status
     this.headers = {'Content-Type': 'application/json'}
+    if (files) {
+      this.files = files
+    }
   }
 }
-function okResponse (ids) {
-  return new ApiResponse('200', ids)
+function okResponse (files) {
+  return new ApiResponse('200', 'ok', files)
 }
 let serverError = new ApiResponse('500', 'Unexpected server error')
 let unauthorizedError = new ApiResponse('401', 'Unauthorized')
