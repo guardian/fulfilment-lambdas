@@ -21,7 +21,9 @@ class ApiResponse {
     this.headers = {'Content-Type': 'application/json'}
   }
 }
-let okResponse = new ApiResponse('200', 'ok')
+function okResponse (ids) {
+  return new ApiResponse('200', ids)
+}
 let serverError = new ApiResponse('500', 'Unexpected server error')
 let unauthorizedError = new ApiResponse('401', 'Unauthorized')
 
@@ -57,16 +59,31 @@ export function handler (input: apiGatewayLambdaInput, context: any, callback: (
     callback(null, new ApiResponse(status, message))
   }
 
-  async function uploadFileFor (date, stage, salesforce, sfFolder) {
-    let s3FileName = date.format(DATE_FORMAT) + '_HOME_DELIVERY.csv'
-    let s3Path = `${stage}/fulfilment_output/${s3FileName}`
-    let fileToUpload = await getObject(s3Path)
-
-    let dayOfTheWeek = date.format('dddd')
-    let dateSuffix = date.format('DD_MM_YYYY')
+  async function salesforceUpload (fileData, stage, salesforce, sfFolder) {
+    let dayOfTheWeek = fileData.date.format('dddd')
+    let dateSuffix = fileData.date.format('DD_MM_YYYY')
     let outputFileName = `HOME_DELIVERY_${dayOfTheWeek}_${dateSuffix}.csv`
     console.log(`uploading ${outputFileName} to ${sfFolder.name}`)
-    return salesforce.uploadDocument(outputFileName, sfFolder, fileToUpload.Body)
+    let uploadResult = await salesforce.uploadDocument(outputFileName, sfFolder, fileData.file.Body)
+    return Promise.resolve({
+      name: outputFileName,
+      id: uploadResult.id
+    })
+  }
+
+  async function getFileWithDate (stage, date) {
+    let s3FileName = date.format(DATE_FORMAT) + '_HOME_DELIVERY.csv'
+    let s3Path = `${stage}/fulfilment_output/${s3FileName}`
+    try {
+      let file = await getObject(s3Path)
+      return Promise.resolve({
+        file: file,
+        date: date
+      })
+    } catch (err) {
+      console.log(err)
+      throw new ApiResponse(BAD_REQUEST, 'could not retrieve requested fulfiment files')
+    }
   }
 
   async function asyncHandler (startDate, amount, providedToken) {
@@ -79,10 +96,17 @@ export function handler (input: apiGatewayLambdaInput, context: any, callback: (
     const folder = config.salesforce.uploadFolder
     console.log(folder)
 
-    let results = range(amount).map(offset => {
+    let filePromises = range(amount).map(offset => {
       let date = moment(startDate, DATE_FORMAT).add(offset, 'days')
-      return uploadFileFor(date, config.stage, salesforce, folder)
+      return getFileWithDate(config.stage, date)
     })
+
+    let files = await Promise.all(filePromises)
+
+    let results = files.map(fileData => {
+      return salesforceUpload(fileData, config.stage, salesforce, folder)
+    })
+
     return Promise.all(results)
   }
 
@@ -104,7 +128,7 @@ export function handler (input: apiGatewayLambdaInput, context: any, callback: (
   asyncHandler(body.date, body.amount, providedToken)
     .then(res => {
       console.log('returning success api response')
-      callback(null, okResponse)
+      callback(null, okResponse(res))
     })
     .catch(error => {
       console.log(error)

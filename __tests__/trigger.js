@@ -4,13 +4,22 @@ import { handler } from '../src/fulfilmentTrigger'
 import moment from 'moment'
 
 let mockSalesForce = {
-  uploadDocument: jest.fn(() => Promise.resolve(''))
+  uploadDocument: jest.fn(() => Promise.resolve({id: 'documentId'}))
 }
 
 jest.mock('../src/lib/storage', () => {
+  let validPaths = [
+    'CODE/fulfilment_output/2017-06-12_HOME_DELIVERY.csv',
+    'CODE/fulfilment_output/2017-06-13_HOME_DELIVERY.csv',
+    'CODE/fulfilment_output/2017-06-14_HOME_DELIVERY.csv'
+  ]
   return {
     getObject: (path) => {
-      return Promise.resolve({ Body: 'csv would be here' })
+      if (validPaths.includes(path)) {
+        return Promise.resolve({Body: 'csv would be here'})
+      } else {
+        return Promise.reject(new Error('file does not exist in bucket'))
+      }
     }
   }
 })
@@ -31,7 +40,8 @@ jest.mock('../src/lib/config', () => {
     },
     triggerLambda: {
       expectedToken: 'testToken'
-    }
+    },
+    stage: 'CODE'
   }
   return {
     fetchConfig: jest.fn(() => Promise.resolve(fakeResponse))
@@ -121,6 +131,13 @@ test('should return 400 error if too many days in request', done => {
   let expectedFulfilments = []
   handler(tooManyDaysInput, {}, verify(done, expectedResponse, expectedFulfilments))
 })
+test('should return error if files not found in bucket', done => {
+  let input = getFakeInput('testToken', '2017-06-14', 4)
+  let expectedFulfilments = []
+  let expectedResponse = errorResponse('400', 'could not retrieve requested fulfiment files')
+  handler(input, {}, verify(done, expectedResponse, expectedFulfilments))
+})
+
 test('should return 200 status and trigger fulfilment on success', done => {
   let input = getFakeInput('testToken', '2017-06-12', 2)
   let successResponse = {
@@ -128,7 +145,7 @@ test('should return 200 status and trigger fulfilment on success', done => {
     'headers': {
       'Content-Type': 'application/json'
     },
-    'body': '{"message":"ok"}'
+    'body': '{"message":[{"name":"HOME_DELIVERY_Monday_12_06_2017.csv","id":"documentId"},{"name":"HOME_DELIVERY_Tuesday_13_06_2017.csv","id":"documentId"}]}'
   }
   let expectedFulfilments = ['2017-06-12', '2017-06-13']
   handler(input, {}, verify(done, successResponse, expectedFulfilments))
