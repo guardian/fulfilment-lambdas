@@ -6,29 +6,38 @@ import { getObject } from './lib/storage'
 
 import moment from 'moment'
 const DATE_FORMAT = 'YYYY-MM-DD'
-const BAD_REQUEST = '400'
+const BAD_REQUEST = 400
 const MAX_DAYS = 5
 
 class ApiResponse {
   body: string
-  statusCode: string
+  statusCode: number
   headers: { 'Content-Type': string }
 
-  constructor (status, message, files = null) {
+  constructor (status, message) {
     let body = {'message': message}
     this.body = JSON.stringify(body)
     this.statusCode = status
     this.headers = {'Content-Type': 'application/json'}
-    if (files) {
-      this.files = files
-    }
   }
 }
-function okResponse (files) {
-  return new ApiResponse('200', 'ok', files)
+
+type Files = { 'name': string, 'id': string }[]
+
+class SuccessResponse extends ApiResponse {
+  
+  constructor (files: Files) {
+    super(200, 'ok')
+    let body = {
+      message: 'ok',
+      files: files
+    }
+    this.body = JSON.stringify(body)
+  }
 }
-let serverError = new ApiResponse('500', 'Unexpected server error')
-let unauthorizedError = new ApiResponse('401', 'Unauthorized')
+
+let serverError = new ApiResponse(500, 'Unexpected server error')
+let unauthorizedError = new ApiResponse(401, 'Unauthorized')
 
 function range (amount) {
   let resArray = []
@@ -129,9 +138,9 @@ export function handler (input: apiGatewayLambdaInput, context: any, callback: (
   }
 
   asyncHandler(body.date, body.amount, providedToken)
-    .then(res => {
+    .then(uploadedFiles => {
       console.log('returning success api response')
-      callback(null, okResponse(res))
+      callback(null, new SuccessResponse(uploadedFiles))
     })
     .catch(error => {
       console.log(error)
