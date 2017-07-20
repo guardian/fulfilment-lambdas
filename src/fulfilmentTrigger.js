@@ -25,7 +25,6 @@ class ApiResponse {
 type Files = { 'name': string, 'id': string }[]
 
 class SuccessResponse extends ApiResponse {
-  
   constructor (files: Files) {
     super(200, 'ok')
     let body = {
