@@ -3,40 +3,11 @@
 import { fetchConfig } from './lib/config'
 import { authenticate } from './lib/salesforceAuthenticator'
 import { getObject } from './lib/storage'
+import { ApiResponse, SuccessResponse, serverError, unauthorizedError, badRequest } from './ApiResponse'
 
 import moment from 'moment'
 const DATE_FORMAT = 'YYYY-MM-DD'
-const BAD_REQUEST = 400
 const MAX_DAYS = 5
-
-class ApiResponse {
-  body: string
-  statusCode: number
-  headers: { 'Content-Type': string }
-
-  constructor (status, message) {
-    let body = {'message': message}
-    this.body = JSON.stringify(body)
-    this.statusCode = status
-    this.headers = {'Content-Type': 'application/json'}
-  }
-}
-
-type Files = { 'name': string, 'id': string }[]
-
-class SuccessResponse extends ApiResponse {
-  constructor (files: Files) {
-    super(200, 'ok')
-    let body = {
-      message: 'ok',
-      files: files
-    }
-    this.body = JSON.stringify(body)
-  }
-}
-
-let serverError = new ApiResponse(500, 'Unexpected server error')
-let unauthorizedError = new ApiResponse(401, 'Unauthorized')
 
 function range (amount) {
   let resArray = []
@@ -65,11 +36,10 @@ type apiGatewayLambdaInput = {
 
 }
 export function handler (input: apiGatewayLambdaInput, context: any, callback: (error: any, apiResponse: ApiResponse) => void) {
-  function returnError (status, message) {
+  function validationError (message) {
     console.log(message)
-    callback(null, new ApiResponse(status, message))
+    callback(null, badRequest(message))
   }
-
   async function salesforceUpload (fileData, stage, salesforce, sfFolder) {
     let dayOfTheWeek = fileData.date.format('dddd')
     let dateSuffix = fileData.date.format('DD_MM_YYYY')
@@ -95,7 +65,7 @@ export function handler (input: apiGatewayLambdaInput, context: any, callback: (
       console.log('error from  S3:')
       console.log(err)
       if (err.code === 'NoSuchKey') {
-        throw new ApiResponse(BAD_REQUEST, 'requested files not found')
+        throw badRequest('requested files not found')
       } else throw err
     }
   }
@@ -126,16 +96,16 @@ export function handler (input: apiGatewayLambdaInput, context: any, callback: (
 
   let body = JSON.parse(input.body)
   if (!body.amount || !body.date) {
-    returnError(BAD_REQUEST, 'missing amount or date')
+    validationError('missing amount or date')
     return
   }
   if (body.amount < 1 || body.amount > MAX_DAYS) {
-    returnError(BAD_REQUEST, `amount should be a number between 1 and ${MAX_DAYS}`)
+    validationError(`amount should be a number between 1 and ${MAX_DAYS}`)
     return
   }
   let providedToken = input.headers.apiToken
   if (!providedToken) {
-    returnError(BAD_REQUEST, 'ApiToken header missing')
+    validationError('ApiToken header missing')
     return
   }
 
