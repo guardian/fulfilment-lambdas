@@ -92,8 +92,11 @@ export function handler (input: apiGatewayLambdaInput, context: any, callback: (
         date: date
       })
     } catch (err) {
+      console.log('error from  S3:')
       console.log(err)
-      throw new ApiResponse(BAD_REQUEST, 'could not retrieve requested fulfiment files')
+      if (err.code === 'NoSuchKey') {
+        throw new ApiResponse(BAD_REQUEST, 'requested files not found')
+      } else throw err
     }
   }
 
