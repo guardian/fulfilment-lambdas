@@ -87,7 +87,7 @@ Resources:
     Properties:
       FunctionName:
           !Sub zuora_fulfilment_querier-${Stage}
-      Description: "Fulzuora export"
+      Description: "Trigger zuora export"
       Handler: "querier.handler"
       Role: !GetAtt [ FulfilmentWorkersLambdaRole, Arn ]
       Code:
