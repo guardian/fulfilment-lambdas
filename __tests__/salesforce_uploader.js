@@ -1,6 +1,6 @@
 /* eslint-env jest */
 
-import { handler } from '../src/fulfilmentTrigger'
+import { handler } from '../src/salesforce_uploader'
 import moment from 'moment'
 
 let mockSalesForce = {
@@ -38,7 +38,7 @@ jest.mock('../src/lib/config', () => {
         name: 'someFolderName'
       }
     },
-    triggerLambda: {
+    api: {
       expectedToken: 'testToken'
     },
     stage: 'CODE'
@@ -138,7 +138,7 @@ test('should return error if files not found in bucket', done => {
   handler(input, {}, verify(done, expectedResponse, expectedFulfilments))
 })
 
-test('should return 200 status and trigger fulfilment on success', done => {
+test('should upload to sf and return file data', done => {
   let input = getFakeInput('testToken', '2017-06-12', 2)
   let successResponse = {
     'statusCode': 200,
