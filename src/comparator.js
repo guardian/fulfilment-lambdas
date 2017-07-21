@@ -1,12 +1,14 @@
 // @flow
 import AWS from 'aws-sdk'
 import csv from 'fast-csv'
+import moment from 'moment'
 import {fetchConfig} from './lib/config'
 import intersectionWith from 'lodash/intersectionWith'
 import differenceWith from 'lodash/differenceWith'
 import diff from 'deep-diff'
 import type {Difference} from 'deep-diff'
 import QuoteRemover from './lib/QuoteRemover'
+import {outputFileName, logFileName, salesforceFileName, outputDate, logDate, salesforceDate} from './lib/filenames'
 
 type S3Path = {
   Bucket: string,
@@ -59,24 +61,28 @@ async function compare () {
   const logkeys = logresp.Contents.map(r => { return r.Key.slice(guprefix.length) })
   console.log('Found the following log files', logkeys)
 
-  const joint = intersectionWith(gukeys, sfkeys, (a:string, b:string) => {
-    return a.split('_').join('') === b.split('_').join('')
-  })
+  let sameDay = (a:moment, b:moment) => {
+    return a.isSame(b, 'day')
+  }
+  let sfDates = sfkeys.map(salesforceDate)
+  let guDates = gukeys.map(outputDate)
+  const joint = intersectionWith(guDates, sfDates, sameDay)
   console.log('In both systems', joint)
 
-  const unchecked = differenceWith(joint, logkeys, (a, b) => {
-    return b === logFileNameFor(a)
-  })
+  const unchecked = differenceWith(joint, logkeys.map(logDate), sameDay)
   console.log('remaining to check', unchecked)
 
   if (unchecked.length === 0) {
     return 'No files found to check.'
   }
 
-  async function check (filename: string) {
-    let sfPath = {Bucket: bucket, Key: `${sfprefix}${sfFilenameFor(filename)}`}
+  async function check (date: moment) {
+    let filename = outputFileName(date)
+    let sfFilename = salesforceFileName(date)
+    let lFilename = logFileName(date)
+    let sfPath = {Bucket: bucket, Key: `${sfprefix}${sfFilename}`}
     let guPath = {Bucket: bucket, Key: `${guprefix}${filename}`}
-    let logPath = {Bucket: bucket, Key: `${logprefix}${logFileNameFor(filename)}`}
+    let logPath = {Bucket: bucket, Key: `${logprefix}${lFilename}`}
 
     let logCache = []
 
@@ -151,21 +157,6 @@ function fetchCSV (path: S3Path) {
     })
     csvStream.pipe(new QuoteRemover()).pipe(reader)
   })
-}
-
-function sfFilenameFor (filename:string) {
-  let arr = filename.split('_')
-  /* From
-   * 'HOME_DELIVERY_Wednesday_25_01_2017.csv'
-   *   0      1       2        3  4   5
-   * To
-   * 'HOME_DELIVERY_Wednesday25_01_2017.csv'
-   */
-  return `${arr[0]}_${arr[1]}_${arr[2]}${arr[3]}_${arr[4]}_${arr[5]}`
-}
-
-function logFileNameFor (filename: string) {
-  return filename.replace('csv', 'log')
 }
 
 function renderDifference (diff: Array<Difference>):Array<string> {
