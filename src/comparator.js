@@ -22,6 +22,13 @@ export function handler (input:?any, context:?any, callback:Function) {
   })
 }
 
+function normalise (entry: any) {
+  let copy = {...entry}
+  delete copy['Delivery Quantity']
+  copy['Customer Telephone'] = entry['Customer Telephone'].replace(/^0|\+44/, '')
+  return copy
+}
+
 async function compare () {
   let config = await fetchConfig()
   const bucket = 'fulfilment-output-test'
@@ -98,7 +105,7 @@ async function compare () {
       if (s.length > 1) {
         log(`Multiple subscriptions for ${id} comparing [0] against [0]`)
       }
-      let differences: ?Array<Difference> = diff(s[0], g[0])
+      let differences: ?Array<Difference> = diff(normalise(s[0]), normalise(g[0]))
       if (differences != null) {
         renderDifference(differences).map(log)
       }
