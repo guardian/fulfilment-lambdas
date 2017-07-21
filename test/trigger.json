@@ -1,6 +1,0 @@
-{
-	"headers": {
-		"apiToken": "someToken"
-	},
-	"body": "{\n\t\"date\":\"2017-06-27\",\n\t\"amount\":1\n}"
-}

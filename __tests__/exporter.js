@@ -138,7 +138,7 @@ test('should generate correct fulfilment file', done => {
       }
     ]
   }
-  let expectedFileName = 'HOME_DELIVERY_Thursday_06_07_2017.csv'
+  let expectedFileName = '2017-07-06_HOME_DELIVERY.csv'
   let expectedResponse = {...input, 'fulfilmentFile': expectedFileName}
   handler(input, {}, verify(done, null, expectedResponse, expectedFileName))
 })

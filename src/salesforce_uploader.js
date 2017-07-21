@@ -1,41 +1,125 @@
 // @flow
+
 import { fetchConfig } from './lib/config'
-import AWS from 'aws-sdk'
-import NamedError from './lib/NamedError'
 import { authenticate } from './lib/salesforceAuthenticator'
+import { getObject } from './lib/storage'
+import { ApiResponse, SuccessResponse, serverError, unauthorizedError, badRequest } from './ApiResponse'
 
-const s3 = new AWS.S3({ signatureVersion: 'v4' })
-const BUCKET = 'fulfilment-output-test'
+import moment from 'moment'
+const DATE_FORMAT = 'YYYY-MM-DD'
+const MAX_DAYS = 5
 
-export function handler (input:?any, context:?any, callback:Function) {
-  if (input == null || typeof input.path !== 'string') {
-    callback(new NamedError('inputError', 'Input did not contain filename'))
+function range (amount) {
+  let resArray = []
+  for (var i = 0; i < amount; i++) {
+    resArray.push(i)
+  }
+  return resArray
+}
+
+function validateToken (expectedToken, providedToken) {
+  return new Promise((resolve, reject) => {
+    if (expectedToken === providedToken) {
+      resolve()
+    } else {
+      console.log('failed token authentication')
+      reject(unauthorizedError)
+    }
+  })
+}
+type inputHeaders = {
+  apiToken ?: string
+}
+type apiGatewayLambdaInput = {
+  body: string,
+  headers: inputHeaders
+
+}
+export function handler (input: apiGatewayLambdaInput, context: any, callback: (error: any, apiResponse: ApiResponse) => void) {
+  function validationError (message) {
+    console.log(message)
+    callback(null, badRequest(message))
+  }
+  async function salesforceUpload (fileData, stage, salesforce, sfFolder) {
+    let dayOfTheWeek = fileData.date.format('dddd')
+    let dateSuffix = fileData.date.format('DD_MM_YYYY')
+    let outputFileName = `HOME_DELIVERY_${dayOfTheWeek}_${dateSuffix}.csv`
+    console.log(`uploading ${outputFileName} to ${sfFolder.name}`)
+    let uploadResult = await salesforce.uploadDocument(outputFileName, sfFolder, fileData.file.Body)
+    return Promise.resolve({
+      name: outputFileName,
+      id: uploadResult.id
+    })
+  }
+
+  async function getFileWithDate (stage, date) {
+    let s3FileName = date.format(DATE_FORMAT) + '_HOME_DELIVERY.csv'
+    let s3Path = `${stage}/fulfilment_output/${s3FileName}`
+    try {
+      let file = await getObject(s3Path)
+      return Promise.resolve({
+        file: file,
+        date: date
+      })
+    } catch (err) {
+      console.log('error from  S3:')
+      console.log(err)
+      if (err.code === 'NoSuchKey') {
+        throw badRequest('requested files not found')
+      } else throw err
+    }
+  }
+
+  async function asyncHandler (startDate, amount, providedToken) {
+    let config = await fetchConfig()
+    console.log('Config fetched successfully.')
+    await validateToken(config.api.expectedToken, providedToken)
+    console.log('token validated successfully')
+    const salesforce = await authenticate(config)
+    console.log('Finding fulfilment folder.')
+    const folder = config.salesforce.uploadFolder
+    console.log(folder)
+
+    let filePromises = range(amount).map(offset => {
+      let date = moment(startDate, DATE_FORMAT).add(offset, 'days')
+      return getFileWithDate(config.stage, date)
+    })
+
+    let files = await Promise.all(filePromises)
+
+    let results = files.map(fileData => {
+      return salesforceUpload(fileData, config.stage, salesforce, folder)
+    })
+
+    return Promise.all(results)
+  }
+
+  let body = JSON.parse(input.body)
+  if (!body.amount || !body.date) {
+    validationError('missing amount or date')
+    return
+  }
+  if (body.amount < 1 || body.amount > MAX_DAYS) {
+    validationError(`amount should be a number between 1 and ${MAX_DAYS}`)
+    return
+  }
+  let providedToken = input.headers.apiToken
+  if (!providedToken) {
+    validationError('ApiToken header missing')
     return
   }
 
-  uploader(input).then((r) => {
-    console.log(r)
-    console.log('success')
-    callback(null, {...input, ...r})
-  }).catch(e => {
-    console.log('oh no  ')
-    console.log(e)
-    callback(e)
-  })
-}
-
-async function uploader (input: { path: string }) {
-  const config = await fetchConfig()
-  const salesforce = await authenticate(config)
-  console.log('Finding fulfilment folder.')
-  const folder = config.salesforce.uploadFolder
-  console.log(folder)
-  // get file from s3 as stream
-
-  let options = { Bucket: BUCKET, Key: `${config.stage}/${input.path}` }
-  console.log(`Retreiving file ${options.Key} from S3 bucket ${options.Bucket}.`)
-  let fileToUpload = await s3.getObject(options).promise()
-
-  return salesforce.uploadDocument(input.path, folder, fileToUpload.Body)
-  // make a request! https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/dome_sobject_insert_update_blob.htm
+  asyncHandler(body.date, body.amount, providedToken)
+    .then(uploadedFiles => {
+      console.log('returning success api response')
+      callback(null, new SuccessResponse(uploadedFiles))
+    })
+    .catch(error => {
+      console.log(error)
+      if (error instanceof ApiResponse) {
+        callback(null, error)
+      } else {
+        callback(null, serverError)
+      }
+    })
 }

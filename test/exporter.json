@@ -1,13 +1,13 @@
 {
-        "deliveryDate": "2017-07-06",
+        "deliveryDate": "2017-07-12",
         "results": [
                 {
                         "queryName": "Subscriptions",
-                        "fileName": "Subscriptions_2017-07-06.csv"
+                        "fileName": "Subscriptions_2017-07-12.csv"
                 },
                 {
                         "queryName": "HolidaySuspensions",
-                        "fileName": "HolidaySuspensions_2017-07-06.csv"
+                        "fileName": "HolidaySuspensions_2017-07-12.csv"
                 }
         ]
 }
