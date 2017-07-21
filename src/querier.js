@@ -1,10 +1,11 @@
-import {fetchConfig} from './lib/config'
+import { fetchConfig } from './lib/config'
 import request from 'request'
 import moment from 'moment'
 
 function queryZuora (deliveryDate, config) {
   let promise = new Promise((resolve, reject) => {
-    const deliveryDay = moment(deliveryDate, 'YYYY-MM-DD').format('dddd')
+    let formattedDate = deliveryDate.format('YYYY-MM-DD')
+    const deliveryDay = deliveryDate.format('dddd')
     const subsQuery = `
         SELECT 
             RateplanCharge.quantity,
@@ -25,8 +26,8 @@ function queryZuora (deliveryDate, config) {
            (Subscription.Status = 'Active' OR Subscription.Status = 'Cancelled') AND
            ProductRatePlanCharge.ProductType__c = 'Print ${deliveryDay}' AND 
            Product.Name = 'Newspaper Delivery' AND 
-           RatePlanCharge.EffectiveStartDate <= '${deliveryDate}' AND
-           RatePlanCharge.EffectiveEndDate >= '${deliveryDate}' AND
+           RatePlanCharge.EffectiveStartDate <= '${formattedDate}' AND
+           RatePlanCharge.EffectiveEndDate >= '${formattedDate}' AND
            (RatePlanCharge.MRR != 0 OR ProductRatePlan.FrontendId__c != 'EchoLegacy')`
 
     const holidaySuspensionQuery = `
@@ -38,8 +39,8 @@ function queryZuora (deliveryDate, config) {
        (Subscription.Status = 'Active' OR Subscription.Status = 'Cancelled') AND
        ProductRatePlanCharge.ProductType__c = 'Adjustment' AND 
        RateplanCharge.Name = 'Holiday Credit' AND 
-       RatePlanCharge.EffectiveStartDate <= '${deliveryDate}' AND
-       RatePlanCharge.HolidayEnd__c >= '${deliveryDate}' AND
+       RatePlanCharge.EffectiveStartDate <= '${formattedDate}' AND
+       RatePlanCharge.HolidayEnd__c >= '${formattedDate}' AND
        RatePlan.AmendmentType != 'RemoveProduct'`
 
     const options = {
@@ -79,13 +80,17 @@ function queryZuora (deliveryDate, config) {
       }
 
       console.log('statusCode:', response && response.statusCode)
-      console.log('body:', body)
+
       if (response.statusCode !== 200) {
         reject(new Error(`error response status ${response.statusCode}`))
       } else if (body.errorCode) {
         reject(new Error(`zuora error! code: ${body.errorCode} : ${body.message}`))
       } else {
-        resolve(body.id)
+        let response = {
+          deliveryDate: formattedDate,
+          jobId: body.id
+        }
+        resolve(response)
       }
     })
   })
@@ -93,8 +98,31 @@ function queryZuora (deliveryDate, config) {
 }
 
 export function handler (input, context, callback) {
-  fetchConfig()
-  .then(config => queryZuora(input.deliveryDate, config.zuora.api))
-  .then(jobId => callback(null, {...input, 'jobId': jobId, 'deliveryDate': input.deliveryDate}))
-  .catch(error => callback(error))
+  asyncHandler(input).then(res => callback(null, {...input, jobId: res.jobId, deliveryDate: res.deliveryDate}))
+    .catch(error => callback(error))
+}
+
+function getDeliveryDate (input) {
+  if (input.deliveryDate) {
+    let deliveryDate = moment(input.deliveryDate, 'YYYY-MM-DD')
+    if (!deliveryDate.isValid()) {
+      throw new Error('deliveryDate must be in the format "YYYY-MM-DD"')
+    } else {
+      console.log(deliveryDate)
+      console.log('is valid')
+    }
+    return deliveryDate
+  }
+
+  if (input.deliveryDateDaysFromNow) {
+    return moment().add(input.deliveryDateDaysFromNow, 'days')
+  }
+  throw new Error('deliveryDate or deliveryDateDaysFromNow input param must be provided')
+}
+
+async function asyncHandler (input) {
+  let deliveryDate = getDeliveryDate(input)
+  let config = await fetchConfig()
+  console.log('Config fetched succesfully.')
+  return queryZuora(deliveryDate, config.zuora.api)
 }
