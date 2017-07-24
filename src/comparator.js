@@ -49,12 +49,15 @@ async function compare () {
     Bucket: bucket,
     Prefix: logprefix
   }).promise()
-  const logkeys = logresp.Contents.map(r => { return r.Key.slice(guprefix.length) })
+  const logkeys = logresp.Contents.map(r => { return r.Key.slice(guprefix.length) }).filter(notEmpty)
   console.log('Found the following log files', logkeys)
 
-  const joint = intersectionWith(gukeys, sfkeys, (a:string, b:string) => {
-    return a.split('_').join('') === b.split('_').join('')
-  })
+  let sameDay = (a:moment, b:moment) => {
+    return a.isSame(b, 'day')
+  }
+  let sfDates: Array<moment> = sfkeys.map(salesforceDate).filter(notEmpty)
+  let guDates: Array<moment> = gukeys.map(outputDate).filter(notEmpty)
+  const joint:Array<moment> = intersectionWith(guDates, sfDates, sameDay)
   console.log('In both systems', joint)
 
   const unchecked = differenceWith(joint, logkeys, (a, b) => {
@@ -63,7 +66,7 @@ async function compare () {
   console.log('remaining to check', unchecked)
 
   if (unchecked.length === 0) {
-    return 'No files found to check.'
+    return {message: 'No files found to check.'}
   }
 
   async function check (filename: string) {
@@ -119,8 +122,8 @@ async function compare () {
   return Promise.all(checked)
 }
 
-function notEmpty (str) {
-  return str.length > 0
+function notEmpty (str: ?string):boolean {
+  return !!str
 }
 
 function fetchCSV (path: S3Path) {
