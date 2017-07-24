@@ -308,46 +308,46 @@ Resources:
       State: "ENABLED"
       Targets:
         -
-          Arn: !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:FulfilmentStateMachine${Stage}*"
+          Arn: !Ref FulfilmentStateMachine_[STAGE]
           Id: !Sub trigger_state_machine-${Stage}-1
           Input: "{ \"deliveryDateDaysFromNow\": 1 }"
           RoleArn: !GetAtt [ fulfilmentTriggerRole, Arn ]
         -
-          Arn: !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:FulfilmentStateMachine${Stage}*"
+          Arn: !Ref FulfilmentStateMachine_[STAGE]
           Id: !Sub trigger_state_machine-${Stage}-2
           Input: "{ \"deliveryDateDaysFromNow\": 2 }"
           RoleArn: !GetAtt [ fulfilmentTriggerRole, Arn ]
         -
-          Arn: !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:FulfilmentStateMachine${Stage}*"
+          Arn: !Ref FulfilmentStateMachine_[STAGE]
           Id: !Sub trigger_state_machine-${Stage}-3
           Input: "{ \"deliveryDateDaysFromNow\": 3 }"
           RoleArn: !GetAtt [ fulfilmentTriggerRole, Arn ]
         -
-          Arn: !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:FulfilmentStateMachine${Stage}*"
+          Arn: !Ref FulfilmentStateMachine_[STAGE]
           Id: !Sub trigger_state_machine-${Stage}-4
           Input: "{ \"deliveryDateDaysFromNow\": 4 }"
           RoleArn: !GetAtt [ fulfilmentTriggerRole, Arn ]
 
     DependsOn: FulfilmentStateMachine_[STAGE]
+
   fulfilmentTriggerRole:
     Type: AWS::IAM::Role
     Properties:
-        RoleName: !Sub FulfilmentTrigger-${Stage}
         AssumeRolePolicyDocument:
             Statement:
                 - Effect: Allow
                   Principal:
                       Service:
-                         - lambda.amazonaws.com
+                         - events.amazonaws.com
                   Action:
                       - sts:AssumeRole
-        Path: /
         Policies:
             - PolicyName: TriggerStateMchine
               PolicyDocument:
+                  Version : "2012-10-17"
                   Statement:
                      - Effect: Allow
                        Action:
                        - states:StartExecution
-                       Resource: !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:FulfilmentStateMachine${Stage}*"
+                       Resource: !Ref FulfilmentStateMachine_[STAGE]
 
