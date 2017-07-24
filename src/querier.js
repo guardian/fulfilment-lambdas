@@ -86,11 +86,10 @@ function queryZuora (deliveryDate, config) {
       } else if (body.errorCode) {
         reject(new Error(`zuora error! code: ${body.errorCode} : ${body.message}`))
       } else {
-        let response = {
+        resolve({
           deliveryDate: formattedDate,
           jobId: body.id
-        }
-        resolve(response)
+        })
       }
     })
   })
