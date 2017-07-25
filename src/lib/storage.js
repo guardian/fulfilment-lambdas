@@ -37,3 +37,9 @@ export function copyObject (sourcePath, destPath) {
   console.log(`copying file ${BUCKET}/${sourcePath} to ${BUCKET}/${destPath}`)
   return s3.copyObject(options).promise()
 }
+
+export function getFileInfo (path) {
+  let options = {Bucket: BUCKET, Key: path}
+  console.log(`Retreiving information for file ${options.Key} from S3 bucket ${options.Bucket}.`)
+  return s3.headObject(options).promise()
+}
