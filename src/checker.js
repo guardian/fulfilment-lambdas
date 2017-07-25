@@ -33,12 +33,12 @@ async function checkFile () {
   let filePath = `${stage}/fulfilment_output/${formattedCurrentDate}_HOME_DELIVERY.csv`
   let metadata = await getFileInfo(filePath)
   let lastModified = moment(metadata.LastModified)
-  console.log(`last mofification date ${lastModified.format('YYYY-MM-DD')}`)
+  console.log(`Last mofification date ${lastModified.format('YYYY-MM-DD')}`)
   let fileAge = currentDate.diff(lastModified, 'days')
-  console.log(`file is ${fileAge} day(s) old`)
+  console.log(`File is ${fileAge} day(s) old`)
   let currentDayOfWeek = currentDate.format('ddd')
   let maxAllowedAge = maxAgeDays[currentDayOfWeek]
-  console.log(`max allowed age for ${currentDayOfWeek} files is ${maxAllowedAge}`)
+  console.log(`Max allowed age for ${currentDayOfWeek} files is ${maxAllowedAge}`)
   if (fileAge <= maxAllowedAge) {
     return {result: 'OK'}
   } else {
