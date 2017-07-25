@@ -1,9 +1,8 @@
-import request from 'request'
 import moment from 'moment'
 import { getStage } from './lib/config'
 import { getFileInfo } from './lib/storage'
 
-export function handler (input: ExporterInput, context: ?any, callback: Function) {
+export function handler (input, context, callback) {
   checkFile(input)
     .then(response => {
       console.log(response)
