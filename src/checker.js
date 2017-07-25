@@ -3,7 +3,7 @@ import { getStage } from './lib/config'
 import { getFileInfo } from './lib/storage'
 
 export function handler (input, context, callback) {
-  checkFile(input)
+  checkFile()
     .then(response => {
       console.log(response)
       callback(null, response)
