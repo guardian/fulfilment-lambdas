@@ -4,15 +4,14 @@ import { getFileInfo } from './lib/storage'
 
 export function handler (input, context, callback) {
   checkFile()
-    .then(response => {
-      console.log(response)
-      callback(null, response)
+    .then(checkPassed => {
+      logCheckResult(checkPassed)
+      callback(null, {result: 'passed'})
     })
     .catch(e => {
       console.log(e)
-      let failedResponse = {result: 'FAILED'}
-      console.log(failedResponse)
-      callback(null, failedResponse)
+      logCheckResult(false)
+      callback(null, {result: 'failed'})
     })
 }
 
@@ -24,6 +23,14 @@ let maxAgeDays = {
   Fri: 1,
   Sat: 1,
   Sun: 2
+}
+
+function logCheckResult (checkPassed) {
+  if (checkPassed) {
+    console.log('CHECK:PASSED')
+  } else {
+    console.log('CHECK:FAILED')
+  }
 }
 
 async function checkFile () {
@@ -39,9 +46,5 @@ async function checkFile () {
   let currentDayOfWeek = currentDate.format('ddd')
   let maxAllowedAge = maxAgeDays[currentDayOfWeek]
   console.log(`Max allowed age for ${currentDayOfWeek} files is ${maxAllowedAge}`)
-  if (fileAge <= maxAllowedAge) {
-    return {result: 'OK'}
-  } else {
-    return {result: 'Failed'}
-  }
+  return fileAge <= maxAllowedAge
 }
