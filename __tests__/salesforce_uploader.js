@@ -14,6 +14,7 @@ jest.mock('../src/lib/storage', () => {
     'CODE/fulfilment_output/2017-06-14_HOME_DELIVERY.csv'
   ]
   return {
+    copyObject: jest.fn(() => Promise.resolve('ok')),
     getObject: (path) => {
       if (validPaths.includes(path)) {
         return Promise.resolve({Body: 'csv would be here'})
@@ -23,7 +24,7 @@ jest.mock('../src/lib/storage', () => {
     }
   }
 })
-
+let mockStorage = require('../src/lib/storage')
 jest.mock('../src/lib/salesforceAuthenticator', () => {
   return {
     authenticate: (config) => { return Promise.resolve(mockSalesForce) }
@@ -71,6 +72,7 @@ function errorResponse (status, message) {
   res.statusCode = status
   return res
 }
+
 function verify (done, expectedResponse, expectedFulfilmentDays) {
   return function (err, res) {
     if (err) {
@@ -83,7 +85,7 @@ function verify (done, expectedResponse, expectedFulfilmentDays) {
     try {
       expect(responseAsJson).toEqual(expectedResponseAsJson)
       expect(mockSalesForce.uploadDocument.mock.calls.length).toBe(expectedFulfilmentDays.length)
-
+      expect(mockStorage.copyObject.mock.calls.length).toBe(expectedFulfilmentDays.length)
       let expectedFolder = {
         folderId: 'someFolderId',
         name: 'someFolderName'
@@ -92,8 +94,9 @@ function verify (done, expectedResponse, expectedFulfilmentDays) {
         let parsedDate = moment(date, 'YYYY-MM-DD')
         let dayOfTheWeek = parsedDate.format('dddd')
         let formattedDate = parsedDate.format('DD_MM_YYYY')
-        let expectedFileName = `HOME_DELIVERY_${dayOfTheWeek}_${formattedDate}.csv`
-        expect(mockSalesForce.uploadDocument).toHaveBeenCalledWith(expectedFileName, expectedFolder, 'csv would be here')
+        let expectedSalesForceFileName = `HOME_DELIVERY_${dayOfTheWeek}_${formattedDate}.csv`
+        expect(mockSalesForce.uploadDocument).toHaveBeenCalledWith(expectedSalesForceFileName, expectedFolder, 'csv would be here')
+        expect(mockStorage.copyObject).toHaveBeenCalledWith(`CODE/fulfilment_output/${date}_HOME_DELIVERY.csv`, `CODE/uploaded/${expectedSalesForceFileName}`)
       })
       done()
     } catch (error) {
@@ -104,6 +107,7 @@ function verify (done, expectedResponse, expectedFulfilmentDays) {
 
 beforeEach(() => {
   mockSalesForce.uploadDocument.mock.calls = []
+  mockStorage.copyObject.mock.calls = []
 })
 
 test('should return error if api token is wrong', done => {

@@ -1,4 +1,5 @@
 import AWS from 'aws-sdk'
+
 let s3 = new AWS.S3({signatureVersion: 'v4'})
 const BUCKET = 'fulfilment-output-test'
 
@@ -25,4 +26,14 @@ export function getObject (path) {
   let options = {Bucket: BUCKET, Key: path}
   console.log(`Retreiving file ${options.Key} from S3 bucket ${options.Bucket}.`)
   return s3.getObject(options).promise()
+}
+
+export function copyObject (sourcePath, destPath) {
+  let options = {
+    Bucket: BUCKET,
+    CopySource: `${BUCKET}/${sourcePath}`,
+    Key: destPath
+  }
+  console.log(`copying file ${BUCKET}/${sourcePath} to ${BUCKET}/${destPath}`)
+  return s3.copyObject(options).promise()
 }

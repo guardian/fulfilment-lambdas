@@ -2,10 +2,11 @@
 
 import { fetchConfig } from './lib/config'
 import { authenticate } from './lib/salesforceAuthenticator'
-import { getObject } from './lib/storage'
+import { getObject, copyObject } from './lib/storage'
 import { ApiResponse, SuccessResponse, serverError, unauthorizedError, badRequest } from './ApiResponse'
 
 import moment from 'moment'
+
 const DATE_FORMAT = 'YYYY-MM-DD'
 const MAX_DAYS = 5
 
@@ -27,6 +28,7 @@ function validateToken (expectedToken, providedToken) {
     }
   })
 }
+
 type inputHeaders = {
   apiToken ?: string
 }
@@ -35,29 +37,44 @@ type apiGatewayLambdaInput = {
   headers: inputHeaders
 
 }
+
+async function copyToUploadedFolder (stage, s3Path, sfFileName) {
+  try {
+    let uploadedPath = `${stage}/uploaded/${sfFileName}`
+    await
+      copyObject(s3Path, uploadedPath)
+  } catch (err) {
+    console.error('error copying fulfilment file to uploaded directory')
+    console.log(err)
+  }
+}
+
 export function handler (input: apiGatewayLambdaInput, context: any, callback: (error: any, apiResponse: ApiResponse) => void) {
   function validationError (message) {
     console.log(message)
     callback(null, badRequest(message))
   }
+
   async function salesforceUpload (fileData, stage, salesforce, sfFolder) {
     let dayOfTheWeek = fileData.date.format('dddd')
     let dateSuffix = fileData.date.format('DD_MM_YYYY')
     let outputFileName = `HOME_DELIVERY_${dayOfTheWeek}_${dateSuffix}.csv`
     console.log(`uploading ${outputFileName} to ${sfFolder.name}`)
     let uploadResult = await salesforce.uploadDocument(outputFileName, sfFolder, fileData.file.Body)
+    await copyToUploadedFolder(stage, fileData.s3Path, outputFileName)
     return Promise.resolve({
       name: outputFileName,
       id: uploadResult.id
     })
   }
 
-  async function getFileWithDate (stage, date) {
+  async function getFileData (stage, date) {
     let s3FileName = date.format(DATE_FORMAT) + '_HOME_DELIVERY.csv'
     let s3Path = `${stage}/fulfilment_output/${s3FileName}`
     try {
       let file = await getObject(s3Path)
       return Promise.resolve({
+        s3Path: s3Path,
         file: file,
         date: date
       })
@@ -82,7 +99,7 @@ export function handler (input: apiGatewayLambdaInput, context: any, callback: (
 
     let filePromises = range(amount).map(offset => {
       let date = moment(startDate, DATE_FORMAT).add(offset, 'days')
-      return getFileWithDate(config.stage, date)
+      return getFileData(config.stage, date)
     })
 
     let files = await Promise.all(filePromises)
