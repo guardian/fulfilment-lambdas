@@ -188,7 +188,7 @@ Resources:
     Type: AWS::Logs::MetricFilter
     Properties:
       LogGroupName: !Sub "/aws/lambda/${checkerLambda}"
-      FilterPattern: "CHECK:PASSED"
+      FilterPattern: '"CHECK:PASSED"'
       MetricTransformations:
         - MetricNamespace: !Sub "${Stage}/fulfilment"
           MetricName: "fulfilmentFileUpdated"
