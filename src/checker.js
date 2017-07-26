@@ -1,8 +1,9 @@
+// @flow
 import moment from 'moment'
 import { getStage } from './lib/config'
 import { getFileInfo } from './lib/storage'
 
-export function handler (input, context, callback) {
+export function handler (input: ?any, context: ?any, callback: Function) {
   checkFile()
     .then(checkPassed => {
       logCheckResult(checkPassed)
@@ -15,7 +16,7 @@ export function handler (input, context, callback) {
     })
 }
 
-let maxAgeDays = {
+let maxAgeFor = {
   Mon: 3,
   Tue: 1,
   Wed: 1,
@@ -25,7 +26,7 @@ let maxAgeDays = {
   Sun: 2
 }
 
-function logCheckResult (checkPassed) {
+function logCheckResult (checkPassed: boolean) {
   if (checkPassed) {
     console.log('CHECK:PASSED')
   } else {
@@ -33,18 +34,18 @@ function logCheckResult (checkPassed) {
   }
 }
 
-async function checkFile () {
+async function checkFile (): Promise<boolean> {
   let stage = await getStage()
+  let today = moment()
   let tomorrow = moment().add(1, 'day')
-  let formattedTomorrow = tomorrow.format('YYYY-MM-DD')
-  let filePath = `${stage}/fulfilment_output/${formattedTomorrow}_HOME_DELIVERY.csv`
+  let filePath = `${stage}/fulfilment_output/${tomorrow.format('YYYY-MM-DD')}_HOME_DELIVERY.csv`
   let metadata = await getFileInfo(filePath)
   let lastModified = moment(metadata.LastModified)
-  console.log(`Last mofification date ${lastModified.format('YYYY-MM-DD')}`)
-  let fileAge = tomorrow.diff(lastModified, 'days')
+  console.log(`Last modified date ${lastModified.format('YYYY-MM-DD')}`)
+  let fileAge = today.diff(lastModified, 'days')
   console.log(`File is ${fileAge} day(s) old`)
   let tomorrowDayOfTheWeek = tomorrow.format('ddd')
-  let maxAllowedAge = maxAgeDays[tomorrowDayOfTheWeek]
+  let maxAllowedAge = maxAgeFor[tomorrowDayOfTheWeek]
   console.log(`Max allowed age for ${tomorrowDayOfTheWeek} files is ${maxAllowedAge}`)
   return fileAge <= maxAllowedAge
 }
