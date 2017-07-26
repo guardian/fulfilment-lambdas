@@ -5,7 +5,7 @@ import { formatPostCode } from './lib/formatters'
 import { upload, createReadStream } from './lib/storage'
 import { ReadStream } from 'fs'
 import {getStage} from './lib/config'
-import {outputFileName} from './lib/filenames'
+import {outputFileName as generateOutputFileName} from './lib/filenames'
 
 // input headers
 const ADDRESS_1 = 'SoldToContact.Address1'
@@ -138,7 +138,7 @@ function processSubs (downloadStream: ReadStream, deliveryDate: moment, stage: s
     })
       .pipe(csvStream)
 
-    let outputFileName = outputFileName(deliveryDate)
+    let outputFileName = generateOutputFileName(deliveryDate)
     let outputLocation = `${stage}/fulfilment_output/${outputFileName}`
 
     upload(writeCSVStream, outputLocation, function (err, data) {
