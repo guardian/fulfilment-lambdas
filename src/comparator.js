@@ -7,7 +7,8 @@ import differenceWith from 'lodash/differenceWith'
 import diff from 'deep-diff'
 import type {Difference} from 'deep-diff'
 import QuoteRemover from './lib/QuoteRemover'
-
+import {OUTPUT_DATE_FORMAT, outputFileName, logFileName, salesforceFileName, outputDate, logDate, salesforceDate} from './lib/filenames'
+import moment from 'moment'
 type S3Path = {
   Bucket: string,
   Key: string
@@ -20,6 +21,13 @@ export function handler (input:?any, context:?any, callback:Function) {
     console.log(e)
     callback(e)
   })
+}
+
+function normalise (entry: any) {
+  let copy = {...entry}
+  delete copy['Delivery Quantity']
+  copy['Customer Telephone'] = entry['Customer Telephone'].replace(/^0|\+44/, '')
+  return copy
 }
 
 async function compare () {
@@ -36,43 +44,44 @@ async function compare () {
     Prefix: sfprefix
   }).promise()
   const sfkeys = sfresp.Contents.map(r => { return r.Key.slice(sfprefix.length) }).filter(notEmpty)
-  console.log('Found the following salesforce files', sfkeys)
+
   console.log(guprefix)
   const guresp = await s3.listObjectsV2({
     Bucket: bucket,
     Prefix: guprefix
   }).promise()
   const gukeys = guresp.Contents.map(r => { return r.Key.slice(guprefix.length) }).filter(notEmpty)
-  console.log('Found the following fulfilment files', gukeys)
   console.log(logprefix)
   const logresp = await s3.listObjectsV2({
     Bucket: bucket,
     Prefix: logprefix
   }).promise()
   const logkeys = logresp.Contents.map(r => { return r.Key.slice(guprefix.length) }).filter(notEmpty)
-  console.log('Found the following log files', logkeys)
 
-  let sameDay = (a:moment, b:moment) => {
-    return a.isSame(b, 'day')
-  }
+  let sameDay = (a:moment, b:moment) => a.isSame(b, 'day')
+
   let sfDates: Array<moment> = sfkeys.map(salesforceDate).filter(notEmpty)
   let guDates: Array<moment> = gukeys.map(outputDate).filter(notEmpty)
-  const joint:Array<moment> = intersectionWith(guDates, sfDates, sameDay)
-  console.log('In both systems', joint)
+  let logDates: Array<moment> = logkeys.map(logDate).filter(notEmpty)
 
-  const unchecked = differenceWith(joint, logkeys, (a, b) => {
-    return b === logFileNameFor(a)
-  })
-  console.log('remaining to check', unchecked)
+  console.log('Found the following salesforce fulfilments', sfDates.map(d => d.format(OUTPUT_DATE_FORMAT)))
+  console.log('Found the following fulfilments', guDates.map(d => d.format(OUTPUT_DATE_FORMAT)))
+  console.log('Found the following logs', logDates.map(d => d.format(OUTPUT_DATE_FORMAT)))
+
+  const joint:Array<moment> = intersectionWith(guDates, sfDates, sameDay)
+  console.log('In both systems', joint.map(d => d.format(OUTPUT_DATE_FORMAT)))
+
+  const unchecked = differenceWith(joint, logDates, sameDay)
+  console.log('remaining to check', unchecked.map(d => d.format(OUTPUT_DATE_FORMAT)))
 
   if (unchecked.length === 0) {
     return {message: 'No files found to check.'}
   }
 
   async function check (filename: string) {
-    let sfPath = {Bucket: bucket, Key: `${sfprefix}${sfFilenameFor(filename)}`}
-    let guPath = {Bucket: bucket, Key: `${guprefix}${filename}`}
-    let logPath = {Bucket: bucket, Key: `${logprefix}${logFileNameFor(filename)}`}
+    let sfPath = {Bucket: bucket, Key: `${sfprefix}${salesforceFileName(filename)}`}
+    let guPath = {Bucket: bucket, Key: `${guprefix}${outputFileName(filename)}`}
+    let logPath = {Bucket: bucket, Key: `${logprefix}${logFileName(filename)}`}
 
     let logCache = []
 
@@ -101,7 +110,7 @@ async function compare () {
       if (s.length > 1) {
         log(`Multiple subscriptions for ${id} comparing [0] against [0]`)
       }
-      let differences: ?Array<Difference> = diff(s[0], g[0])
+      let differences: ?Array<Difference> = diff(normalise(s[0]), normalise(g[0]))
       if (differences != null) {
         renderDifference(differences).map(log)
       }
@@ -134,7 +143,9 @@ function fetchCSV (path: S3Path) {
   let csvStream = s3.getObject(path).createReadStream()
   console.log('Initialising parser.')
   return new Promise((resolve, reject) => {
+    let line = 0
     let reader = csv.parse({headers: true}).on('data', (data:customer) => {
+      line++
       let id = data['Customer Reference']
       if (id in customers) {
         console.log(`Duplicate id found ${id}`)
@@ -144,24 +155,13 @@ function fetchCSV (path: S3Path) {
       customers[id] = [data]
     }).on('end', () => {
       resolve(customers)
+    }).on('error', e => {
+      console.log(`Experienced an error on line ${line + 2}:\n ${e}`)
+      // add one for the header row, and another to get to the next line
     })
+
     csvStream.pipe(new QuoteRemover()).pipe(reader)
   })
-}
-
-function sfFilenameFor (filename:string) {
-  let arr = filename.split('_')
-  /* From
-   * 'HOME_DELIVERY_Wednesday_25_01_2017.csv'
-   *   0      1       2        3  4   5
-   * To
-   * 'HOME_DELIVERY_Wednesday25_01_2017.csv'
-   */
-  return `${arr[0]}_${arr[1]}_${arr[2]}${arr[3]}_${arr[4]}_${arr[5]}`
-}
-
-function logFileNameFor (filename: string) {
-  return filename.replace('csv', 'log')
 }
 
 function renderDifference (diff: Array<Difference>):Array<string> {
@@ -174,7 +174,7 @@ function renderDifference (diff: Array<Difference>):Array<string> {
         case 'D':
           return `Field deleted from ${path} `
         case 'E':
-          return `Field ${path} changed from ${d.lhs} to ${d.rhs}`
+          return `Field ${path} changed from "${d.lhs}" to "${d.rhs}"`
       }
     }
     return `Unidentified change at ${path}`

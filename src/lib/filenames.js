@@ -1,10 +1,11 @@
 import moment from 'moment'
 
-const OUTPUT_DATE_FORMAT = 'DD_MM_YYYY'
+const SALESFORCE_DATE_FORMAT = 'DD_MM_YYYY'
+export const OUTPUT_DATE_FORMAT = 'YYYY-MM-DD'
 const DAY_OF_WEEK = 'dddd'
 // const OLD_OUTPUT_REGEX = /HOME_DELIVERY_[^_]*_(\d\d_\d\d_\d\d\d\d).csv/
-const OUTPUT_REGEX = /(\d\d_\d\d_\d\d\d\d)_HOME_DELIVERY.csv/
-const LOG_REGEX = /(\d\d_\d\d_\d\d\d\d)_HOME_DELIVERY.log/
+const OUTPUT_REGEX = /(\d\d\d\d-\d\d-\d\d)_HOME_DELIVERY.csv/
+const LOG_REGEX = /(\d\d\d\d-\d\d-\d\d)_HOME_DELIVERY.log/
 const SLOPPY_REGEX = /\w*(\d\d_\d\d_\d\d\d\d).csv/
 
 function extractDate (string: string, r: RegExp, formatString: ?string):?moment {
@@ -21,20 +22,18 @@ function extractDate (string: string, r: RegExp, formatString: ?string):?moment 
 }
 
 export function outputFileName (deliveryDate: moment):string {
-  let chargeDay = deliveryDate.format(DAY_OF_WEEK)
   let dateSuffix = deliveryDate.format(OUTPUT_DATE_FORMAT)
-  return `HOME_DELIVERY_${chargeDay}_${dateSuffix}.csv`
+  return `${dateSuffix}_HOME_DELIVERY.csv`
 }
 
 export function logFileName (deliveryDate: moment):string {
-  let chargeDay = deliveryDate.format(DAY_OF_WEEK)
   let dateSuffix = deliveryDate.format(OUTPUT_DATE_FORMAT)
-  return `HOME_DELIVERY_${chargeDay}_${dateSuffix}.log`
+  return `${dateSuffix}_HOME_DELIVERY.log`
 }
 
 export function salesforceFileName (deliveryDate: moment):string {
   let chargeDay = deliveryDate.format(DAY_OF_WEEK)
-  let dateSuffix = deliveryDate.format(OUTPUT_DATE_FORMAT)
+  let dateSuffix = deliveryDate.format(SALESFORCE_DATE_FORMAT)
   return `HOME_DELIVERY_${chargeDay}${dateSuffix}.csv`
 }
 export function outputDate (filename:string):?moment {
