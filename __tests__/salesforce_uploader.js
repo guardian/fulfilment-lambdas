@@ -17,7 +17,7 @@ jest.mock('../src/lib/storage', () => {
     copyObject: jest.fn(() => Promise.resolve('ok')),
     getObject: (path) => {
       if (validPaths.includes(path)) {
-        return Promise.resolve({Body: 'csv would be here'})
+        return Promise.resolve({Body: 'csv would be here', LastModified: new Date('12/30/2016')})
       } else {
         return Promise.reject({code: 'NoSuchKey'})// eslint-disable-line prefer-promise-reject-errors
       }
@@ -149,7 +149,7 @@ test('should upload to sf and return file data', done => {
     'headers': {
       'Content-Type': 'application/json'
     },
-    'body': '{"message":"ok","files":[{"name":"HOME_DELIVERY_Monday_12_06_2017.csv","id":"documentId"},{"name":"HOME_DELIVERY_Tuesday_13_06_2017.csv","id":"documentId"}]}'
+    'body': '{"message":"ok","files":[{"name":"HOME_DELIVERY_Monday_12_06_2017.csv","id":"documentId","lastModified":"2016-12-30"},{"name":"HOME_DELIVERY_Tuesday_13_06_2017.csv","id":"documentId","lastModified":"2016-12-30"}]}'
   }
   let expectedFulfilments = ['2017-06-12', '2017-06-13']
   handler(input, {}, verify(done, successResponse, expectedFulfilments))
