@@ -351,3 +351,61 @@ Resources:
                        - states:StartExecution
                        Resource: !Ref FulfilmentStateMachine_[STAGE]
 
+  checkerLambda:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      FunctionName:
+          !Sub zuora_fulfilment_checker-${Stage}
+      Description: "daily check to verify fulfilment files have been generated"
+      Handler: "checker.handler"
+      Role: !GetAtt [ FulfilmentWorkersLambdaRole, Arn ]
+      Code:
+        S3Bucket: fulfilment-lambdas-dist
+        S3Key: !Sub membership/${Stage}/fulfilment-lambdas/fulfilment-lambdas.zip
+      MemorySize: 128
+      Runtime: nodejs6.10
+      Timeout: 300
+      Environment:
+        Variables:
+          'Stage': !Sub ${Stage}
+  fulfilmentCheckerMetric:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${checkerLambda}"
+      FilterPattern: '"CHECK:PASSED"'
+      MetricTransformations:
+        - MetricNamespace: !Sub "${Stage}/fulfilment"
+          MetricName: "fulfilmentFileUpdated"
+          MetricValue: 1
+
+  CheckerScheduledRule:
+    Type: "AWS::Events::Rule"
+    Properties:
+      Description: "trigger fulfilment file check"
+      ScheduleExpression: "cron(30 11 * * ? *)"
+      State: "ENABLED"
+      Targets:
+            - Id: !Sub fulfilmentChecker_${Stage}
+              Arn: !GetAtt checkerLambda.Arn
+
+  checherSchedulePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt checkerLambda.Arn
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt CheckerScheduledRule.Arn
+
+  CheckerAlarm:
+    Type: "AWS::CloudWatch::Alarm"
+    Properties:
+      AlarmDescription: "alarm when fulfilment file has not been generated"
+      AlarmName: !Sub "fulfilment_check_alarm_${Stage}"
+      MetricName: fulfilmentFileUpdated
+      Namespace: !Sub "${Stage}/fulfilment"
+      TreatMissingData: breaching
+      Statistic: Sum
+      Period: 86400
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: LessThanThreshold
