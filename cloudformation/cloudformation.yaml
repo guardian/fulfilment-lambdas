@@ -368,6 +368,11 @@ Resources:
       Environment:
         Variables:
           'Stage': !Sub ${Stage}
+  checkerLambdaLogGroup:
+    Type: "AWS::Logs::LogGroup"
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${checkerLambda}"
+    DependsOn: checkerLambda
   fulfilmentCheckerMetric:
     Type: AWS::Logs::MetricFilter
     Properties:
@@ -377,7 +382,7 @@ Resources:
         - MetricNamespace: !Sub "${Stage}/fulfilment"
           MetricName: "fulfilmentFileUpdated"
           MetricValue: 1
-
+    DependsOn: checkerLambdaLogGroup
   CheckerScheduledRule:
     Type: "AWS::Events::Rule"
     Properties:
@@ -387,6 +392,7 @@ Resources:
       Targets:
             - Id: !Sub fulfilmentChecker_${Stage}
               Arn: !GetAtt checkerLambda.Arn
+    DependsOn: fulfilmentCheckerMetric
 
   checherSchedulePermission:
     Type: AWS::Lambda::Permission
@@ -409,3 +415,4 @@ Resources:
       EvaluationPeriods: 1
       Threshold: 1
       ComparisonOperator: LessThanThreshold
+    DependsOn: fulfilmentCheckerMetric

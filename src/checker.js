@@ -17,13 +17,13 @@ export function handler (input: ?any, context: ?any, callback: Function) {
 }
 
 let maxAgeFor = {
-  Mon: 3,
-  Tue: 1,
-  Wed: 1,
-  Thu: 1,
-  Fri: 1,
-  Sat: 1,
-  Sun: 2
+  Mon: 2,
+  Tue: 0,
+  Wed: 0,
+  Thu: 0,
+  Fri: 0,
+  Sat: 0,
+  Sun: 1
 }
 
 function logCheckResult (checkPassed: boolean) {
