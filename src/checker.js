@@ -35,16 +35,16 @@ function logCheckResult (checkPassed) {
 
 async function checkFile () {
   let stage = await getStage()
-  let currentDate = moment()
-  let formattedCurrentDate = currentDate.format('YYYY-MM-DD')
-  let filePath = `${stage}/fulfilment_output/${formattedCurrentDate}_HOME_DELIVERY.csv`
+  let tomorrow = moment().add(1, 'day')
+  let formattedTomorrow = tomorrow.format('YYYY-MM-DD')
+  let filePath = `${stage}/fulfilment_output/${formattedTomorrow}_HOME_DELIVERY.csv`
   let metadata = await getFileInfo(filePath)
   let lastModified = moment(metadata.LastModified)
   console.log(`Last mofification date ${lastModified.format('YYYY-MM-DD')}`)
-  let fileAge = currentDate.diff(lastModified, 'days')
+  let fileAge = tomorrow.diff(lastModified, 'days')
   console.log(`File is ${fileAge} day(s) old`)
-  let currentDayOfWeek = currentDate.format('ddd')
-  let maxAllowedAge = maxAgeDays[currentDayOfWeek]
-  console.log(`Max allowed age for ${currentDayOfWeek} files is ${maxAllowedAge}`)
+  let tomorrowDayOfTheWeek = tomorrow.format('ddd')
+  let maxAllowedAge = maxAgeDays[tomorrowDayOfTheWeek]
+  console.log(`Max allowed age for ${tomorrowDayOfTheWeek} files is ${maxAllowedAge}`)
   return fileAge <= maxAllowedAge
 }
