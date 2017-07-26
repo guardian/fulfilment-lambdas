@@ -395,3 +395,17 @@ Resources:
       FunctionName: !GetAtt checkerLambda.Arn
       Principal: events.amazonaws.com
       SourceArn: !GetAtt CheckerScheduledRule.Arn
+
+  CheckerAlarm:
+    Type: "AWS::CloudWatch::Alarm"
+    Properties:
+      AlarmDescription: "alarm when fulfilment file has not been generated"
+      AlarmName: !Sub "fulfilment_check_alarm_${Stage}"
+      MetricName: fulfilmentFileUpdated
+      Namespace: !Sub "${Stage}/fulfilment"
+      TreatMissingData: breaching
+      Statistic: Sum
+      Period: 86400
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: LessThanThreshold
