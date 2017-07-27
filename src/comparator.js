@@ -26,6 +26,7 @@ export function handler (input:?any, context:?any, callback:Function) {
 function normalise (entry: any) {
   let copy = {...entry}
   delete copy['Delivery Quantity']
+  delete copy['Sent Date']
   copy['Customer Telephone'] = entry['Customer Telephone'].replace(/^0|\+44/, '')
   return copy
 }
@@ -94,6 +95,12 @@ async function compare () {
 
     let sfOutput = await fetchCSV(sfPath)
     let guOutput = await fetchCSV(guPath)
+    let sfSentDate = Object.keys(sfOutput)[0]['Sent Date']
+    let guSentDate = Object.keys(guOutput)[0]['Sent Date']
+
+    if (sfSentDate !== guSentDate) {
+      log('NB: Salesforce and GU fulfilments generated on different dates.')
+    }
 
     Object.keys(sfOutput).forEach((id) => {
       if (guOutput[id] === undefined || guOutput[id] == null) {
@@ -112,7 +119,7 @@ async function compare () {
       }
       let differences: ?Array<Difference> = diff(normalise(s[0]), normalise(g[0]))
       if (differences != null) {
-        renderDifference(differences).map(log)
+        renderDifference(differences).map(s => `${id}: ${s}`).map(log)
       }
     })
 // At this stage, this only includes keys not present in salesforce file
