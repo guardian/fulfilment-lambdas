@@ -327,6 +327,16 @@ Resources:
           Id: !Sub trigger_state_machine-${Stage}-4
           Input: "{ \"deliveryDateDaysFromNow\": 4 }"
           RoleArn: !GetAtt [ fulfilmentTriggerRole, Arn ]
+        -
+          Arn: !Ref zuora_fulfilment_salesforce_downloader-[STAGE]
+          Id: !Sub trigger_salesforce_download-${Stage}
+          Inout: "{}"
+          RoleArn: !GetAtt [ FulfilmentWorkersLambdaRole, Arn ]
+        -
+          Arn: !Ref zuora_fulfilment_comparator-[STAGE]
+          Id: !Sub trigger_salesforce_comparator-${Stage}
+          Inout: "{}"
+          RoleArn: !GetAtt [ FulfilmentWorkersLambdaRole, Arn ]
 
     DependsOn: FulfilmentStateMachine_[STAGE]
 
