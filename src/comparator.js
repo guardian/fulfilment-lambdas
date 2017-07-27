@@ -13,8 +13,21 @@ type S3Path = {
   Bucket: string,
   Key: string
 }
+type customer = {'Customer Reference':string, 'Sent Date': string }
+type customersMap = {[string]:Array<customer>}
+  // Flow note: at least this field is required, more still meets type
 
 const s3 = new AWS.S3({ signatureVersion: 'v4' })
+const sameDay = (a:moment, b:moment) => a.isSame(b, 'day')
+
+function compareSentDates (salesforceCustomersMap:customersMap, guCustomersMap:customersMap):string {
+  let dateSF = salesforceCustomersMap[Object.keys(salesforceCustomersMap)[0]][0]['Sent Date']
+  let dateGU = guCustomersMap[Object.keys(guCustomersMap)[0]][0]['Sent Date']
+  return dateSF !== dateGU ? `Fulfilment files generated on different dates.
+  Salesforce: ${dateSF}
+  New Fulfilment: ${dateGU}
+  ` : ''
+}
 
 export function handler (input:?any, context:?any, callback:Function) {
   compare().then((result) => callback(null, {...input, ...result})).catch((e) => {
@@ -59,8 +72,6 @@ async function compare () {
   }).promise()
   const logkeys = logresp.Contents.map(r => { return r.Key.slice(guprefix.length) }).filter(notEmpty)
 
-  let sameDay = (a:moment, b:moment) => a.isSame(b, 'day')
-
   let sfDates: Array<moment> = sfkeys.map(salesforceDate).filter(notEmpty)
   let guDates: Array<moment> = gukeys.map(outputDate).filter(notEmpty)
   let logDates: Array<moment> = logkeys.map(logDate).filter(notEmpty)
@@ -93,15 +104,10 @@ async function compare () {
       logCache.push(entry)
     }
 
-    let sfOutput = await fetchCSV(sfPath)
-    let guOutput = await fetchCSV(guPath)
-    let sfSentDate = Object.keys(sfOutput)[0]['Sent Date']
-    let guSentDate = Object.keys(guOutput)[0]['Sent Date']
+    let sfOutput:customersMap = await fetchCSV(sfPath)
+    let guOutput:customersMap = await fetchCSV(guPath)
 
-    if (sfSentDate !== guSentDate) {
-      log('NB: Salesforce and GU fulfilments generated on different dates.')
-    }
-
+    log(compareSentDates(sfOutput, guOutput))
     Object.keys(sfOutput).forEach((id) => {
       if (guOutput[id] === undefined || guOutput[id] == null) {
         log(`Subscription ${id} found in Salesforce Output, but not fulfilment file.`)
@@ -142,9 +148,7 @@ function notEmpty (str: ?string):boolean {
   return !!str
 }
 
-function fetchCSV (path: S3Path) {
-  type customer = {'Customer Reference':string}
-  // Flow note: at least this field is required, more still meets type
+function fetchCSV (path: S3Path):Promise<customersMap> {
   let customers: {[string]:Array<customer>} = {}
   console.log(`Fetching ${path.Key} from ${path.Bucket}`)
   let csvStream = s3.getObject(path).createReadStream()
