@@ -327,6 +327,11 @@ Resources:
           Id: !Sub trigger_state_machine-${Stage}-4
           Input: "{ \"deliveryDateDaysFromNow\": 4 }"
           RoleArn: !GetAtt [ fulfilmentTriggerRole, Arn ]
+        -
+          Arn: !Ref FulfilmentStateMachine_[STAGE]
+          Id: !Sub trigger_state_machine-${Stage}-5
+          Input: "{ \"deliveryDateDaysFromNow\": 5 }"
+          RoleArn: !GetAtt [ fulfilmentTriggerRole, Arn ]
 
     DependsOn: FulfilmentStateMachine_[STAGE]
 
@@ -368,11 +373,6 @@ Resources:
       Environment:
         Variables:
           'Stage': !Sub ${Stage}
-  checkerLambdaLogGroup:
-    Type: "AWS::Logs::LogGroup"
-    Properties:
-      LogGroupName: !Sub "/aws/lambda/${checkerLambda}"
-    DependsOn: checkerLambda
   fulfilmentCheckerMetric:
     Type: AWS::Logs::MetricFilter
     Properties:
@@ -382,7 +382,7 @@ Resources:
         - MetricNamespace: !Sub "${Stage}/fulfilment"
           MetricName: "fulfilmentFileUpdated"
           MetricValue: 1
-    DependsOn: checkerLambdaLogGroup
+    DependsOn: checkerLambda
   CheckerScheduledRule:
     Type: "AWS::Events::Rule"
     Properties:
