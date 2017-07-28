@@ -1,13 +1,16 @@
 import { fetchConfig } from './lib/config'
-import request from 'request'
+import {query, Zuora} from './lib/Zuora'
 import moment from 'moment'
 
 function queryZuora (deliveryDate, config) {
-  let promise = new Promise((resolve, reject) => {
-    let formattedDate = deliveryDate.format('YYYY-MM-DD')
-    const deliveryDay = deliveryDate.format('dddd')
-    const subsQuery = `
-        SELECT 
+  const formattedDate = deliveryDate.format('YYYY-MM-DD')
+  const deliveryDay = deliveryDate.format('dddd')
+  const zuora = new Zuora(config)
+  const subsQuery: query =
+    {
+      'name': 'Subscriptions',
+      'query': `
+        SELECT
             RateplanCharge.quantity,
             Subscription.Name,
               SoldToContact.Address1,
@@ -20,17 +23,20 @@ function queryZuora (deliveryDate, config) {
               SoldToContact.State,
               SoldToContact.workPhone,
               Account.SpecialDeliveryInstructions__c
-          FROM 
-            rateplancharge 
+          FROM
+            rateplancharge
           WHERE
            (Subscription.Status = 'Active' OR Subscription.Status = 'Cancelled') AND
-           ProductRatePlanCharge.ProductType__c = 'Print ${deliveryDay}' AND 
-           Product.Name = 'Newspaper Delivery' AND 
+           ProductRatePlanCharge.ProductType__c = 'Print ${deliveryDay}' AND
+           Product.Name = 'Newspaper Delivery' AND
            RatePlanCharge.EffectiveStartDate <= '${formattedDate}' AND
            RatePlanCharge.EffectiveEndDate >= '${formattedDate}' AND
            (RatePlanCharge.MRR != 0 OR ProductRatePlan.FrontendId__c != 'EchoLegacy')`
-
-    const holidaySuspensionQuery = `
+    }
+  const holidaySuspensionQuery: query =
+    {
+      'name': 'HolidaySuspensions',
+      'query': `
       SELECT 
         Subscription.Name
       FROM 
@@ -42,58 +48,8 @@ function queryZuora (deliveryDate, config) {
        RatePlanCharge.EffectiveStartDate <= '${formattedDate}' AND
        RatePlanCharge.HolidayEnd__c >= '${formattedDate}' AND
        RatePlan.AmendmentType != 'RemoveProduct'`
-
-    const options = {
-      method: 'POST',
-      uri: `${config.url}/apps/api/batch-query/`,
-      json: true,
-      body: {
-        'format': 'csv',
-        'version': '1.0',
-        'name': 'Fulfilment-Queries',
-        'encrypted': 'none',
-        'useQueryLabels': 'true',
-        'dateTimeUtc': 'true',
-        'queries': [
-          {
-            'name': 'Subscriptions',
-            'query': subsQuery,
-            'type': 'zoqlexport'
-          },
-          {
-            'name': 'HolidaySuspensions',
-            'query': holidaySuspensionQuery,
-            'type': 'zoqlexport'
-          }
-        ]
-      },
-      headers: {
-        'Authorization': 'Basic ' + Buffer.from(`${config.username}:${config.password}`).toString('base64'),
-        'Content-Type': 'application/json'
-      }
     }
-
-    request(options, function (error, response, body) {
-      if (error) {
-        reject(error)
-        return
-      }
-
-      console.log('statusCode:', response && response.statusCode)
-
-      if (response.statusCode !== 200) {
-        reject(new Error(`error response status ${response.statusCode}`))
-      } else if (body.errorCode) {
-        reject(new Error(`zuora error! code: ${body.errorCode} : ${body.message}`))
-      } else {
-        resolve({
-          deliveryDate: formattedDate,
-          jobId: body.id
-        })
-      }
-    })
-  })
-  return promise
+  return zuora.query('Fulfilment-Queries', subsQuery, holidaySuspensionQuery)
 }
 
 export function handler (input, context, callback) {
