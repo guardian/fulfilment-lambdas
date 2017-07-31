@@ -332,6 +332,8 @@ Resources:
           Id: !Sub trigger_state_machine-${Stage}-5
           Input: "{ \"deliveryDateDaysFromNow\": 5 }"
           RoleArn: !GetAtt [ fulfilmentTriggerRole, Arn ]
+        - Id: !Sub salesforceDownloader_${Stage}
+          Arn: !GetAtt SalesforceDownloaderLambda.Arn
 
     DependsOn: FulfilmentStateMachine_[STAGE]
 
@@ -392,8 +394,6 @@ Resources:
       Targets:
             - Id: !Sub fulfilmentChecker_${Stage}
               Arn: !GetAtt checkerLambda.Arn
-            - Id: !Sub salesforceDownloader_${Stage}
-              Arn: !GetAtt SalesforceDownloaderLambda.Arn
             - Id: !Sub salesforceComparator_${Stage}
               Arn: !GetAtt ComparatorLambda.Arn
     DependsOn: fulfilmentCheckerMetric
