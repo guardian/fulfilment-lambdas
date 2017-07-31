@@ -18,7 +18,6 @@ export class Zuora {
   authorization :{Authorization:string}
   config: Config
   constructor (config:Config) {
-    console.log('hey there', config)
     this.authorization = {'Authorization': 'Basic ' + Buffer.from(`${config.zuora.api.username}:${config.zuora.api.password}`).toString('base64')}
     this.config = config
   }

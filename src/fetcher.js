@@ -2,7 +2,7 @@
 import { fetchConfig } from './lib/config'
 import NamedError from './lib/NamedError'
 import { upload } from './lib/storage'
-import {Zuora} from './lib/zuora'
+import {Zuora} from './lib/Zuora'
 type input = {jobId: string, deliveryDate: string}
 
 function uploadFile (fileData, config) {
