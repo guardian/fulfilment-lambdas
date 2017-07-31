@@ -1,8 +1,16 @@
+// @flow
 import { fetchConfig } from './lib/config'
-import {query, Zuora} from './lib/Zuora'
+import type {Config} from './lib/config'
+import {Zuora} from './lib/Zuora'
+import type {query} from './lib/Zuora'
 import moment from 'moment'
+import NamedError from './lib/NamedError'
 
-function queryZuora (deliveryDate, config) {
+type input = {
+  deliveryDate: ?string,
+  deliveryDateDaysFromNow: ?number
+}
+async function queryZuora (deliveryDate, config: Config) {
   const formattedDate = deliveryDate.format('YYYY-MM-DD')
   const deliveryDay = deliveryDate.format('dddd')
   const zuora = new Zuora(config)
@@ -49,15 +57,11 @@ function queryZuora (deliveryDate, config) {
        RatePlanCharge.HolidayEnd__c >= '${formattedDate}' AND
        RatePlan.AmendmentType != 'RemoveProduct'`
     }
-  return zuora.query('Fulfilment-Queries', subsQuery, holidaySuspensionQuery)
+  let jobId = await zuora.query('Fulfilment-Queries', subsQuery, holidaySuspensionQuery)
+  return {deliveryDate: formattedDate, jobId: jobId}
 }
 
-export function handler (input, context, callback) {
-  asyncHandler(input).then(res => callback(null, {...input, jobId: res.jobId, deliveryDate: res.deliveryDate}))
-    .catch(error => callback(error))
-}
-
-function getDeliveryDate (input) {
+function getDeliveryDate (input: input) {
   if (input.deliveryDate) {
     let deliveryDate = moment(input.deliveryDate, 'YYYY-MM-DD')
     if (!deliveryDate.isValid()) {
@@ -69,8 +73,9 @@ function getDeliveryDate (input) {
     return deliveryDate
   }
 
-  if (input.deliveryDateDaysFromNow) {
-    return moment().add(input.deliveryDateDaysFromNow, 'days')
+  if (input.deliveryDateDaysFromNow || typeof input.deliveryDateDaysFromNow === 'number') {
+    let deliveryDateDaysFromNow = input.deliveryDateDaysFromNow
+    return moment().add(deliveryDateDaysFromNow, 'days')
   }
   throw new Error('deliveryDate or deliveryDateDaysFromNow input param must be provided')
 }
@@ -79,5 +84,14 @@ async function asyncHandler (input) {
   let deliveryDate = getDeliveryDate(input)
   let config = await fetchConfig()
   console.log('Config fetched succesfully.')
-  return queryZuora(deliveryDate, config.zuora.api)
+  return queryZuora(deliveryDate, config)
+}
+
+export function handler (input: ?input, context:?any, callback:Function) {
+  if (input == null) {
+    callback(new NamedError('inputerror', 'Input to fetcher was invalid'))
+    return null
+  }
+  asyncHandler(input).then(res => callback(null, {...input, jobId: res.jobId, deliveryDate: res.deliveryDate}))
+    .catch(error => callback(error))
 }

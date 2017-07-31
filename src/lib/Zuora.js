@@ -1,4 +1,5 @@
-import type {config} from './config'
+// @flow
+import type {Config} from './config'
 import request from 'request'
 import NamedError from './NamedError'
 
@@ -7,16 +8,26 @@ export type query = {
   'query':string
 }
 
+type batch = {
+  'name':string,
+  'status':string,
+  'fileId':string
+}
+
 export class Zuora {
-  constructor (config:config) {
-    this.authorization = {'Authorization': 'Basic ' + Buffer.from(`${config.username}:${config.password}`).toString('base64')}
+  authorization :{Authorization:string}
+  config: Config
+  constructor (config:Config) {
+    console.log('hey there', config)
+    this.authorization = {'Authorization': 'Basic ' + Buffer.from(`${config.zuora.api.username}:${config.zuora.api.password}`).toString('base64')}
+    this.config = config
   }
-  async query (name:string, ...queries:query) {
+  async query (name:string, ...queries:Array<query>) {
     const exportQueries = queries.map((q) => { return {...q, 'type': 'zoqlexport'} })
     const options = {
       method: 'POST',
 
-      uri: `${config.url}/apps/api/batch-query/`,
+      uri: `${this.config.zuora.api.url}/apps/api/batch-query/`,
       json: true,
       body: {
         'format': 'csv',
@@ -52,12 +63,12 @@ export class Zuora {
     })
     return promise
   }
-  fetchFile (batch, deliveryDate, config) {
+  fetchFile (batch: batch, deliveryDate: string) {
     return new Promise((resolve, reject) => {
       console.log(`fetching file from zuora with id ${batch.fileId}`)
       const options = {
         method: 'GET',
-        uri: `${config.zuora.api.url}/apps/api/batch-query/file/${batch.fileId}`,
+        uri: `${this.config.zuora.api.url}/apps/api/batch-query/file/${batch.fileId}`,
         json: true,
         headers: {
           ...this.authorization,
@@ -83,15 +94,15 @@ export class Zuora {
       })
     })
   }
-  getJobResult (jobId) {
+  getJobResult (jobId: string) : Promise<Array<batch>> {
     return new Promise((resolve, reject) => {
       console.log(`getting job results for jobId=${jobId}`)
       const options = {
         method: 'GET',
-        uri: `${config.zuora.api.url}/apps/api/batch-query/jobs/${jobId}`,
+        uri: `${this.config.zuora.api.url}/apps/api/batch-query/jobs/${jobId}`,
         json: true,
         headers: {
-          'Authorization': 'Basic ' + Buffer.from(`${config.zuora.api.username}:${config.zuora.api.password}`).toString('base64'),
+          ...this.authorization,
           'Content-Type': 'application/json'
         }
       }
