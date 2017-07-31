@@ -54,7 +54,7 @@ function verify (done, expectedError, expectedResponse) {
   }
 }
 
-test('should return error if missing delivery date and deliveryDateOffsetDays ', done => {
+test('should return error if missing delivery date and deliveryDateDaysFromNow ', done => {
   let input = {}
   let expectedError = new Error('deliveryDate or deliveryDateDaysFromNow input param must be provided')
 

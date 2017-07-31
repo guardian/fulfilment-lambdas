@@ -1,39 +1,10 @@
-import request from 'request'
+// @flow
 import { fetchConfig } from './lib/config'
 import NamedError from './lib/NamedError'
 import { upload } from './lib/storage'
+import {Zuora} from './lib/Zuora'
+type input = {jobId: string, deliveryDate: string}
 
-function fetchFile (batch, deliveryDate, config) {
-  return new Promise((resolve, reject) => {
-    console.log(`fetching file from zuora with id ${batch.fileId}`)
-    const options = {
-      method: 'GET',
-      uri: `${config.zuora.api.url}/apps/api/batch-query/file/${batch.fileId}`,
-      json: true,
-      headers: {
-        'Authorization': 'Basic ' + Buffer.from(`${config.zuora.api.username}:${config.zuora.api.password}`).toString('base64'),
-        'Content-Type': 'application/json'
-      }
-    }
-    request(options, function (error, response, body) {
-      if (error) {
-        reject(new NamedError('api_call_error', error))
-        return
-      }
-      if (response.statusCode !== 200) {
-        reject(new NamedError('api_call_error', `error response status ${response.statusCode} when getting batch ${batch.name}`))
-      } else {
-        // TODO SEE HOW TO DETECT FAILURES OR ANY OTHER SPECIAL CASE HERE
-        let fileData = {
-          batchName: batch.name,
-          fileName: `${batch.name}_${deliveryDate}.csv`,
-          data: body
-        }
-        resolve(fileData)
-      }
-    })
-  })
-}
 function uploadFile (fileData, config) {
   let promise = new Promise((resolve, reject) => {
     let savePath = `${config.stage}/zuoraExport/${fileData.fileName}`
@@ -52,58 +23,27 @@ function uploadFile (fileData, config) {
   return promise
 }
 
-function getJobResult (jobId, config) {
-  return new Promise((resolve, reject) => {
-    console.log(`getting job results for jobId=${jobId}`)
-    const options = {
-      method: 'GET',
-      uri: `${config.zuora.api.url}/apps/api/batch-query/jobs/${jobId}`,
-      json: true,
-      headers: {
-        'Authorization': 'Basic ' + Buffer.from(`${config.zuora.api.username}:${config.zuora.api.password}`).toString('base64'),
-        'Content-Type': 'application/json'
-      }
-    }
-    request(options, (error, response, body) => {
-      console.log('Job result received.')
-      if (error) {
-        reject(new NamedError('api_call_error', error))
-        return
-      }
-
-      if (response.statusCode !== 200) {
-        reject(new NamedError('api_call_error', `error response status ${response.statusCode} while getting job result`))
-      } else if (body.status !== 'completed') {
-        if (body.status !== 'error' && body.status !== 'aborted') {
-          reject(new NamedError('zuora_job_pending', `job status was ${body.status} api call should be retried later`))
-        } else {
-          reject(new NamedError('api_call_error', `job status was ${body.status} expected completed`))
-        }
-      } else {
-        // TODO SEE HOW TO DETECT FAILURES OR ANY OTHER SPECIAL CASE HERE
-        let notCompleted = body.batches.filter(batch => batch.status !== 'completed').map(batch => `${batch.name} is in status: ${batch.status}`)
-        if (notCompleted.length > 1) {
-          reject(new NamedError('batch_not_completed', notCompleted.join()))
-        }
-        resolve(body.batches)
-      }
-    })
-  })
-}
-
-export function handler (input, context, callback) {
-  asyncHandler(input).then(res => callback(null, { ...input, deliveryDate: input.deliveryDate, results: res })).catch(e => {
+export function handler (input: ?any, context: ?any, callback: Function) {
+  if (input == null ||
+    input.jobId == null ||
+     typeof input.jobId !== 'string' ||
+     input.deliveryDate == null ||
+     typeof input.deliveryDate !== 'string') {
+    callback(new NamedError('inputerror', 'Input to fetcher was invalid'))
+    return null
+  }
+  asyncHandler(input).then(res => callback(null, { ...input, results: res })).catch(e => {
     console.log(e)
     callback(e)
   })
 }
-
-async function asyncHandler (input) {
+async function asyncHandler (input: input) {
   let config = await fetchConfig()
   console.log('Config fetched succesfully.')
-  let batches = await getJobResult(input.jobId, config)
+  let zuora = new Zuora(config)
+  let batches = await zuora.getJobResult(input.jobId)
   console.log('Job results returned.')
-  let files = batches.map(batch => fetchFile(batch, input.deliveryDate, config))
+  let files = batches.map(batch => zuora.fetchFile(batch, input.deliveryDate))
   console.log('Downloading job results.')
   let uploads = await Promise.all(files)
   console.log('Generating upload')
