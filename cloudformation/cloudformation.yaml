@@ -334,6 +334,7 @@ Resources:
           RoleArn: !GetAtt [ fulfilmentTriggerRole, Arn ]
         - Id: !Sub salesforceDownloader_${Stage}
           Arn: !GetAtt SalesforceDownloaderLambda.Arn
+          RoleArn: !GettAtt [FulfilmentWorkersLambdaRole, Arn]
 
     DependsOn: FulfilmentStateMachine_[STAGE]
 
@@ -396,6 +397,7 @@ Resources:
               Arn: !GetAtt checkerLambda.Arn
             - Id: !Sub salesforceComparator_${Stage}
               Arn: !GetAtt ComparatorLambda.Arn
+              RoleArn: !GettAtt [FulfilmentWorkersLambdaRole, Arn]
     DependsOn: fulfilmentCheckerMetric
 
   checherSchedulePermission:
