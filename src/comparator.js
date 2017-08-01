@@ -19,6 +19,10 @@ type customersMap = {[string]:Array<customer>}
 
 const s3 = new AWS.S3({ signatureVersion: 'v4' })
 const sameDay = (a:moment, b:moment) => a.isSame(b, 'day')
+const inFuture: (moment) => boolean = (() => {
+  let now = moment()
+  return (dt: moment) => dt.isAfter(now, 'day')
+})()
 
 function compareSentDates (salesforceCustomersMap:customersMap, guCustomersMap:customersMap):string {
   let dateSF = salesforceCustomersMap[Object.keys(salesforceCustomersMap)[0]][0]['Sent Date']
@@ -74,7 +78,9 @@ async function compare () {
 
   let sfDates: Array<moment> = sfkeys.map(salesforceDate).filter(notEmpty)
   let guDates: Array<moment> = gukeys.map(outputDate).filter(notEmpty)
-  let logDates: Array<moment> = logkeys.map(logDate).filter(notEmpty)
+
+  let logDates: Array<moment> = logkeys.map(logDate).filter(notEmpty).filter(inFuture)
+  // Check all future dated logfiles every time we run, just to make sure we haven't missed an update.
 
   console.log('Found the following salesforce fulfilments', sfDates.map(d => d.format(OUTPUT_DATE_FORMAT)))
   console.log('Found the following fulfilments', guDates.map(d => d.format(OUTPUT_DATE_FORMAT)))
