@@ -332,13 +332,32 @@ Resources:
           Id: !Sub trigger_state_machine-${Stage}-5
           Input: "{ \"deliveryDateDaysFromNow\": 5 }"
           RoleArn: !GetAtt [ fulfilmentTriggerRole, Arn ]
+    DependsOn: FulfilmentStateMachine_[STAGE]
+
+  SFDownloadScheduledRule:
+    Type: "AWS::Events::Rule"
+    Properties:
+      Description: "Download fulfilment files from Salesforce"
+      ScheduleExpression: "cron(50 14 ? * mon-fri *)"
+      State: "ENABLED"
+      Targets:
         - 
           Arn: !GetAtt SalesforceDownloaderLambda.Arn
           Id: !Sub salesforceDownloader_[STAGE]
-          RoleArn: !GetAtt [ FulfilmentWorkersLambdaRole, Arn ]
 
     DependsOn: FulfilmentStateMachine_[STAGE]
+  SFComparatorScheduledRule:
+    Type: "AWS::Events::Rule"
+    Properties:
+      Description: "Check the fulfilment files match up."
+      ScheduleExpression: "cron(55 14 ? * mon-fri *)"
+      State: "ENABLED"
+      Targets:
+        -
+          Id: !Sub salesforceComparator_${Stage}
+          Arn: !GetAtt ComparatorLambda.Arn
 
+    DependsOn: FulfilmentStateMachine_[STAGE]
   fulfilmentTriggerRole:
     Type: AWS::IAM::Role
     Properties:
@@ -396,16 +415,29 @@ Resources:
       Targets:
             - Id: !Sub fulfilmentChecker_${Stage}
               Arn: !GetAtt checkerLambda.Arn
-            - Id: !Sub salesforceComparator_${Stage}
-              Arn: !GetAtt ComparatorLambda.Arn
-              RoleArn: !GetAtt [ FulfilmentWorkersLambdaRole, Arn ]
     DependsOn: fulfilmentCheckerMetric
 
-  checherSchedulePermission:
+  checkerSchedulePermission:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
       FunctionName: !GetAtt checkerLambda.Arn
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt CheckerScheduledRule.Arn
+
+  sfDownloadSchedulePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt SalesforceDownloaderLambda.Arn
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt CheckerScheduledRule.Arn
+
+  comparatorSchedulePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt ComparatorLambda.Arn
       Principal: events.amazonaws.com
       SourceArn: !GetAtt CheckerScheduledRule.Arn
 
