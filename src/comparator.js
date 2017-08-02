@@ -161,7 +161,10 @@ function fetchCSV (path: S3Path):Promise<customersMap> {
   console.log('Initialising parser.')
   return new Promise((resolve, reject) => {
     let line = 0
-    let reader = csv.parse({headers: true}).on('data', (data:customer) => {
+    let reader = csv.parse({headers: true}).on('data-invalid', function (data) {
+        // TODO CAN WE LOG PII?
+      console.log('ignoring invalid data: ' + data)
+    }).on('data', (data:customer) => {
       line++
       let id = data['Customer Reference']
       if (id in customers) {
