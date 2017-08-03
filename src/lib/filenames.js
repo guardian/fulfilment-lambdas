@@ -21,6 +21,11 @@ function extractDate (string: string, r: RegExp, formatString: ?string):?moment 
   return moment(dateString, formatString)
 }
 
+export function weeklyOutputFileName (deliveryDate: moment, country: string):string {
+  let dateSuffix = deliveryDate.format(OUTPUT_DATE_FORMAT)
+  return `${dateSuffix}_WEEKLY_${country}.csv`
+}
+
 export function outputFileName (deliveryDate: moment):string {
   let dateSuffix = deliveryDate.format(OUTPUT_DATE_FORMAT)
   return `${dateSuffix}_HOME_DELIVERY.csv`

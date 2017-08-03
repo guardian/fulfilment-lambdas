@@ -4,7 +4,7 @@ import moment from 'moment'
 import { upload, createReadStream } from './../lib/storage'
 import { ReadStream } from 'fs'
 import {getStage} from './../lib/config'
-import {outputFileName as generateOutputFileName} from './../lib/filenames'
+import {weeklyOutputFileName as generateOutputFileName} from './../lib/filenames'
 import WeeklyExporter from './WeeklyExporter'
 
 const SUBSCRIPTION_NAME = 'Subscription.Name'
@@ -97,8 +97,8 @@ function processSubs (downloadStream: ReadStream, deliveryDate: moment, stage: s
     })
       .pipe(csvStream)
 
-    let outputFileName = generateOutputFileName(deliveryDate)
-    let outputLocation = `${stage}/fulfilment_output/${outputFileName}`
+    let outputFileName = generateOutputFileName(deliveryDate, exporter.country)
+    let outputLocation = `${stage}/weekly_fulfilment_output/${outputFileName}`
 
     upload(exporter.writeCSVStream, outputLocation, function (err, data) {
       if (err) {
