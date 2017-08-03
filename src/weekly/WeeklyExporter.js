@@ -69,7 +69,6 @@ export default class {
 
   constructor (country: string, deliveryDate: moment) {
     this.country = country
-
     this.writeCSVStream = csv.createWriteStream({
       headers: outputHeaders
     })

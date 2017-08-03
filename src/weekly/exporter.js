@@ -8,8 +8,8 @@ import {weeklyOutputFileName as generateOutputFileName} from './../lib/filenames
 import WeeklyExporter from './WeeklyExporter'
 
 const SUBSCRIPTION_NAME = 'Subscription.Name'
-const HOLIDAYS_QUERY_NAME = 'HolidaySuspensions'
-const SUBSCRIPTIONS_QUERY_NAME = 'Subscriptions'
+const HOLIDAYS_QUERY_NAME = 'WeeklyHolidaySuspensions'
+const SUBSCRIPTIONS_QUERY_NAME = 'WeeklySubscriptions'
 
 type result = {
   queryName: string,
@@ -71,7 +71,7 @@ function getHolidaySuspensions (downloadStream: ReadStream): Promise<Set<string>
 function processSubs (downloadStream: ReadStream, deliveryDate: moment, stage: string, holidaySuspensions: Set<string>): Promise<string> {
   return new Promise((resolve, reject) => {
     console.log('loaded ' + holidaySuspensions.size + ' holiday suspensions')
-    let exporter = new WeeklyExporter('United Kingdom', deliveryDate)
+    let exporters = [new WeeklyExporter('United Kingdom', deliveryDate), new WeeklyExporter('Canada', deliveryDate)]
 
     let csvStream = csv.parse({
       headers: true
@@ -83,30 +83,36 @@ function processSubs (downloadStream: ReadStream, deliveryDate: moment, stage: s
       .on('data', function (data) {
         let subscriptionName = data[SUBSCRIPTION_NAME]
         if (!holidaySuspensions.has(subscriptionName)) {
-          if (exporter.useForRow(data)) {
-            exporter.processRow(data)
-          }
+          exporters.map(exporter => {
+            if (exporter.useForRow(data)) {
+              exporter.processRow(data)
+            }
+          })
         }
-      })
+      }
+  )
       .on('end', function () {
-        exporter.end()
+        exporters.map(exporter => {
+          exporter.end()
+        })
       })
 
     downloadStream.on('error', function (err) {
       reject(new Error(`error reading holidaySuspensions: ${err}`))
     })
       .pipe(csvStream)
+    exporters.map(exporter => {
+      let outputFileName = generateOutputFileName(deliveryDate, exporter.country)
+      let outputLocation = `${stage}/weekly_fulfilment_output/${outputFileName}`
 
-    let outputFileName = generateOutputFileName(deliveryDate, exporter.country)
-    let outputLocation = `${stage}/weekly_fulfilment_output/${outputFileName}`
-
-    upload(exporter.writeCSVStream, outputLocation, function (err, data) {
-      if (err) {
-        console.log('ERROR ' + err)
-        reject(err)
-      } else {
-        resolve(outputFileName)
-      }
+      upload(exporter.writeCSVStream, outputLocation, function (err, data) {
+        if (err) {
+          console.log('ERROR ' + err)
+          reject(err)
+        } else {
+          resolve(outputFileName)
+        }
+      })
     })
   })
 }
