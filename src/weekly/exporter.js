@@ -108,9 +108,11 @@ function processSubs (downloadStream: ReadStream, deliveryDate: moment, stage: s
       upload(exporter.writeCSVStream, outputLocation, function (err, data) {
         if (err) {
           console.log('ERROR ' + err)
-          reject(err)
+          return Result.Error(err)
+        //  reject(err)
         } else {
-          resolve(outputFileName)
+          return Result.Ok(outputFileName)
+          // resolve(outputFileName)
         }
       })
     })

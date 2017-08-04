@@ -46,7 +46,7 @@ jest.mock('../../src/lib/storage', () => {
   }
 })
 
-function verify (done, expectedError, expectedResponse, expectedFileName) {
+function verify (done, expectedError, expectedResponse, expectedFileNames) {
   return function (err, res) {
     try {
       expect(err).toEqual(expectedError)
@@ -57,19 +57,17 @@ function verify (done, expectedError, expectedResponse, expectedFileName) {
 
       if (expectedResponse) {
         let responseAsJson = JSON.parse(JSON.stringify(res))
-        console.log(responseAsJson, 'toot')
-        console.log(expectedResponse, 'hek')
         expect(responseAsJson).toEqual(expectedResponse)
       }
-      if (expectedFileName) {
-        getTestFile(expectedFileName, function (err, expectedContents) {
-          console.log(expectedContents, 'toot')
-          console.log(expectedResponse, 'hek')
-          if (err) {
-            done.fail(err)
-            return
-          }
-          expect(expectedContents).toEqual(mockOutput)
+      if (expectedFileNames) {
+        expectedFileNames.map((expectedFileName) => {
+          getTestFile(expectedFileName, function (err, expectedContents) {
+            if (err) {
+              done.fail(err)
+              return
+            }
+            expect(expectedContents).toEqual(mockOutput)
+          })
           done()
         })
       }
@@ -128,7 +126,7 @@ test('should return error on invalid deliveryDate for weekly', done => {
   handler(input, {}, verify(done, expectedError, null, null))
 })
 
-test.only('should generate correct fulfilment file for weekly', done => {
+test('should generate correct fulfilment file for weekly', done => {
   let input = {
     deliveryDate: '2017-07-06',
     results: [
@@ -145,6 +143,6 @@ test.only('should generate correct fulfilment file for weekly', done => {
   let expectedFileName = '2017-07-06_WEEKLY_United_Kingdom.csv'
   let expectedResponse = {...input, 'fulfilmentFile': expectedFileName}
 
-  handler(input, {}, verify(done, null, expectedResponse, expectedFileName))
+  handler(input, {}, verify(done, null, expectedResponse, [expectedFileName]))
   done()
 })
