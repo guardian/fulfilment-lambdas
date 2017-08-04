@@ -5,22 +5,9 @@ import { upload } from './lib/storage'
 import {Zuora} from './lib/Zuora'
 type input = {jobId: string, deliveryDate: string}
 
-function uploadFile (fileData, config) {
-  let promise = new Promise((resolve, reject) => {
-    let savePath = `${config.stage}/zuoraExport/${fileData.fileName}`
-    upload(fileData.data, savePath, function (err, data) {
-      if (err) {
-        reject(new NamedError('s3_upload_error', 'ERROR uploading results to S3 ' + err))
-      } else {
-        let response = {
-          queryName: fileData.batchName,
-          fileName: fileData.fileName
-        }
-        resolve(response)
-      }
-    })
-  })
-  return promise
+async function uploadFile (fileData, config) {
+  let savePath = `${config.stage}/zuoraExport/${fileData.fileName}`
+  return upload(fileData.data, savePath)
 }
 
 export function handler (input: ?any, context: ?any, callback: Function) {

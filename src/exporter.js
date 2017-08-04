@@ -92,20 +92,19 @@ function getHolidaySuspensions (downloadStream: ReadStream): Promise<Set<string>
       .pipe(csvStream)
   })
 }
-function processSubs (downloadStream: ReadStream, deliveryDate: moment, stage: string, holidaySuspensions: Set<string>): Promise<string> {
+async function processSubs (downloadStream: ReadStream, deliveryDate: moment, stage: string, holidaySuspensions: Set<string>): Promise<string> {
   let sentDate = moment().format('DD/MM/YYYY')
   let chargeDay = deliveryDate.format('dddd')
   let formattedDeliveryDate = deliveryDate.format('DD/MM/YYYY')
 
-  return new Promise((resolve, reject) => {
-    console.log('loaded ' + holidaySuspensions.size + ' holiday suspensions')
-    let writeCSVStream = csv.createWriteStream({
-      headers: outputHeaders
-    })
+  console.log('loaded ' + holidaySuspensions.size + ' holiday suspensions')
+  let writeCSVStream = csv.createWriteStream({
+    headers: outputHeaders
+  })
 
-    let csvStream = csv.parse({
-      headers: true
-    })
+  let csvStream = csv.parse({
+    headers: true
+  })
       .on('data-invalid', function (data) {
         // TODO CAN WE LOG PII?
         console.log('ignoring invalid data: ' + data)
@@ -133,23 +132,16 @@ function processSubs (downloadStream: ReadStream, deliveryDate: moment, stage: s
         writeCSVStream.end()
       })
 
-    downloadStream.on('error', function (err) {
-      reject(new Error(`error reading holidaySuspensions: ${err}`))
-    })
+  downloadStream.on('error', function (err) {
+    throw new Error(`error reading holidaySuspensions: ${err}`)
+  })
       .pipe(csvStream)
 
-    let outputFileName = generateOutputFileName(deliveryDate)
-    let outputLocation = `${stage}/fulfilment_output/${outputFileName}`
+  let outputFileName = generateOutputFileName(deliveryDate)
+  let outputLocation = `${stage}/fulfilment_output/${outputFileName}`
 
-    upload(writeCSVStream, outputLocation, function (err, data) {
-      if (err) {
-        console.log('ERROR ' + err)
-        reject(err)
-      } else {
-        resolve(outputFileName)
-      }
-    })
-  })
+  await upload(writeCSVStream, outputLocation)
+  return outputFileName
 }
 
 function getDeliveryDate (input: ExporterInput): Promise<moment> {
