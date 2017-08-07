@@ -24,7 +24,8 @@
     "node-riffraff-artefact": "^2.0.1",
     "replace-x": "^1.1.1",
     "snazzy": "^7.0.0",
-    "standard": "^10.0.2"
+    "standard": "^10.0.2",
+    "stream-to-string": "^1.1.0"
   },
   "scripts": {
     "riffraff-artefact": "./node_modules/.bin/riffraff-artefact",
