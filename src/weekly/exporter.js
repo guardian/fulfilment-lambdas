@@ -68,14 +68,13 @@ function getHolidaySuspensions (downloadStream: ReadStream): Promise<Set<string>
       .pipe(csvStream)
   })
 }
-function processSubs (downloadStream: ReadStream, deliveryDate: moment, stage: string, holidaySuspensions: Set<string>): Promise<string> {
-  return new Promise((resolve, reject) => {
-    console.log('loaded ' + holidaySuspensions.size + ' holiday suspensions')
-    let exporters = [new WeeklyExporter('United Kingdom', deliveryDate), new WeeklyExporter('Canada', deliveryDate)]
+async function processSubs (downloadStream: ReadStream, deliveryDate: moment, stage: string, holidaySuspensions: Set<string>): Promise<Array<string>> {
+  console.log('loaded ' + holidaySuspensions.size + ' holiday suspensions')
+  let exporters = [new WeeklyExporter('United Kingdom', deliveryDate), new WeeklyExporter('Canada', deliveryDate)]
 
-    let csvStream = csv.parse({
-      headers: true
-    })
+  let csvStream = csv.parse({
+    headers: true
+  })
       .on('data-invalid', function (data) {
         // TODO CAN WE LOG PII?
         console.log('ignoring invalid data: ' + data)
@@ -97,26 +96,16 @@ function processSubs (downloadStream: ReadStream, deliveryDate: moment, stage: s
         })
       })
 
-    downloadStream.on('error', function (err) {
-      reject(new Error(`error reading holidaySuspensions: ${err}`))
-    })
-      .pipe(csvStream)
-    exporters.map(exporter => {
-      let outputFileName = generateOutputFileName(deliveryDate, exporter.country)
-      let outputLocation = `${stage}/weekly_fulfilment_output/${outputFileName}`
-
-      upload(exporter.writeCSVStream, outputLocation, function (err, data) {
-        if (err) {
-          console.log('ERROR ' + err)
-          return Result.Error(err)
-        //  reject(err)
-        } else {
-          return Result.Ok(outputFileName)
-          // resolve(outputFileName)
-        }
-      })
-    })
+  downloadStream.on('error', function (err) {
+    throw new Error(`error reading holidaySuspensions: ${err}`)
+  }).pipe(csvStream)
+  let uploads = exporters.map(async (exporter) => {
+    let outputFileName = generateOutputFileName(deliveryDate, exporter.country)
+    let outputLocation = `${stage}/weekly_fulfilment_output/${outputFileName}`
+    await upload(exporter.writeCSVStream, outputLocation)
+    return outputFileName
   })
+  return Promise.all(uploads)
 }
 
 function getDeliveryDate (input: ExporterInput): Promise<moment> {
