@@ -20,23 +20,12 @@ function getTestFile (fileName, callback) {
 
 jest.mock('../../src/lib/storage', () => {
   let fs = require('fs')
-
-  function streamToString (stream, callback) {
-    let parts = []
-    stream.on('data', (data) => {
-      parts.push(data.toString('utf-8'))
-    })
-    stream.on('end', () => {
-      callback(parts.join(''))
-    })
-  }
+  const streamToString = require('stream-to-string')
 
   return {
-    upload: (stream, outputLocation, callback) => {
-      streamToString(stream, (data) => {
-        mockOutput = data
-        callback(null, outputLocation)
-      })
+    upload: async (stream, outputLocation) => {
+      mockOutput[outputLocation] = await streamToString(stream)
+      return outputLocation
     },
     createReadStream: (filePath) => {
       let testFilePath = `./__tests__/resources/${filePath}`
@@ -66,7 +55,7 @@ function verify (done, expectedError, expectedResponse, expectedFileNames) {
               done.fail(err)
               return
             }
-            expect(expectedContents).toEqual(mockOutput)
+            expect(expectedContents).toEqual(mockOutput[expectedFileName])
           })
           done()
         })
