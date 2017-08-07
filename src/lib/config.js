@@ -2,6 +2,7 @@
 import AWS from 'aws-sdk'
 import NamedError from './NamedError'
 import type {folder} from './salesforceAuthenticator'
+import type {S3Folder} from './storage'
 
 let s3 = new AWS.S3()
 
@@ -31,7 +32,8 @@ export type Config = {
   },
   api: {
     expectedToken: string
-  }
+  },
+  downloadFolders: Array<folder & S3Folder>
 }
 
 export function getStage (): Promise<Stage> {

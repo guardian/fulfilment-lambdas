@@ -10,12 +10,27 @@ export type S3UploadResponse = {
   Bucket: string,
   Key: string
 }
-export async function upload (source: Buffer | string | Readable, outputLocation: string): Promise<S3UploadResponse> {
-  console.log(`uploading to ${BUCKET}/${outputLocation}`)
+
+export type S3Folder = {
+  bucket: string,
+  prefix: string
+}
+
+export async function ls (folder: S3Folder) {
+  let resp = await s3.listObjectsV2({
+    Bucket: folder.bucket,
+    Prefix: folder.prefix
+  }).promise()
+  return resp.Contents
+}
+
+export async function upload (source: Buffer | string | Readable, outputLocation: string, folder: ?S3Folder): Promise<S3UploadResponse> {
+  let key = folder ? `${folder.prefix}${outputLocation}` : outputLocation
+  console.log(`uploading to ${BUCKET}/${key}`)
 
   let params = {
     Bucket: BUCKET,
-    Key: outputLocation,
+    Key: key,
     Body: source,
     ServerSideEncryption: 'aws:kms'
   }

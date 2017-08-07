@@ -1,9 +1,12 @@
 // @flow
 import { fetchConfig } from './lib/config'
 import { authenticate } from './lib/salesforceAuthenticator'
-import AWS from 'aws-sdk'
+import type { folder } from './lib/salesforceAuthenticator'
+import type { S3Folder } from './lib/storage'
+import type { Config } from './lib/config'
+import { ls, upload } from './lib/storage'
+
 import stream from 'stream'
-let s3 = new AWS.S3({ signatureVersion: 'v4' })
 
 export function handler (input:?any, context:?any, callback:Function) {
   downloader().then((r) => {
@@ -20,20 +23,19 @@ async function downloader () {
   console.log('Fetching config from S3.')
   let config = await fetchConfig()
 
-  const prefix = `${config.stage}/salesforce_output/`
-  const bucket = 'fulfilment-output-test'
-
-  console.log('Fetching existing files in S3: ', bucket, prefix)
-  const resp = await s3.listObjectsV2({
-    Bucket: bucket,
-    Prefix: prefix
-  }).promise()
-
-  let keys = resp.Contents.map(r => { return r.Key.slice(prefix.length) })
-
-  let salesforce = await authenticate(config)
   console.log('Getting home delivery folder')
-  let folder = config.salesforce.downloadFolder
+  let folders = config.downloadFolders
+  return folders.map(folder => download(config, folder))
+}
+
+async function download (config: Config, folder: folder & S3Folder) {
+  let salesforce = await authenticate(config)
+
+  console.log('Fetching existing files in S3: ', folder.bucket, folder.prefix)
+  const contents = await ls(folder)
+
+  let keys = contents.map(r => { return r.Key.slice(folder.prefix.length) })
+
   console.log('Fetching file list from Saleforce.')
   let documents = await salesforce.getDocuments(folder)
   console.log('Ignoring existing files:', keys)
@@ -47,15 +49,8 @@ async function downloader () {
     let dl = salesforce.getStream(`${doc.attributes.url}/Body`)
     let st = new stream.PassThrough()
     dl.pipe(st)
-    let params = {
-      ACL: 'private',
-      Bucket: bucket,
-      Key: `${prefix}${doc.Name}`,
-      ServerSideEncryption: 'aws:kms',
-      Body: st
-    }
-    console.log('Starting upload to S3 ', params.Key)
-    return s3.upload(params).promise()
+    console.log('Starting upload to S3 ')
+    return upload(st, doc.Name, folder)
   })
   console.log('Performing upload/downloads.')
   let status = await Promise.all(uploads)
