@@ -24,7 +24,7 @@ async function downloader () {
   let config = await fetchConfig()
 
   console.log('Getting home delivery folder')
-  let folders = config.downloadFolders
+  let folders: Array<folder & S3Folder> = [config.fulfilments.homedelivery.downloadFolder, ...Object.keys(config.fulfilments.weekly).map(k => config.fulfilments.weekly[k].downloadFolder)]
   return folders.map(folder => download(config, folder))
 }
 
