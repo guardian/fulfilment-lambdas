@@ -3,16 +3,22 @@ import type {Config} from './config'
 import request from 'request'
 import NamedError from './NamedError'
 
-export type query = {
+export type Query = {
   'name':string,
   'query':string
 }
 
-type batch = {
+type Batch = {
   'name':string,
   'status':string,
   'fileId':string
 }
+
+export type FileData = {
+            batchName: string,
+            fileName: string,
+            data: Buffer
+          }
 
 export class Zuora {
   authorization :{Authorization:string}
@@ -21,7 +27,7 @@ export class Zuora {
     this.authorization = {'Authorization': 'Basic ' + Buffer.from(`${config.zuora.api.username}:${config.zuora.api.password}`).toString('base64')}
     this.config = config
   }
-  async query (name:string, ...queries:Array<query>) {
+  async query (name:string, ...queries:Array<Query>) {
     const exportQueries = queries.map((q) => { return {...q, 'type': 'zoqlexport'} })
     const options = {
       method: 'POST',
@@ -62,7 +68,7 @@ export class Zuora {
     })
     return promise
   }
-  fetchFile (batch: batch, deliveryDate: string) {
+  fetchFile (batch: Batch, deliveryDate: string): Promise<FileData> {
     return new Promise((resolve, reject) => {
       console.log(`fetching file from zuora with id ${batch.fileId}`)
       const options = {
@@ -93,7 +99,7 @@ export class Zuora {
       })
     })
   }
-  getJobResult (jobId: string) : Promise<Array<batch>> {
+  getJobResult (jobId: string) : Promise<Array<Batch>> {
     return new Promise((resolve, reject) => {
       console.log(`getting job results for jobId=${jobId}`)
       const options = {
