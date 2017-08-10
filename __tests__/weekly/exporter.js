@@ -1,5 +1,5 @@
 /* eslint-env jest */
-import { handler } from '../../src/weekly/exporter'
+import { handler } from '../../src/exporter'
 import { readFile } from 'fs'
 var MockDate = require('mockdate')
 
@@ -73,6 +73,7 @@ beforeEach(() => {
 
 test('should return error on missing query subscriptions query result for weekly', done => {
   let input = {
+    type: 'weekly',
     deliveryDate: '2017-07-06',
     results: [
       {
@@ -89,6 +90,7 @@ test('should return error on invalid stage value for weekly', done => {
   process.env.Stage = 'SOMETHING'
 
   let input = {
+    type: 'weekly',
     deliveryDate: '2017-07-06',
     results: [
       {
@@ -103,6 +105,7 @@ test('should return error on invalid stage value for weekly', done => {
 
 test('should return error on invalid deliveryDate for weekly', done => {
   let input = {
+    type: 'weekly',
     deliveryDate: '2017-14-06',
     results: [
       {
@@ -117,6 +120,7 @@ test('should return error on invalid deliveryDate for weekly', done => {
 
 test('should generate correct fulfilment file for weekly', done => {
   let input = {
+    type: 'weekly',
     deliveryDate: '2017-07-06',
     results: [
       {
