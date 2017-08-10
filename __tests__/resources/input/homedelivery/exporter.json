@@ -1,14 +1,15 @@
 {
         "deliveryDate": "2017-05-14",
-        "jobId": "2c92c0f95d7d612e015da877d52d21fb",
+        "type": "homedelivery",
+        "jobId": "2c92c0f85dc6901a015dcc3563fe00dd",
         "results": [
                 {
-                        "queryName": "WeeklySubscriptions",
-                        "fileName": "WeeklySubscriptions_2017-05-14.csv"
+                        "queryName": "Subscriptions",
+                        "fileName": "Subscriptions_2017-05-14.csv"
                 },
                 {
-                        "queryName": "WeeklyHolidaySuspensions",
-                        "fileName": "WeeklyHolidaySuspensions_2017-05-14.csv"
+                        "queryName": "HolidaySuspensions",
+                        "fileName": "HolidaySuspensions_2017-05-14.csv"
                 }
         ]
 }
