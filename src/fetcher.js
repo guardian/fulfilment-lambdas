@@ -7,7 +7,12 @@ type input = {jobId: string, deliveryDate: string}
 
 async function uploadFile (fileData, config) {
   let savePath = `${config.stage}/zuoraExport/${fileData.fileName}`
-  return upload(fileData.data, savePath)
+  let result = await upload(fileData.data, savePath)
+  return {
+    queryName: fileData.batchName,
+    fileName: fileData.fileName,
+    s3: result
+  }
 }
 
 export function handler (input: ?any, context: ?any, callback: Function) {
