@@ -39,7 +39,7 @@
     "run:hd:exporter": "lambda-local -l dist/exporter.js -e __tests__/resources/input/exporter.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
     "run:weekly:exporter": "lambda-local -l dist/exporter.js -e __tests__/resources/input/weekly/exporter.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
     "run:hd:querier": "lambda-local -l dist/querier.js -e __tests__/resources/input/querier.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
-    "run:weekly:querier": "lambda-local -l dist/weekly/querier.js -e __tests__/resources/input/weekly/querier.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
+    "run:weekly:querier": "lambda-local -l dist/querier.js -e __tests__/resources/input/weekly/querier.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
     "run:fetcher": "lambda-local -l dist/fetcher.js -e __tests__/resources/input/fetcher.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
     "run:weekly:fetcher": "lambda-local -l dist/fetcher.js -e __tests__/resources/input/weekly/fetcher.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
     "run:sf": "lambda-local -l dist/salesforce_downloader.js -e __tests__/resources/input/fetcher.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
