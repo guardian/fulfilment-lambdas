@@ -1,27 +1,15 @@
 {
         "deliveryDate": "2017-05-14",
         "type": "weekly",
-        "jobId": "2c92c0f95dc6984b015dc78b729a61ee",
+        "jobId": "2c92c0f85dc6901a015dcc24ae373e66",
         "results": [
                 {
-                        "ETag": "\"cf35bbb9d425e671d8abab8895df1aa7\"",
-                        "ServerSideEncryption": "aws:kms",
-                        "VersionId": "w687V6qLtw7BvU0viKlpIRc8_BHH2jCp",
-                        "SSEKMSKeyId": "arn:aws:kms:eu-west-1:865473395570:key/ae6ed11c-7883-4cd5-88f7-87c91006b50e",
-                        "Location": "https://fulfilment-output-test.s3-eu-west-1.amazonaws.com/CODE/zuoraExport/WeeklySubscriptions_2017-05-14.csv",
-                        "key": "CODE/zuoraExport/WeeklySubscriptions_2017-05-14.csv",
-                        "Key": "CODE/zuoraExport/WeeklySubscriptions_2017-05-14.csv",
-                        "Bucket": "fulfilment-output-test"
+                        "queryName": "WeeklySubscriptions",
+                        "fileName": "WeeklySubscriptions_2017-05-14.csv"
                 },
                 {
-                        "ETag": "\"619d86b111f8b4ea9f682e5c608230ea\"",
-                        "ServerSideEncryption": "aws:kms",
-                        "VersionId": "sFI9nTTm9W5SXMm9GXKPY3YN.ChQUZFd",
-                        "SSEKMSKeyId": "arn:aws:kms:eu-west-1:865473395570:key/ae6ed11c-7883-4cd5-88f7-87c91006b50e",
-                        "Location": "https://fulfilment-output-test.s3-eu-west-1.amazonaws.com/CODE/zuoraExport/WeeklyHolidaySuspensions_2017-05-14.csv",
-                        "key": "CODE/zuoraExport/WeeklyHolidaySuspensions_2017-05-14.csv",
-                        "Key": "CODE/zuoraExport/WeeklyHolidaySuspensions_2017-05-14.csv",
-                        "Bucket": "fulfilment-output-test"
+                        "queryName": "WeeklyHolidaySuspensions",
+                        "fileName": "WeeklyHolidaySuspensions_2017-05-14.csv"
                 }
         ]
 }
