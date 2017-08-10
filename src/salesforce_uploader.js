@@ -3,7 +3,7 @@
 import { fetchConfig } from './lib/config'
 import { authenticate } from './lib/salesforceAuthenticator'
 import { getObject, copyObject } from './lib/storage'
-import { ApiResponse, SuccessResponse, serverError, unauthorizedError, badRequest } from './ApiResponse'
+import { ApiResponse, SuccessResponse, serverError, unauthorizedError, badRequest } from './lib/ApiResponse'
 
 import moment from 'moment'
 
