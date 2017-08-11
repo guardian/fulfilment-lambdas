@@ -24,12 +24,11 @@ async function queryZuora (deliveryDate, config: Config) {
               SoldToContact.Address2,
               SoldToContact.City, 
               SoldToContact.Country, 
+              SoldToContact.Title__c,
               SoldToContact.FirstName, 
               SoldToContact.LastName, 
               SoldToContact.PostalCode, 
-              SoldToContact.State,
-              SoldToContact.workPhone,
-              Account.SpecialDeliveryInstructions__c
+              SoldToContact.State
           FROM
             rateplancharge
           WHERE
@@ -37,7 +36,8 @@ async function queryZuora (deliveryDate, config: Config) {
            ProductRatePlanCharge.ProductType__c is not null AND
            Product.Name like '%Weekly%' AND
            RatePlanCharge.EffectiveStartDate <= '${formattedDate}' AND
-           RatePlanCharge.EffectiveEndDate >= '${formattedDate}'`
+           RatePlanCharge.EffectiveEndDate >= '${formattedDate}' AND
+           RatePlan.AmendmentType != 'RemoveProduct'`
     }
   const holidaySuspensionQuery: Query =
     {

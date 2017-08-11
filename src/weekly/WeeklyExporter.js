@@ -9,6 +9,7 @@ const ADDRESS_1 = 'SoldToContact.Address1'
 const ADDRESS_2 = 'SoldToContact.Address2'
 const CITY = 'SoldToContact.City'
 const COUNTRY = 'SoldToContact.Country'
+const TITLE = 'SoldToContact.Title__c'
 const FIRST_NAME = 'SoldToContact.FirstName'
 const LAST_NAME = 'SoldToContact.LastName'
 const POSTAL_CODE = 'SoldToContact.PostalCode'
@@ -88,7 +89,7 @@ export default class {
     outputCsvRow[CUSTOMER_POSTCODE] = formatPostCode(row[POSTAL_CODE])
     outputCsvRow[CUSTOMER_ADDRESS_LINE_1] = row[ADDRESS_1]
     outputCsvRow[CUSTOMER_ADDRESS_LINE_2] = row[ADDRESS_2]
-    outputCsvRow[CUSTOMER_FULL_NAME] = row[FIRST_NAME] + ' ' + row[LAST_NAME]
+    outputCsvRow[CUSTOMER_FULL_NAME] = `${row[TITLE]} ${row[FIRST_NAME]} ${row[LAST_NAME]}`
     outputCsvRow[DELIVERY_QUANTITY] = row[QUANTITY]
     outputCsvRow[SENT_DATE] = this.sentDate
     outputCsvRow[DELIVERY_DATE] = this.formattedDeliveryDate

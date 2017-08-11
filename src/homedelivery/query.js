@@ -21,12 +21,13 @@ async function queryZuora (deliveryDate, config: Config) {
               SoldToContact.Address2,
               SoldToContact.City, 
               SoldToContact.Country, 
+              SoldToContact.Title__c,
               SoldToContact.FirstName, 
               SoldToContact.LastName, 
               SoldToContact.PostalCode, 
               SoldToContact.State,
               SoldToContact.workPhone,
-              Account.SpecialDeliveryInstructions__c
+              SoldToContact.SpecialDeliveryInstructions__c
           FROM
             rateplancharge
           WHERE
@@ -35,8 +36,10 @@ async function queryZuora (deliveryDate, config: Config) {
            Product.Name = 'Newspaper Delivery' AND
            RatePlanCharge.EffectiveStartDate <= '${formattedDate}' AND
            RatePlanCharge.EffectiveEndDate >= '${formattedDate}' AND
-           (RatePlanCharge.MRR != 0 OR ProductRatePlan.FrontendId__c != 'EchoLegacy')`
-    }
+           (RatePlanCharge.MRR != 0 OR ProductRatePlan.FrontendId__c != 'EchoLegacy') AND
+           RatePlan.AmendmentType != 'RemoveProduct' 
+           `
+    } // NB to avoid case where subscription gets auto renewed after fulfilment time
   const holidaySuspensionQuery: Query =
     {
       'name': 'HolidaySuspensions',
