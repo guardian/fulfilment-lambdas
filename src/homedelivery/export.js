@@ -111,7 +111,7 @@ async function processSubs (downloadStream: ReadStream, deliveryDate: moment, st
           outputCsvRow[CUSTOMER_POSTCODE] = formatPostCode(data[POSTAL_CODE])
           outputCsvRow[CUSTOMER_ADDRESS_LINE_1] = data[ADDRESS_1]
           outputCsvRow[CUSTOMER_ADDRESS_LINE_2] = data[ADDRESS_2]
-          outputCsvRow[CUSTOMER_FULL_NAME] = `${data[TITLE]} ${data[FIRST_NAME]} ${data[LAST_NAME]}`
+          outputCsvRow[CUSTOMER_FULL_NAME] = [data[TITLE], data[FIRST_NAME], data[LAST_NAME]].join(' ').trim()
           outputCsvRow[DELIVERY_QUANTITY] = data[QUANTITY]
           outputCsvRow[SENT_DATE] = sentDate
           outputCsvRow[DELIVERY_DATE] = formattedDeliveryDate

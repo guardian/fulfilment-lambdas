@@ -89,7 +89,7 @@ export default class {
     outputCsvRow[CUSTOMER_POSTCODE] = formatPostCode(row[POSTAL_CODE])
     outputCsvRow[CUSTOMER_ADDRESS_LINE_1] = row[ADDRESS_1]
     outputCsvRow[CUSTOMER_ADDRESS_LINE_2] = row[ADDRESS_2]
-    outputCsvRow[CUSTOMER_FULL_NAME] = `${row[TITLE]} ${row[FIRST_NAME]} ${row[LAST_NAME]}`
+    outputCsvRow[CUSTOMER_FULL_NAME] = [row[TITLE], row[FIRST_NAME], row[LAST_NAME]].join(' ').trim()
     outputCsvRow[DELIVERY_QUANTITY] = row[QUANTITY]
     outputCsvRow[SENT_DATE] = this.sentDate
     outputCsvRow[DELIVERY_DATE] = this.formattedDeliveryDate
