@@ -2,13 +2,15 @@
 import AWS from 'aws-sdk'
 import csv from 'fast-csv'
 import {fetchConfig} from './lib/config'
-import intersectionWith from 'lodash/intersectionWith'
-import differenceWith from 'lodash/differenceWith'
 import diff from 'deep-diff'
 import type {Difference} from 'deep-diff'
 import QuoteRemover from './lib/QuoteRemover'
-import {OUTPUT_DATE_FORMAT, outputFileName, logFileName, salesforceFileName, outputDate, logDate, salesforceDate} from './lib/filenames'
 import moment from 'moment'
+import type { S3Folder } from './lib/storage'
+import type { Config, uploadDownload } from './lib/config'
+import {extractFilename} from './lib/Filename'
+import type {Filename} from './lib/Filename'
+
 type S3Path = {
   Bucket: string,
   Key: string
@@ -18,10 +20,9 @@ type customersMap = {[string]:Array<customer>}
   // Flow note: at least this field is required, more still meets type
 
 const s3 = new AWS.S3({ signatureVersion: 'v4' })
-const sameDay = (a:moment, b:moment) => a.isSame(b, 'day')
-const inFuture: (moment) => boolean = (() => {
+const inFuture: (Filename) => boolean = (() => {
   let now = moment()
-  return (dt: moment) => dt.isAfter(now, 'day')
+  return (f: Filename) => f.date.isAfter(now, 'day')
 })()
 
 function compareSentDates (salesforceCustomersMap:customersMap, guCustomersMap:customersMap):string {
@@ -34,7 +35,7 @@ function compareSentDates (salesforceCustomersMap:customersMap, guCustomersMap:c
 }
 
 export function handler (input:?any, context:?any, callback:Function) {
-  compare().then((result) => callback(null, {...input, ...result})).catch((e) => {
+  compareAll().then((result) => callback(null, {...input, ...result})).catch((e) => {
     console.log(e)
     callback(e)
   })
@@ -47,59 +48,75 @@ function normalise (entry: any) {
   copy['Customer Telephone'] = entry['Customer Telephone'].replace(/^0|\+44/, '')
   return copy
 }
-
-async function compare () {
+async function compareAll () {
   let config = await fetchConfig()
-  const bucket = 'fulfilment-output-test'
-  const sfprefix = `${config.stage}/salesforce_output/`
-  const guprefix = `${config.stage}/fulfilment_output/`
-  const logprefix = `${config.stage}/comparator_output/`
+  let compareFulfilment = folder => compare(config, folder)
+  let fulfilments = [config.fulfilments.homedelivery, ...Object.keys(config.fulfilments.weekly).map(k => config.fulfilments.weekly[k])]
 
-  console.log('Fetching existing files in S3: ', bucket)
-  console.log(sfprefix)
+  return Promise.all(fulfilments.map(compareFulfilment))
+}
+async function compare (config: Config, fulfilment: uploadDownload) {
+  // Comparing the salesforce fulfilments in the download folder to the
+  // ones we generated in the uploads folder.
+
+  console.log('Fetching existing salesforce file list from S3: ', fulfilment.downloadFolder.bucket, fulfilment.downloadFolder.prefix)
   const sfresp = await s3.listObjectsV2({
-    Bucket: bucket,
-    Prefix: sfprefix
+    Bucket: fulfilment.downloadFolder.bucket,
+    Prefix: fulfilment.downloadFolder.prefix,
+    Delimeter: '/'
   }).promise()
-  const sfkeys = sfresp.Contents.map(r => { return r.Key.slice(sfprefix.length) }).filter(notEmpty)
+  const sfkeys = sfresp.Contents.map(r => { return r.Key.slice(fulfilment.downloadFolder.prefix.length) }).filter(notEmpty)
 
-  console.log(guprefix)
+  console.log('Fetching existing fulfilment file list from S3', fulfilment.uploadFolder.bucket, fulfilment.uploadFolder.prefix)
   const guresp = await s3.listObjectsV2({
-    Bucket: bucket,
-    Prefix: guprefix
+    Bucket: fulfilment.uploadFolder.bucket,
+    Prefix: fulfilment.uploadFolder.prefix,
+    Delimeter: '/'
   }).promise()
-  const gukeys = guresp.Contents.map(r => { return r.Key.slice(guprefix.length) }).filter(notEmpty)
-  console.log(logprefix)
+  const gukeys = guresp.Contents.map(r => { return r.Key.slice(fulfilment.uploadFolder.prefix.length) }).filter(notEmpty)
+
+  let logFolder: S3Folder = {
+    bucket: fulfilment.downloadFolder.bucket,
+    prefix: `${fulfilment.downloadFolder.prefix}logs/`
+  }
+
+  console.log('Fetching existing comparison file list from S3', logFolder.bucket, logFolder.prefix)
+
   const logresp = await s3.listObjectsV2({
-    Bucket: bucket,
-    Prefix: logprefix
+    Bucket: logFolder.bucket,
+    Prefix: logFolder.prefix,
+    Delimeter: '/'
   }).promise()
-  const logkeys = logresp.Contents.map(r => { return r.Key.slice(guprefix.length) }).filter(notEmpty)
 
-  let sfDates: Array<moment> = sfkeys.map(salesforceDate).filter(notEmpty)
-  let guDates: Array<moment> = gukeys.map(outputDate).filter(notEmpty)
+  const logkeys = logresp.Contents.map(r => { return r.Key.slice(logFolder.prefix.length) }).filter(notEmpty)
 
-  let logDates: Array<moment> = logkeys.map(logDate).filter(notEmpty).filter(inFuture)
+  let sfFiles: Array<Filename> = sfkeys.map(extractFilename).filter(notEmpty)
+  let guFiles: Array<Filename> = gukeys.map(extractFilename).filter(notEmpty)
+  let logFiles: Array<Filename> = logkeys.map(extractFilename).filter(notEmpty).filter(inFuture)
+
   // Check all future dated logfiles every time we run, just to make sure we haven't missed an update.
 
-  console.log('Found the following salesforce fulfilments', sfDates.map(d => d.format(OUTPUT_DATE_FORMAT)))
-  console.log('Found the following fulfilments', guDates.map(d => d.format(OUTPUT_DATE_FORMAT)))
-  console.log('Found the following logs', logDates.map(d => d.format(OUTPUT_DATE_FORMAT)))
+  console.log('Found the following salesforce fulfilments', sfFiles.map(f => f.filename))
+  console.log('Found the following fulfilments', guFiles.map(f => f.filename))
+  console.log('Found the following logs', logFiles.map(f => f.filename))
 
-  const joint:Array<moment> = intersectionWith(guDates, sfDates, sameDay)
-  console.log('In both systems', joint.map(d => d.format(OUTPUT_DATE_FORMAT)))
+  let sfMap = new Map(sfFiles.map(f => [f.date, f]))
+  let combined = new Map(sfFiles.filter(f => sfMap.has(f.date)).map(f => [f.date, {salesforce: sfMap.get(f.date), fulfilment: f}]))
 
-  const unchecked = differenceWith(joint, logDates, sameDay)
-  console.log('remaining to check', unchecked.map(d => d.format(OUTPUT_DATE_FORMAT)))
+  console.log('In both systems', combined)
+
+  const unchecked = new Map(combined)
+  logFiles.forEach(l => unchecked.delete(l.date))
+  console.log('remaining to check', unchecked)
 
   if (unchecked.length === 0) {
     return {message: 'No files found to check.'}
   }
 
-  async function check (filename: string) {
-    let sfPath = {Bucket: bucket, Key: `${sfprefix}${salesforceFileName(filename)}`}
-    let guPath = {Bucket: bucket, Key: `${guprefix}${outputFileName(filename)}`}
-    let logPath = {Bucket: bucket, Key: `${logprefix}${logFileName(filename)}`}
+  async function check (pair: {salesforce: Filename, fulfilment: Filename}) {
+    let sfPath = {Bucket: fulfilment.downloadFolder.bucket, Key: `${fulfilment.downloadFolder.prefix}${pair.salesforce.filename}`}
+    let guPath = {Bucket: fulfilment.uploadFolder.bucket, Key: `${fulfilment.uploadFolder.prefix}${pair.fulfilment.filename}`}
+    let logPath = {Bucket: logFolder.bucket, Key: `${logFolder.prefix}${pair.fulfilment.asLogFile()}`}
 
     let logCache = []
 
@@ -146,7 +163,7 @@ async function compare () {
     }).promise()
   }
 
-  let checked = unchecked.map(check)
+  let checked = unchecked.values.map(check)
   return Promise.all(checked)
 }
 

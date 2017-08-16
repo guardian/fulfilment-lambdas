@@ -10,7 +10,7 @@ export type Stage = 'CODE' | 'PROD'
 const stages: Array<Stage> = ['CODE', 'PROD']
 export type fulfilmentType = "homedelivery" | "weekly"
 
-type uploadDownload = {
+export type uploadDownload = {
   uploadFolder: folder & S3Folder,
   downloadFolder: folder & S3Folder
 }
@@ -31,9 +31,7 @@ export type Config = {
       password: string,
       token: string,
       salesforceUrl: string
-    },
-    uploadFolder: folder,
-    downloadFolder: folder
+    }
   },
   api: {
     expectedToken: string
