@@ -4,8 +4,8 @@ import moment from 'moment'
 import { formatPostCode } from './../lib/formatters'
 import { upload, createReadStream } from './../lib/storage'
 import { ReadStream } from 'fs'
-import {getStage} from './../lib/config'
-import {outputFileName as generateOutputFileName} from './../lib/filenames'
+import {getStage, fetchConfig} from './../lib/config'
+import {generateFilename} from './../lib/Filename'
 import type {result, input} from '../exporter'
 
 // input headers
@@ -89,6 +89,8 @@ async function processSubs (downloadStream: ReadStream, deliveryDate: moment, st
   let sentDate = moment().format('DD/MM/YYYY')
   let chargeDay = deliveryDate.format('dddd')
   let formattedDeliveryDate = deliveryDate.format('DD/MM/YYYY')
+  let config = await fetchConfig()
+  let folder = config.fulfilments.homedelivery.uploadFolder
 
   console.log('loaded ' + holidaySuspensions.size + ' holiday suspensions')
   let writeCSVStream = csv.createWriteStream({
@@ -130,11 +132,10 @@ async function processSubs (downloadStream: ReadStream, deliveryDate: moment, st
   })
       .pipe(csvStream)
 
-  let outputFileName = generateOutputFileName(deliveryDate)
-  let outputLocation = `${stage}/fulfilment_output/${outputFileName}`
+  let outputFileName = generateFilename(deliveryDate, 'HOME_DELIVERY')
 
-  await upload(writeCSVStream, outputLocation)
-  return outputFileName
+  await upload(writeCSVStream, outputFileName, folder)
+  return outputFileName.filename
 }
 
 function getDeliveryDate (input: input): Promise<moment> {

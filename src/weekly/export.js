@@ -3,8 +3,9 @@ import csv from 'fast-csv'
 import moment from 'moment'
 import { upload, createReadStream } from './../lib/storage'
 import { ReadStream } from 'fs'
-import {getStage} from './../lib/config'
-import {weeklyOutputFileName as generateOutputFileName} from './../lib/filenames'
+import {getStage, fetchConfig} from './../lib/config'
+import {generateFilename} from './../lib/Filename'
+import type {Filename} from './../lib/Filename'
 import WeeklyExporter from './WeeklyExporter'
 import type {result, input} from '../exporter'
 
@@ -61,7 +62,10 @@ function getHolidaySuspensions (downloadStream: ReadStream): Promise<Set<string>
       .pipe(csvStream)
   })
 }
-async function processSubs (downloadStream: ReadStream, deliveryDate: moment, stage: string, holidaySuspensions: Set<string>): Promise<Array<string>> {
+
+async function processSubs (downloadStream: ReadStream, deliveryDate: moment, stage: string, holidaySuspensions: Set<string>): Promise<Array<Filename>> {
+  let config = await fetchConfig()
+  let folder = config.fulfilments.homedelivery.uploadFolder
   console.log('loaded ' + holidaySuspensions.size + ' holiday suspensions')
   let exporters = [new WeeklyExporter('United Kingdom', deliveryDate), new WeeklyExporter('Canada', deliveryDate)]
 
@@ -93,9 +97,9 @@ async function processSubs (downloadStream: ReadStream, deliveryDate: moment, st
     throw new Error(`error reading holidaySuspensions: ${err}`)
   }).pipe(csvStream)
   let uploads = exporters.map(async (exporter) => {
-    let outputFileName = generateOutputFileName(deliveryDate, exporter.country)
-    let outputLocation = `${stage}/weekly_fulfilment_output/${outputFileName}`
-    await upload(exporter.writeCSVStream, outputLocation)
+    let outputFileName = generateFilename(deliveryDate, 'WEEKLY')
+
+    await upload(exporter.writeCSVStream, outputFileName, folder)
     return outputFileName
   })
   return Promise.all(uploads)
