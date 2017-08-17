@@ -96,7 +96,7 @@ export function handler (input: apiGatewayLambdaInput, context: any, callback: (
     console.log('token validated successfully')
     const salesforce = await authenticate(config)
     console.log('Finding fulfilment folder.')
-    const folder = config.salesforce.uploadFolder
+    const folder = config.fulfilments.homedelivery.uploadFolder
     console.log(folder)
 
     let filePromises = range(amount).map(offset => {
