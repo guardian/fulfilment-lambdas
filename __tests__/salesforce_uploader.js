@@ -40,7 +40,7 @@ jest.mock('../src/lib/config', () => ({
     stage: 'CODE',
     fulfilments: {
       homedelivery: {
-        uploadFolder: {name: 'help', id: '0'}
+        uploadFolder: {'folderId': 'someFolderId', 'name': 'someFolderName'}
       }
     }
   })
