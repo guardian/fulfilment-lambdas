@@ -24,30 +24,27 @@ jest.mock('../src/lib/storage', () => {
     }
   }
 })
+
 let mockStorage = require('../src/lib/storage')
 jest.mock('../src/lib/salesforceAuthenticator', () => {
   return {
     authenticate: (config) => { return Promise.resolve(mockSalesForce) }
   }
 })
-
-jest.mock('../src/lib/config', () => {
-  let fakeResponse = {
-    salesforce: {
-      uploadFolder: {
-        folderId: 'someFolderId',
-        name: 'someFolderName'
-      }
-    },
+jest.mock('../src/lib/config', () => ({
+  getStage: () => 'CODE',
+  fetchConfig: async () => ({
     api: {
       expectedToken: 'testToken'
     },
-    stage: 'CODE'
-  }
-  return {
-    fetchConfig: jest.fn(() => Promise.resolve(fakeResponse))
-  }
-})
+    stage: 'CODE',
+    fulfilments: {
+      homedelivery: {
+        uploadFolder: {name: 'help', id: '0'}
+      }
+    }
+  })
+}))
 
 function getFakeInput (token, date, amount) {
   let res = {}
