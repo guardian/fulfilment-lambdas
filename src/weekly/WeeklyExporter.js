@@ -3,6 +3,7 @@
 import { formatPostCode } from './../lib/formatters'
 import csv from 'fast-csv'
 import moment from 'moment'
+import type { S3Folder } from './../lib/storage'
 
 // input headers
 const ADDRESS_1 = 'SoldToContact.Address1'
@@ -67,8 +68,9 @@ export default class {
   formattedDeliveryDate: string
   chargeDay: string
   writeCSVStream: any
+  folder: S3Folder
 
-  constructor (country: string, deliveryDate: moment) {
+  constructor (country: string, deliveryDate: moment, folder: S3Folder) {
     this.country = country
     this.writeCSVStream = csv.createWriteStream({
       headers: outputHeaders
@@ -77,6 +79,7 @@ export default class {
     this.sentDate = moment().format('DD/MM/YYYY')
     this.chargeDay = deliveryDate.format('dddd')
     this.formattedDeliveryDate = deliveryDate.format('DD/MM/YYYY')
+    this.folder = folder
   }
   useForRow (row:{[string]:string}):boolean {
     return !!(row[COUNTRY] && row[COUNTRY] === this.country)

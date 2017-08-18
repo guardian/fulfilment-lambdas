@@ -65,9 +65,8 @@ function getHolidaySuspensions (downloadStream: ReadStream): Promise<Set<string>
 
 async function processSubs (downloadStream: ReadStream, deliveryDate: moment, stage: string, holidaySuspensions: Set<string>): Promise<Array<Filename>> {
   let config = await fetchConfig()
-  let folder = config.fulfilments.homedelivery.uploadFolder
   console.log('loaded ' + holidaySuspensions.size + ' holiday suspensions')
-  let exporters = [new WeeklyExporter('United Kingdom', deliveryDate), new WeeklyExporter('Canada', deliveryDate)]
+  let exporters = [new WeeklyExporter('United Kingdom', deliveryDate, config.fulfilments.weekly.UK.uploadFolder), new WeeklyExporter('Canada', deliveryDate, config.fulfilments.weekly.UK.uploadFolder)]
 
   let csvStream = csv.parse({
     headers: true
@@ -99,7 +98,7 @@ async function processSubs (downloadStream: ReadStream, deliveryDate: moment, st
   let uploads = exporters.map(async (exporter) => {
     let outputFileName = generateFilename(deliveryDate, 'WEEKLY')
 
-    await upload(exporter.writeCSVStream, outputFileName, folder)
+    await upload(exporter.writeCSVStream, outputFileName, exporter.folder)
     return outputFileName
   })
   return Promise.all(uploads)

@@ -35,6 +35,11 @@ jest.mock('../../src/lib/storage', () => {
   }
 })
 
+jest.mock('../../src/lib/config', () => ({
+  getStage: () => 'CODE',
+  fetchConfig: async () => ({fulfilments: {homedelivery: {uploadFolder: ''}}})
+}))
+
 function verify (done, expectedError, expectedResponse, expectedFileName) {
   return function (err, res) {
     try {
@@ -81,23 +86,6 @@ test('should return error on missing query subscriptions query result', done => 
     ]
   }
   let expectedError = new Error('Invalid input cannot find unique query called Subscriptions')
-  handler(input, {}, verify(done, expectedError, null, null))
-})
-
-test('should return error on invalid stage value', done => {
-  process.env.Stage = 'SOMETHING'
-
-  let input = {
-    type: 'homedelivery',
-    deliveryDate: '2017-07-06',
-    results: [
-      {
-        queryName: 'HolidaySuspensions',
-        fileName: 'HolidaySuspensions_2017-07-06.csv'
-      }
-    ]
-  }
-  let expectedError = new Error('invalid stage: SOMETHING, please fix Stage env variable')
   handler(input, {}, verify(done, expectedError, null, null))
 })
 

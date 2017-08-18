@@ -66,5 +66,9 @@
     "ignore": [
       "flow-typed/*"
     ]
+  },
+  "jest":{
+    "verbose":true,
+    "testEnvironment":"node"
   }
 }
