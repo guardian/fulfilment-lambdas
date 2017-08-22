@@ -122,5 +122,5 @@ export async function weeklyExport (input: input) {
   let holidaySuspensions = await getHolidaySuspensions(holidaySuspensionsStream)
   let subscriptionsStream = await getDownloadStream(input.results, stage, SUBSCRIPTIONS_QUERY_NAME)
   let outputFileNames = await processSubs(subscriptionsStream, deliveryDate, stage, holidaySuspensions)
-  return outputFileNames.join()
+  return outputFileNames.map(f => f.filename).join()
 }
