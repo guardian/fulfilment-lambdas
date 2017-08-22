@@ -67,8 +67,8 @@
       "flow-typed/*"
     ]
   },
-  "jest":{
-    "verbose":true,
-    "testEnvironment":"node"
+  "jest": {
+    "verbose": true,
+    "testEnvironment": "node"
   }
 }
