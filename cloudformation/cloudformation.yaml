@@ -431,7 +431,7 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !GetAtt SalesforceDownloaderLambda.Arn
       Principal: events.amazonaws.com
-      SourceArn: !GetAtt CheckerScheduledRule.Arn
+      SourceArn: !GetAtt SFDownloaderScheduledRule.Arn
 
   comparatorSchedulePermission:
     Type: AWS::Lambda::Permission
@@ -439,7 +439,7 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !GetAtt ComparatorLambda.Arn
       Principal: events.amazonaws.com
-      SourceArn: !GetAtt CheckerScheduledRule.Arn
+      SourceArn: !GetAtt SFComparatorScheduledRule.Arn
 
   CheckerAlarm:
     Type: "AWS::CloudWatch::Alarm"
