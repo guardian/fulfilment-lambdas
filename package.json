@@ -48,7 +48,7 @@
     "run:comparator": "lambda-local -l dist/comparator.js -e __tests__/resources/input/fetcher.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
     "clean": "rm -rf dist && rm -rf target && rm -f cloudformation/prod.yaml && rm -f  cloudformation/code.yaml",
     "lint": "standard | snazzy",
-    "test": "jest"
+    "test": "jest --runInBand"
   },
   "dependencies": {
     "deep-diff": "^0.3.8",
@@ -68,7 +68,7 @@
     ]
   },
   "jest": {
-    "verbose": true,
+    "verbose": false,
     "testEnvironment": "node"
   }
 }
