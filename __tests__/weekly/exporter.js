@@ -95,11 +95,14 @@ test('should return error on invalid deliveryDate for weekly', done => {
   let input = {
     type: 'weekly',
     deliveryDate: '2017-14-06',
-    results: [
-      {
-        queryName: 'WeeklyHolidaySuspensions',
-        fileName: 'WeeklyHolidaySuspensions_2017-07-06.csv'
-      }
+    results: [{
+      queryName: 'WeeklySubscriptions',
+      fileName: 'WeeklySubscriptions_2017-07-06.csv'
+    },
+    {
+      queryName: 'WeeklyHolidaySuspensions',
+      fileName: 'WeeklyHolidaySuspensions_2017-07-06.csv'
+    }
     ]
   }
   let expectedError = new Error('invalid deliverydate expected format YYYY-MM-DD')
