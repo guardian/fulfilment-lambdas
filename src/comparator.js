@@ -58,8 +58,8 @@ async function compareAll () {
 async function compare (config: Config, fulfilment: uploadDownload) {
   // Comparing the salesforce fulfilments in the download folder to the
   // ones we generated in the uploads folder.
-
-  console.log('Fetching existing salesforce file list from S3: ', fulfilment.downloadFolder.bucket, fulfilment.downloadFolder.prefix)
+  console.log(`Running fulfilment for ${fulfilment.downloadFolder.name}`)
+  console.log(`${fulfilment.downloadFolder.name}: Fetching existing salesforce file list from S3: ${fulfilment.downloadFolder.bucket}, ${fulfilment.downloadFolder.prefix}`)
   const sfresp = await s3.listObjectsV2({
     Bucket: fulfilment.downloadFolder.bucket,
     Delimiter: '/',
@@ -67,7 +67,7 @@ async function compare (config: Config, fulfilment: uploadDownload) {
   }).promise()
   const sfkeys = sfresp.Contents.map(r => { return r.Key.slice(fulfilment.downloadFolder.prefix.length) }).filter(notEmpty)
 
-  console.log('Fetching existing fulfilment file list from S3', fulfilment.uploadFolder.bucket, fulfilment.uploadFolder.prefix)
+  console.log(`${fulfilment.downloadFolder.name}: Fetching existing fulfilment file list from S3 ${fulfilment.uploadFolder.bucket}, ${fulfilment.uploadFolder.prefix}`)
   const guresp = await s3.listObjectsV2({
     Bucket: fulfilment.uploadFolder.bucket,
     Delimiter: '/',
@@ -80,7 +80,7 @@ async function compare (config: Config, fulfilment: uploadDownload) {
     prefix: `${fulfilment.downloadFolder.prefix}logs/`
   }
 
-  console.log('Fetching existing comparison file list from S3', logFolder.bucket, logFolder.prefix)
+  console.log(`${fulfilment.downloadFolder.name}: Fetching existing comparison file list from S3 ${logFolder.bucket}, ${logFolder.prefix}`)
 
   const logresp = await s3.listObjectsV2({
     Bucket: logFolder.bucket,
@@ -91,17 +91,22 @@ async function compare (config: Config, fulfilment: uploadDownload) {
   const logkeys = logresp.Contents.map(r => { return r.Key.slice(logFolder.prefix.length) }).filter(notEmpty)
 
   let sfFiles: Array<Filename> = sfkeys.map(extractFilename).filter(notEmpty)
-  let guFiles: Array<Filename> = gukeys.map(extractFilename).filter(notEmpty)
+  let guFiles: Array<Filename> = gukeys.map(extractFilename)// .filter(notEmpty)
   let logFiles: Array<Filename> = logkeys.map(extractFilename).filter(notEmpty).filter(inFuture)
 
   // Check all future dated logfiles every time we run, just to make sure we haven't missed an update.
 
-  console.log('Found the following salesforce fulfilments', sfFiles.map(f => f.filename))
-  console.log('Found the following fulfilments', guFiles.map(f => f.filename))
-  console.log('Found the following logs', logFiles.map(f => f.filename))
+  console.log(`${fulfilment.downloadFolder.name}: Found the following salesforce fulfilments:`, sfFiles.map(f => f.filename))
+  console.log(`${fulfilment.downloadFolder.name}: Found the following fulfilments:`, guFiles.map(f => f.filename))
+  console.log(`${fulfilment.downloadFolder.name}: Found the following logs:`, logFiles.map(f => f.filename))
 
-  let sfMap = new Map(sfFiles.map(f => [f.date, f]))
-  let combined = new Map(sfFiles.filter(f => sfMap.has(f.date)).map(f => [f.date, {salesforce: sfMap.get(f.date), fulfilment: f}]))
+  let sfMap:Map<moment, Filename> = new Map(sfFiles.map(f => [f.date, f]))
+
+  let filteredGuFiles: Array<Filename> = guFiles.filter(f => sfMap.has(f.date))
+
+  let combined = new Map(filteredGuFiles.map(f => {
+    return [f.date, {salesforce: sfMap.get(f.date), fulfilment: f}]
+  }))
 
   console.log('In both systems', combined)
 
@@ -113,7 +118,11 @@ async function compare (config: Config, fulfilment: uploadDownload) {
     return {message: 'No files found to check.'}
   }
 
-  async function check (pair: {salesforce: Filename, fulfilment: Filename}) {
+  async function check (pair: {salesforce: ?Filename, fulfilment: ?Filename}) {
+    if (pair == null || pair.salesforce == null || pair.fulfilment == null) {
+      console.log('null check failed')
+      return
+    }
     let sfPath = {Bucket: fulfilment.downloadFolder.bucket, Key: `${fulfilment.downloadFolder.prefix}${pair.salesforce.filename}`}
     let guPath = {Bucket: fulfilment.uploadFolder.bucket, Key: `${fulfilment.uploadFolder.prefix}${pair.fulfilment.filename}`}
     let logPath = {Bucket: logFolder.bucket, Key: `${logFolder.prefix}${pair.fulfilment.asLogFile()}`}
@@ -168,7 +177,7 @@ async function compare (config: Config, fulfilment: uploadDownload) {
 }
 
 function notEmpty (str: ?string):boolean {
-  return !!str
+  return !str == null || !!str
 }
 
 function fetchCSV (path: S3Path):Promise<customersMap> {
@@ -182,6 +191,10 @@ function fetchCSV (path: S3Path):Promise<customersMap> {
       console.log('ignoring invalid data: ' + data)
     }).on('data', (data:customer) => {
       line++
+      if (data['Customer Reference'] == null) {
+        console.log(`No customer ref on line ${line}`)
+        return
+      }
       let id = data['Customer Reference']
       if (id in customers) {
         console.log(`Duplicate id found ${id}`)
