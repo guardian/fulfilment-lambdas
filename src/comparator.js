@@ -62,16 +62,16 @@ async function compare (config: Config, fulfilment: uploadDownload) {
   console.log('Fetching existing salesforce file list from S3: ', fulfilment.downloadFolder.bucket, fulfilment.downloadFolder.prefix)
   const sfresp = await s3.listObjectsV2({
     Bucket: fulfilment.downloadFolder.bucket,
-    Prefix: fulfilment.downloadFolder.prefix,
-    Delimeter: '/'
+    Delimiter: '/',
+    Prefix: fulfilment.downloadFolder.prefix
   }).promise()
   const sfkeys = sfresp.Contents.map(r => { return r.Key.slice(fulfilment.downloadFolder.prefix.length) }).filter(notEmpty)
 
   console.log('Fetching existing fulfilment file list from S3', fulfilment.uploadFolder.bucket, fulfilment.uploadFolder.prefix)
   const guresp = await s3.listObjectsV2({
     Bucket: fulfilment.uploadFolder.bucket,
-    Prefix: fulfilment.uploadFolder.prefix,
-    Delimeter: '/'
+    Delimiter: '/',
+    Prefix: fulfilment.uploadFolder.prefix
   }).promise()
   const gukeys = guresp.Contents.map(r => { return r.Key.slice(fulfilment.uploadFolder.prefix.length) }).filter(notEmpty)
 
@@ -84,8 +84,8 @@ async function compare (config: Config, fulfilment: uploadDownload) {
 
   const logresp = await s3.listObjectsV2({
     Bucket: logFolder.bucket,
-    Prefix: logFolder.prefix,
-    Delimeter: '/'
+    Delimiter: '/',
+    Prefix: logFolder.prefix
   }).promise()
 
   const logkeys = logresp.Contents.map(r => { return r.Key.slice(logFolder.prefix.length) }).filter(notEmpty)
@@ -163,7 +163,7 @@ async function compare (config: Config, fulfilment: uploadDownload) {
     }).promise()
   }
 
-  let checked = unchecked.values.map(check)
+  let checked = [...unchecked.values()].map(check)
   return Promise.all(checked)
 }
 
