@@ -31,5 +31,6 @@ export function extractFilename (filename: string):?Filename {
   let result = MATCHERS
     .map(m => ({...m, match: new RegExp(m.regex).exec(filename)}))
     .filter(m => m.match).map(m => moment(m.match[0], m.format))
-  return result[0] || null
+  let date = result[0] || null
+  return date ? new Filename(date, filename) : null
 }
