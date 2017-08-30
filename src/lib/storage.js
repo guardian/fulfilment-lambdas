@@ -2,6 +2,7 @@
 import AWS from 'aws-sdk'
 import {Readable} from 'stream'
 import {NamedError} from './NamedError'
+import {Filename} from './Filename'
 let s3 = new AWS.S3({signatureVersion: 'v4'})
 const BUCKET = 'fulfilment-output-test'
 export type S3UploadResponse = {
@@ -10,12 +11,29 @@ export type S3UploadResponse = {
   Bucket: string,
   Key: string
 }
-export async function upload (source: Buffer | string | Readable, outputLocation: string): Promise<S3UploadResponse> {
-  console.log(`uploading to ${BUCKET}/${outputLocation}`)
+
+export type S3Folder = {
+  bucket: string,
+  prefix: string
+}
+
+export async function ls (folder: S3Folder) {
+  let resp = await s3.listObjectsV2({
+    Bucket: folder.bucket,
+    Prefix: folder.prefix
+  }).promise()
+  return resp.Contents
+}
+
+export async function upload (source: Buffer | string | Readable, filename: string | Filename, folder: ?S3Folder): Promise<S3UploadResponse> {
+  let outputLocation = getFilename(filename)
+
+  let key = folder ? `${folder.prefix}${outputLocation}` : outputLocation
+  console.log(`uploading to ${BUCKET}/${key}`)
 
   let params = {
     Bucket: BUCKET,
-    Key: outputLocation,
+    Key: key,
     Body: source,
     ServerSideEncryption: 'aws:kms'
   }
@@ -57,4 +75,11 @@ export function getFileInfo (path: string) {
   let options = {Bucket: BUCKET, Key: path}
   console.log(`Retrieving information for file ${options.Key} from S3 bucket ${options.Bucket}.`)
   return s3.headObject(options).promise()
+}
+
+function getFilename (f: string | Filename) {
+  if (f instanceof Filename) {
+    return f.filename
+  }
+  return f
 }

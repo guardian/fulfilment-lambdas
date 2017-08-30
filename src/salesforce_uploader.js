@@ -10,7 +10,7 @@ import moment from 'moment'
 const DATE_FORMAT = 'YYYY-MM-DD'
 const MAX_DAYS = 5
 
-function range (amount) {
+function range (amount: number) {
   let resArray = []
   for (var i = 0; i < amount; i++) {
     resArray.push(i)
@@ -18,7 +18,7 @@ function range (amount) {
   return resArray
 }
 
-function validateToken (expectedToken, providedToken) {
+function validateToken (expectedToken: string, providedToken: string) {
   return new Promise((resolve, reject) => {
     if (expectedToken === providedToken) {
       resolve()
@@ -96,7 +96,7 @@ export function handler (input: apiGatewayLambdaInput, context: any, callback: (
     console.log('token validated successfully')
     const salesforce = await authenticate(config)
     console.log('Finding fulfilment folder.')
-    const folder = config.salesforce.uploadFolder
+    const folder = config.fulfilments.homedelivery.uploadFolder
     console.log(folder)
 
     let filePromises = range(amount).map(offset => {

@@ -3,9 +3,10 @@ import { fetchConfig } from './lib/config'
 import NamedError from './lib/NamedError'
 import { upload } from './lib/storage'
 import {Zuora} from './lib/Zuora'
-type input = {jobId: string, deliveryDate: string}
+import type {result, input as output} from './exporter'
+export type input = {jobId: string, deliveryDate: string}
 
-async function uploadFile (fileData, config) {
+async function uploadFile (fileData, config):Promise<result> {
   let savePath = `${config.stage}/zuoraExport/${fileData.fileName}`
   let result = await upload(fileData.data, savePath)
   return {
@@ -15,7 +16,7 @@ async function uploadFile (fileData, config) {
   }
 }
 
-export function handler (input: ?any, context: ?any, callback: Function) {
+export function handler (input: ?any, context: ?any, callback: (?Error, ?output)=>void) {
   if (input == null ||
     input.jobId == null ||
      typeof input.jobId !== 'string' ||
@@ -29,7 +30,7 @@ export function handler (input: ?any, context: ?any, callback: Function) {
     callback(e)
   })
 }
-async function asyncHandler (input: input) {
+async function asyncHandler (input: input): Promise<Array<result>> {
   let config = await fetchConfig()
   console.log('Config fetched succesfully.')
   let zuora = new Zuora(config)

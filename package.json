@@ -17,7 +17,7 @@
     "babel-preset-flow": "^6.23.0",
     "eslint-plugin-flowtype": "^2.34.1",
     "eslint-plugin-import": "^2.2.0",
-    "flow-bin": "^0.49.1",
+    "flow-bin": "0.53.1",
     "jest": "^20.0.4",
     "lambda-local": "ashiina/lambda-local#316f6c743f6305385655b00db7d8349dac174c1c",
     "mockdate": "^2.0.1",
@@ -36,16 +36,19 @@
     "cloudform": "yarn cloudform:prod & yarn cloudform:code",
     "cloudform:prod": "cp cloudformation/cloudformation.yaml cloudformation/prod.yaml && replace-x '_\\[STAGE\\]' 'PROD' cloudformation/prod.yaml",
     "cloudform:code": "cp cloudformation/cloudformation.yaml cloudformation/code.yaml && replace-x '_\\[STAGE\\]' 'CODE' cloudformation/code.yaml",
-    "run:exporter": "lambda-local -l dist/exporter.js -e test/exporter.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
-    "run:querier": "lambda-local -l dist/querier.js -e test/querier.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
-    "run:fetcher": "lambda-local -l dist/fetcher.js -e test/fetcher.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
-    "run:sf": "lambda-local -l dist/salesforce_downloader.js -e test/fetcher.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
-    "run:sfup": "lambda-local -l dist/salesforce_uploader.js -e test/upload.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
-    "run:checker": "lambda-local -l dist/checker.js -e test/checker.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
-    "run:comparator": "lambda-local -l dist/comparator.js -e test/fetcher.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
+    "run:hd:exporter": "lambda-local -l dist/exporter.js -e __tests__/resources/input/homedelivery/exporter.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
+    "run:weekly:exporter": "lambda-local -l dist/exporter.js -e __tests__/resources/input/weekly/exporter.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
+    "run:hd:querier": "lambda-local -l dist/querier.js -e __tests__/resources/input/homedelivery/querier.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
+    "run:weekly:querier": "lambda-local -l dist/querier.js -e __tests__/resources/input/weekly/querier.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
+    "run:hd:fetcher": "lambda-local -l dist/fetcher.js -e __tests__/resources/input/homedelivery/fetcher.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
+    "run:weekly:fetcher": "lambda-local -l dist/fetcher.js -e __tests__/resources/input/weekly/fetcher.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
+    "run:sf": "lambda-local -l dist/salesforce_downloader.js -e __tests__/resources/input/input.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
+    "run:sfup": "lambda-local -l dist/salesforce_uploader.js -e __tests__/resources/input/upload.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
+    "run:checker": "lambda-local -l dist/checker.js -e __tests__/resources/input/checker.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
+    "run:comparator": "lambda-local -l dist/comparator.js -e __tests__/resources/input/input.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
     "clean": "rm -rf dist && rm -rf target && rm -f cloudformation/prod.yaml && rm -f  cloudformation/code.yaml",
     "lint": "standard | snazzy",
-    "test": "jest"
+    "test": "jest --runInBand"
   },
   "dependencies": {
     "deep-diff": "^0.3.8",
@@ -63,5 +66,9 @@
     "ignore": [
       "flow-typed/*"
     ]
+  },
+  "jest": {
+    "verbose": false,
+    "testEnvironment": "node"
   }
 }

@@ -1,5 +1,5 @@
 /* eslint-env jest */
-import { handler } from '../src/exporter'
+import { handler } from '../../src/exporter'
 import { readFile } from 'fs'
 var MockDate = require('mockdate')
 
@@ -18,7 +18,7 @@ function getTestFile (fileName, callback) {
   })
 }
 
-jest.mock('../src/lib/storage', () => {
+jest.mock('../../src/lib/storage', () => {
   let fs = require('fs')
   const streamToString = require('stream-to-string')
 
@@ -34,6 +34,11 @@ jest.mock('../src/lib/storage', () => {
     }
   }
 })
+
+jest.mock('../../src/lib/config', () => ({
+  getStage: () => 'CODE',
+  fetchConfig: async () => ({fulfilments: {homedelivery: {uploadFolder: ''}}})
+}))
 
 function verify (done, expectedError, expectedResponse, expectedFileName) {
   return function (err, res) {
@@ -71,6 +76,7 @@ beforeEach(() => {
 
 test('should return error on missing query subscriptions query result', done => {
   let input = {
+    type: 'homedelivery',
     deliveryDate: '2017-07-06',
     results: [
       {
@@ -83,24 +89,9 @@ test('should return error on missing query subscriptions query result', done => 
   handler(input, {}, verify(done, expectedError, null, null))
 })
 
-test('should return error on invalid stage value', done => {
-  process.env.Stage = 'SOMETHING'
-
-  let input = {
-    deliveryDate: '2017-07-06',
-    results: [
-      {
-        queryName: 'HolidaySuspensions',
-        fileName: 'HolidaySuspensions_2017-07-06.csv'
-      }
-    ]
-  }
-  let expectedError = new Error('invalid stage: SOMETHING, please fix Stage env variable')
-  handler(input, {}, verify(done, expectedError, null, null))
-})
-
 test('should return error on invalid deliveryDate', done => {
   let input = {
+    type: 'homedelivery',
     deliveryDate: '2017-14-06',
     results: [
       {
@@ -115,6 +106,7 @@ test('should return error on invalid deliveryDate', done => {
 
 test('should generate correct fulfilment file', done => {
   let input = {
+    type: 'homedelivery',
     deliveryDate: '2017-07-06',
     results: [
       {
