@@ -51,7 +51,7 @@ function normalise (entry: any) {
 async function compareAll () {
   let config = await fetchConfig()
   let compareFulfilment = folder => compare(config, folder)
-  let fulfilments = [config.fulfilments.homedelivery, ...Object.keys(config.fulfilments.weekly).map(k => config.fulfilments.weekly[k])]
+  let fulfilments = [config.fulfilments.homedelivery]//, ...Object.keys(config.fulfilments.weekly).map(k => config.fulfilments.weekly[k])]
 
   return Promise.all(fulfilments.map(compareFulfilment))
 }
@@ -96,16 +96,16 @@ async function compare (config: Config, fulfilment: uploadDownload) {
 
   // Check all future dated logfiles every time we run, just to make sure we haven't missed an update.
 
-  console.log(`${fulfilment.downloadFolder.name}: Found the following salesforce fulfilments:`, sfFiles.map(f => f.filename))
-  console.log(`${fulfilment.downloadFolder.name}: Found the following fulfilments:`, guFiles.map(f => f.filename))
-  console.log(`${fulfilment.downloadFolder.name}: Found the following logs:`, logFiles.map(f => f.filename))
+  console.log(`${fulfilment.downloadFolder.name}: Found the following salesforce fulfilments:`, sfFiles.map(f => `${f.filename} ${f.date.format()}`))
+  console.log(`${fulfilment.downloadFolder.name}: Found the following fulfilments:`, guFiles.map(f => `${f.filename} ${f.date.format()}`))
+  console.log(`${fulfilment.downloadFolder.name}: Found the following logs:`, logFiles.map(f => `${f.filename} ${f.date.format()}`))
 
-  let sfMap:Map<moment, Filename> = new Map(sfFiles.map(f => [f.date, f]))
+  let sfMap:Map<string, Filename> = new Map(sfFiles.map(f => [f.formatDate(), f])) // TODO: use the date as string
 
-  let filteredGuFiles: Array<Filename> = guFiles.filter(f => sfMap.has(f.date))
+  let filteredGuFiles: Array<Filename> = guFiles.filter(f => sfMap.has(f.formatDate()))
 
   let combined = new Map(filteredGuFiles.map(f => {
-    return [f.date, {salesforce: sfMap.get(f.date), fulfilment: f}]
+    return [f.formatDate(), {salesforce: sfMap.get(f.formatDate()), fulfilment: f}]
   }))
 
   console.log('In both systems', combined)
@@ -164,6 +164,8 @@ async function compare (config: Config, fulfilment: uploadDownload) {
     Object.keys(guOutput).forEach((id) => {
       log(`${id} found in fulfilment file but not in Salesforce output.`)
     })
+    console.log(`now i'd upload to ${logPath.Key}`)
+
     return s3.upload({
       ACL: 'private',
       ServerSideEncryption: 'aws:kms',

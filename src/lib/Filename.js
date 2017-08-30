@@ -19,6 +19,9 @@ export class Filename {
     splitName[1] = 'log'
     return splitName.join('.')
   }
+  formatDate () {
+    return this.date.format(OUTPUT_DATE_FORMAT)
+  }
 }
 
 export function generateFilename (date: moment, product: string, maybeCountry: ?string, maybeFileType: ?string) {
