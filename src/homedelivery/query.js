@@ -31,13 +31,12 @@ async function queryZuora (deliveryDate, config: Config) {
           FROM
             rateplancharge
           WHERE
-           (Subscription.Status = 'Active' OR Subscription.Status = 'Cancelled') AND
-           ProductRatePlanCharge.ProductType__c = 'Print ${deliveryDay}' AND
-           Product.Name = 'Newspaper Delivery' AND
-           RatePlanCharge.EffectiveStartDate <= '${formattedDate}' AND
-           RatePlanCharge.EffectiveEndDate >= '${formattedDate}' AND
-           (RatePlanCharge.MRR != 0 OR ProductRatePlan.FrontendId__c != 'EchoLegacy') AND
-           RatePlan.AmendmentType != 'RemoveProduct' 
+          (Subscription.Status = 'Active' OR Subscription.Status = 'Cancelled') AND
+          ProductRatePlanCharge.ProductType__c = 'Print ${deliveryDay}' AND
+          Product.Name = 'Newspaper Delivery' AND
+          RatePlanCharge.EffectiveStartDate <= '${formattedDate}' AND
+          RatePlanCharge.EffectiveEndDate >= '${formattedDate}' AND
+          (RatePlanCharge.MRR != 0 OR ProductRatePlan.FrontendId__c != 'EchoLegacy')
            `
     } // NB to avoid case where subscription gets auto renewed after fulfilment time
   const holidaySuspensionQuery: Query =
