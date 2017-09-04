@@ -5,7 +5,6 @@ import {fetchConfig} from './lib/config'
 import diff from 'deep-diff'
 import type {Difference} from 'deep-diff'
 import QuoteRemover from './lib/QuoteRemover'
-import moment from 'moment'
 import type { S3Folder } from './lib/storage'
 import type { Config, uploadDownload } from './lib/config'
 import {extractFilename} from './lib/Filename'
@@ -20,10 +19,6 @@ type customersMap = {[string]:Array<customer>}
   // Flow note: at least this field is required, more still meets type
 
 const s3 = new AWS.S3({ signatureVersion: 'v4' })
-const inFuture: (Filename) => boolean = (() => {
-  let now = moment()
-  return (f: Filename) => f.date.isAfter(now, 'day')
-})()
 
 function compareSentDates (salesforceCustomersMap:customersMap, guCustomersMap:customersMap):string {
   let dateSF = salesforceCustomersMap[Object.keys(salesforceCustomersMap)[0]][0]['Sent Date']
@@ -91,14 +86,14 @@ async function compare (config: Config, fulfilment: uploadDownload) {
   const logkeys = logresp.Contents.map(r => { return r.Key.slice(logFolder.prefix.length) }).filter(notEmpty)
 
   let sfFiles: Array<Filename> = sfkeys.map(extractFilename).filter(notEmpty)
-  let guFiles: Array<Filename> = gukeys.map(extractFilename)// .filter(notEmpty)
-  let logFiles: Array<Filename> = logkeys.map(extractFilename).filter(notEmpty).filter(inFuture)
+  let guFiles: Array<Filename> = gukeys.map(extractFilename).filter(notEmpty)
+  let logFiles: Array<Filename> = logkeys.map(extractFilename).filter(notEmpty)
 
   // Check all future dated logfiles every time we run, just to make sure we haven't missed an update.
 
-  console.log(`${fulfilment.downloadFolder.name}: Found the following salesforce fulfilments:`, sfFiles.map(f => `${f.filename} ${f.date.format()}`))
-  console.log(`${fulfilment.downloadFolder.name}: Found the following fulfilments:`, guFiles.map(f => `${f.filename} ${f.date.format()}`))
-  console.log(`${fulfilment.downloadFolder.name}: Found the following logs:`, logFiles.map(f => `${f.filename} ${f.date.format()}`))
+  console.log(`${fulfilment.downloadFolder.name}: Found the following salesforce fulfilments:`, sfFiles.map(f => `${f.filename} ${f.formatDate()}`))
+  console.log(`${fulfilment.downloadFolder.name}: Found the following fulfilments:`, guFiles.map(f => `${f.filename} ${f.formatDate()}`))
+  console.log(`${fulfilment.downloadFolder.name}: Found the following logs:`, logFiles.map(f => `${f.filename} ${f.formatDate()}`))
 
   let sfMap:Map<string, Filename> = new Map(sfFiles.map(f => [f.formatDate(), f])) // TODO: use the date as string
 
@@ -108,13 +103,11 @@ async function compare (config: Config, fulfilment: uploadDownload) {
     return [f.formatDate(), {salesforce: sfMap.get(f.formatDate()), fulfilment: f}]
   }))
 
-  console.log('In both systems', combined)
-
   const unchecked = new Map(combined)
-  logFiles.forEach(l => unchecked.delete(l.date))
+  logFiles.forEach(l => unchecked.delete(l.formatDate()))
   console.log('remaining to check', unchecked)
 
-  if (unchecked.length === 0) {
+  if (unchecked.size === 0) {
     return {message: 'No files found to check.'}
   }
 
@@ -174,7 +167,7 @@ async function compare (config: Config, fulfilment: uploadDownload) {
     }).promise()
   }
 
-  let checked = [...unchecked.values()].map(check)
+  let checked = [ ...unchecked.values() ].map(check)
   return Promise.all(checked)
 }
 
