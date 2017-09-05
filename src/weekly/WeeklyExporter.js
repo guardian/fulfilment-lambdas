@@ -1,6 +1,5 @@
 
 // @flow
-import { formatPostCode } from './../lib/formatters'
 import csv from 'fast-csv'
 import moment from 'moment'
 import type { S3Folder } from './../lib/storage'
@@ -16,50 +15,30 @@ const LAST_NAME = 'SoldToContact.LastName'
 const POSTAL_CODE = 'SoldToContact.PostalCode'
 const SUBSCRIPTION_NAME = 'Subscription.Name'
 const QUANTITY = 'RatePlanCharge.Quantity'
-const WORK_PHONE = 'SoldToContact.WorkPhone'
-const DELIVERY_INSTRUCTIONS = 'Account.SpecialDeliveryInstructions__c'
-// output headers
-const CUSTOMER_REFERENCE = 'Customer Reference'
-const CUSTOMER_FULL_NAME = 'Customer Full Name'
-const CUSTOMER_ADDRESS_LINE_1 = 'Customer Address Line 1'
-const CUSTOMER_ADDRESS_LINE_2 = 'Customer Address Line 2'
-const CUSTOMER_POSTCODE = 'Customer PostCode'
-const CUSTOMER_TOWN = 'Customer Town'
-const ADDITIONAL_INFORMATION = 'Additional Information'
-const DELIVERY_QUANTITY = 'Delivery Quantity'
-const SENT_DATE = 'Sent Date'
-const DELIVERY_DATE = 'Delivery Date'
-const CHARGE_DAY = 'Charge day'
-const CUSTOMER_PHONE = 'Customer Telephone'
+const COUNTRY = 'SoldToContact.Company_Name__c'
+ // output headers
+//	Name	Company name	Address 1	Address 2	Address  3	Country	Post code	Copies
+
+const CUSTOMER_REFERENCE = 'Subscriber ID'
+const CUSTOMER_FULL_NAME = 'Name'
+const CUSTOMER_COMPANY_NAME = 'Company name'
+const CUSTOMER_ADDRESS_LINE_1 = 'Address 1'
+const CUSTOMER_ADDRESS_LINE_2 = 'Address 2'
+const CUSTOMER_ADDRESS_LINE_3 = 'Address 3'
+const CUSTOMER_COUNTRY = 'Country'
+const CUSTOMER_POSTCODE = 'Post code'
+const DELIVERY_QUANTITY = 'Copies'
+
 const outputHeaders = [
   CUSTOMER_REFERENCE,
-  'Contract ID',
   CUSTOMER_FULL_NAME,
-  'Customer Job Title',
-  'Customer Company',
-  'Customer Department',
+  CUSTOMER_COMPANY_NAME,
   CUSTOMER_ADDRESS_LINE_1,
   CUSTOMER_ADDRESS_LINE_2,
-  'Customer Address Line 3',
-  CUSTOMER_TOWN,
+  CUSTOMER_ADDRESS_LINE_3,
+  CUSTOMER_COUNTRY,
   CUSTOMER_POSTCODE,
-  DELIVERY_QUANTITY,
-  CUSTOMER_PHONE,
-  'Property type',
-  'Front Door Access',
-  'Door Colour',
-  'House Details',
-  'Where to Leave',
-  'Landmarks',
-  ADDITIONAL_INFORMATION,
-  'Letterbox',
-  'Source campaign',
-  SENT_DATE,
-  DELIVERY_DATE,
-  'Returned Date',
-  'Delivery problem',
-  'Delivery problem notes',
-  CHARGE_DAY
+  DELIVERY_QUANTITY
 ]
 
 export default class {
@@ -88,17 +67,14 @@ export default class {
   processRow (row:{[string]:string}) {
     let outputCsvRow = {}
     outputCsvRow[CUSTOMER_REFERENCE] = row[SUBSCRIPTION_NAME]
-    outputCsvRow[CUSTOMER_TOWN] = row[CITY]
-    outputCsvRow[CUSTOMER_POSTCODE] = formatPostCode(row[POSTAL_CODE])
+    outputCsvRow[CUSTOMER_FULL_NAME] = [row[TITLE], row[FIRST_NAME], row[LAST_NAME]].join(' ').trim()
+    outputCsvRow[CUSTOMER_COMPANY_NAME] = row[COUNTRY]
     outputCsvRow[CUSTOMER_ADDRESS_LINE_1] = row[ADDRESS_1]
     outputCsvRow[CUSTOMER_ADDRESS_LINE_2] = row[ADDRESS_2]
-    outputCsvRow[CUSTOMER_FULL_NAME] = [row[TITLE], row[FIRST_NAME], row[LAST_NAME]].join(' ').trim()
+    outputCsvRow[CUSTOMER_ADDRESS_LINE_3] = row[CITY]
+    outputCsvRow[CUSTOMER_POSTCODE] = row[POSTAL_CODE]
     outputCsvRow[DELIVERY_QUANTITY] = row[QUANTITY]
-    outputCsvRow[SENT_DATE] = this.sentDate
-    outputCsvRow[DELIVERY_DATE] = this.formattedDeliveryDate
-    outputCsvRow[CHARGE_DAY] = this.chargeDay
-    outputCsvRow[CUSTOMER_PHONE] = row[WORK_PHONE]
-    outputCsvRow[ADDITIONAL_INFORMATION] = row[DELIVERY_INSTRUCTIONS]
+    outputCsvRow[CUSTOMER_COUNTRY] = row[COUNTRY]
     this.writeCSVStream.write(outputCsvRow)
   }
 
