@@ -3,6 +3,7 @@
 import csv from 'fast-csv'
 import moment from 'moment'
 import type { S3Folder } from './../lib/storage'
+import {getCanadianState, getUSState} from './../lib/states'
 
 // input headers
 const ADDRESS_1 = 'SoldToContact.Address1'
@@ -41,7 +42,7 @@ const outputHeaders = [
   DELIVERY_QUANTITY
 ]
 
-export default class {
+export class WeeklyExporter {
   country: string
   sentDate: string
   formattedDeliveryDate: string
@@ -64,15 +65,23 @@ export default class {
     return !!(row[COUNTRY] && row[COUNTRY] === this.country)
   }
 
+  formatAddress (name: string) {
+    return name
+  }
+
+  formatState (state: string) {
+    return state
+  }
+
   processRow (row:{[string]:string}) {
     let outputCsvRow = {}
     outputCsvRow[CUSTOMER_REFERENCE] = row[SUBSCRIPTION_NAME]
-    outputCsvRow[CUSTOMER_FULL_NAME] = [row[TITLE], row[FIRST_NAME], row[LAST_NAME]].join(' ').trim()
-    outputCsvRow[CUSTOMER_COMPANY_NAME] = row[COUNTRY]
-    outputCsvRow[CUSTOMER_ADDRESS_LINE_1] = row[ADDRESS_1]
-    outputCsvRow[CUSTOMER_ADDRESS_LINE_2] = row[ADDRESS_2]
-    outputCsvRow[CUSTOMER_ADDRESS_LINE_3] = row[CITY]
-    outputCsvRow[CUSTOMER_POSTCODE] = row[POSTAL_CODE]
+    outputCsvRow[CUSTOMER_FULL_NAME] = this.formatAddress([row[TITLE], row[FIRST_NAME], row[LAST_NAME]].join(' ').trim())
+    outputCsvRow[CUSTOMER_COMPANY_NAME] = this.formatAddress(row[COUNTRY])
+    outputCsvRow[CUSTOMER_ADDRESS_LINE_1] = this.formatAddress(row[ADDRESS_1])
+    outputCsvRow[CUSTOMER_ADDRESS_LINE_2] = this.formatAddress(row[ADDRESS_2])
+    outputCsvRow[CUSTOMER_ADDRESS_LINE_3] = this.formatAddress(this.formatState(row[CITY]))
+    outputCsvRow[CUSTOMER_POSTCODE] = this.formatAddress(row[POSTAL_CODE])
     outputCsvRow[DELIVERY_QUANTITY] = row[QUANTITY]
     outputCsvRow[CUSTOMER_COUNTRY] = row[COUNTRY]
     this.writeCSVStream.write(outputCsvRow)
@@ -80,5 +89,23 @@ export default class {
 
   end () {
     this.writeCSVStream.end()
+  }
+}
+
+export class AusExporter extends WeeklyExporter {
+  formatAddress (s: string) {
+    return s.toUpperCase()
+  }
+}
+
+export class CaExporter extends WeeklyExporter {
+  formatState (s: string) {
+    return getCanadianState(s)
+  }
+}
+
+export class USExporter extends WeeklyExporter {
+  formatState (s: string) {
+    return getUSState(s)
   }
 }
