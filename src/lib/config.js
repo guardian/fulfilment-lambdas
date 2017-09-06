@@ -46,6 +46,7 @@ export type Config = {
       AU: uploadDownload,
       UK: uploadDownload,
       CA: uploadDownload,
+      CAHAND: uploadDownload,
       USA: uploadDownload
     }
   }

@@ -69,7 +69,7 @@ async function processSubs (downloadStream: ReadStream, deliveryDate: moment, st
   let exporters = [
     new WeeklyExporter('United Kingdom', deliveryDate, config.fulfilments.weekly.UK.uploadFolder),
     new CaExporter('Canada', deliveryDate, config.fulfilments.weekly.CA.uploadFolder),
-    new CaHandDeliveryExporter('Canada', deliveryDate, config.fulfilments.weekly.CA.uploadFolder),
+    new CaHandDeliveryExporter('Canada', deliveryDate, config.fulfilments.weekly.CAHAND.uploadFolder),
     new USExporter('USA', deliveryDate, config.fulfilments.weekly.USA.uploadFolder),
     new AusExporter('Australia', deliveryDate, config.fulfilments.weekly.AU.uploadFolder)
 
