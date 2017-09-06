@@ -17,6 +17,7 @@ const POSTAL_CODE = 'SoldToContact.PostalCode'
 const SUBSCRIPTION_NAME = 'Subscription.Name'
 const QUANTITY = 'RatePlanCharge.Quantity'
 const COMPANY_NAME = 'SoldToContact.Company_Name__c'
+const SHOULD_HAND_DELIVER = 'Subscription.CanadaHandDelivery__c'
  // output headers
 
 const CUSTOMER_REFERENCE = 'Subscriber ID'
@@ -98,6 +99,15 @@ export class AusExporter extends WeeklyExporter {
 }
 
 export class CaExporter extends WeeklyExporter {
+  handDelivery : string
+  constructor (country: string, deliveryDate: moment, folder: S3Folder) {
+    super(country, deliveryDate, folder)
+    this.handDelivery = 'No'
+  }
+  useForRow (row:{[string]:string}):boolean {
+    return super.useForRow(row) && row[SHOULD_HAND_DELIVER] === this.handDelivery
+  }
+
   formatState (s: string) {
     return getCanadianState(s)
   }
@@ -106,5 +116,12 @@ export class CaExporter extends WeeklyExporter {
 export class USExporter extends WeeklyExporter {
   formatState (s: string) {
     return getUSState(s)
+  }
+}
+
+export class CaHandDeliveryExporter extends CaExporter {
+  constructor (country: string, deliveryDate: moment, folder: S3Folder) {
+    super(country, deliveryDate, folder)
+    this.handDelivery = 'Yes'
   }
 }
