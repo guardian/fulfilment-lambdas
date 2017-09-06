@@ -16,9 +16,8 @@ const LAST_NAME = 'SoldToContact.LastName'
 const POSTAL_CODE = 'SoldToContact.PostalCode'
 const SUBSCRIPTION_NAME = 'Subscription.Name'
 const QUANTITY = 'RatePlanCharge.Quantity'
-const COUNTRY = 'SoldToContact.Company_Name__c'
+const COMPANY_NAME = 'SoldToContact.Company_Name__c'
  // output headers
-//	Name	Company name	Address 1	Address 2	Address  3	Country	Post code	Copies
 
 const CUSTOMER_REFERENCE = 'Subscriber ID'
 const CUSTOMER_FULL_NAME = 'Name'
@@ -77,7 +76,7 @@ export class WeeklyExporter {
     let outputCsvRow = {}
     outputCsvRow[CUSTOMER_REFERENCE] = row[SUBSCRIPTION_NAME]
     outputCsvRow[CUSTOMER_FULL_NAME] = this.formatAddress([row[TITLE], row[FIRST_NAME], row[LAST_NAME]].join(' ').trim())
-    outputCsvRow[CUSTOMER_COMPANY_NAME] = this.formatAddress(row[COUNTRY])
+    outputCsvRow[CUSTOMER_COMPANY_NAME] = this.formatAddress(row[COMPANY_NAME])
     outputCsvRow[CUSTOMER_ADDRESS_LINE_1] = this.formatAddress(row[ADDRESS_1])
     outputCsvRow[CUSTOMER_ADDRESS_LINE_2] = this.formatAddress(row[ADDRESS_2])
     outputCsvRow[CUSTOMER_ADDRESS_LINE_3] = this.formatAddress(this.formatState(row[CITY]))
