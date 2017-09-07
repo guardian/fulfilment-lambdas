@@ -333,6 +333,18 @@ Resources:
           Input: "{ \"deliveryDateDaysFromNow\": 5, \"type\":\"homedelivery\" }"
           RoleArn: !GetAtt [ fulfilmentTriggerRole, Arn ]
     DependsOn: FulfilmentStateMachine_[STAGE]
+  WeeklyScheduledRule:
+    Type: "AWS::Events::Rule"
+    Properties:
+      Description: "TriggerWeeklyFulfilment"
+      ScheduleExpression: "cron(00 11 ? * wed *)"
+      State: "ENABLED"
+      Targets:
+        -
+          Arn: !Ref FulfilmentStateMachine_[STAGE]
+          Id: !Sub trigger_state_machine-${Stage}-1
+          Input: "{ \"deliveryDateDaysFromNow\": 2, \"type\":\"weekly\" }"
+          RoleArn: !GetAtt [ fulfilmentTriggerRole, Arn ]
 
   SFDownloadScheduledRule:
     Type: "AWS::Events::Rule"
