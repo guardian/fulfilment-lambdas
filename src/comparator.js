@@ -46,7 +46,7 @@ function normalise (entry: any) {
 async function compareAll () {
   let config = await fetchConfig()
   let compareFulfilment = folder => compare(config, folder)
-  let fulfilments = [config.fulfilments.homedelivery]//, ...Object.keys(config.fulfilments.weekly).map(k => config.fulfilments.weekly[k])]
+  let fulfilments = [config.fulfilments.homedelivery, ...Object.keys(config.fulfilments.weekly).map(k => config.fulfilments.weekly[k])]
 
   return Promise.all(fulfilments.map(compareFulfilment))
 }
