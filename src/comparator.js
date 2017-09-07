@@ -49,9 +49,7 @@ function mergeAddressFields (address1: string, address2: string): any {
   addParts(address1.split(','))
   addParts(address2.split(','))
 
-  let b = fullAddress.join()
-  console.log(b)
-  return b
+  return fullAddress.join()
 }
 
 function normalise (entry: any) {
