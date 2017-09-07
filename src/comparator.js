@@ -38,6 +38,11 @@ export function handler (input:?any, context:?any, callback:Function) {
 
 function normalise (entry: any) {
   let copy = {...entry}
+  let address1 = entry['Address Line 1'] || ''
+  let address2 = entry['Address Line 2'] || ''
+  delete copy['Address Line 1']
+  delete copy['Address Line 2']
+  copy['Address'] = `${address1} ${address2}`.replace(/,/g, '')
   delete copy['Delivery Quantity']
   delete copy['Sent Date']
   copy['Customer Telephone'] = entry['Customer Telephone'].replace(/^0|\+44/, '')
