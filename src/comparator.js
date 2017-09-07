@@ -36,13 +36,27 @@ export function handler (input:?any, context:?any, callback:Function) {
   })
 }
 
+function mergeAddressFields(address1: string, address2: string): any {
+  let address1Parts = address1.split(",")
+  let address2Parts = address2.split(",")
+  let fullAddress = []
+
+  address1Parts.forEach(p => {
+    if (p.trim() != "") {
+      fullAddress.push(p.trim())
+    }
+  });
+  fullAddress.join()
+}
+
 function normalise (entry: any) {
   let copy = {...entry}
-  let address1 = entry['Address Line 1'] || ''
-  let address2 = entry['Address Line 2'] || ''
-  delete copy['Address Line 1']
-  delete copy['Address Line 2']
-  copy['Address'] = `${address1} ${address2}`.replace(/,/g, '')
+  let address1 = entry['Customer Address Line 1'] || ""
+  let address2 = entry['Customer Address Line 2'] || ""
+  delete copy['Customer Address Line 1']
+  delete copy['Customer Address Line 2']
+
+  copy['Customer Address'] = mergeAddressFields(address1, address2)
   delete copy['Delivery Quantity']
   delete copy['Sent Date']
   copy['Customer Telephone'] = entry['Customer Telephone'].replace(/^0|\+44/, '')
