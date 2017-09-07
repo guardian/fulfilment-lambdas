@@ -19,7 +19,7 @@ const POSTAL_CODE = 'SoldToContact.PostalCode'
 const SUBSCRIPTION_NAME = 'Subscription.Name'
 const QUANTITY = 'RatePlanCharge.Quantity'
 const WORK_PHONE = 'SoldToContact.WorkPhone'
-const DELIVERY_INSTRUCTIONS = 'Account.SpecialDeliveryInstructions__c'
+const DELIVERY_INSTRUCTIONS = 'SoldToContact.SpecialDeliveryInstructions__c'
 // output headers
 const CUSTOMER_REFERENCE = 'Customer Reference'
 const CUSTOMER_FULL_NAME = 'Customer Full Name'
