@@ -91,7 +91,7 @@ export class Zuora {
         // TODO SEE HOW TO DETECT FAILURES OR ANY OTHER SPECIAL CASE HERE
           let fileData = {
             batchName: batch.name,
-            fileName: `${batch.name}_${deliveryDate}.csv`,
+            fileName: `${batch.name}_${deliveryDate}_${batch.fileId}.csv`,
             data: body
           }
           resolve(fileData)
