@@ -70,7 +70,7 @@ async function processSubs (downloadStream: ReadStream, deliveryDate: moment, st
     new WeeklyExporter('United Kingdom', deliveryDate, config.fulfilments.weekly.UK.uploadFolder),
     new CaExporter('Canada', deliveryDate, config.fulfilments.weekly.CA.uploadFolder),
     new CaHandDeliveryExporter('Canada', deliveryDate, config.fulfilments.weekly.CAHAND.uploadFolder),
-    new USExporter('USA', deliveryDate, config.fulfilments.weekly.USA.uploadFolder),
+    new USExporter('USA', deliveryDate, config.fulfilments.weekly.US.uploadFolder),
     new AusExporter('Australia', deliveryDate, config.fulfilments.weekly.AU.uploadFolder)
 
   ]

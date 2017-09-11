@@ -47,7 +47,7 @@ export type Config = {
       UK: uploadDownload,
       CA: uploadDownload,
       CAHAND: uploadDownload,
-      USA: uploadDownload
+      US: uploadDownload
     }
   }
 }
