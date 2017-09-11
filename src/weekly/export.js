@@ -6,7 +6,7 @@ import { ReadStream } from 'fs'
 import {getStage, fetchConfig} from './../lib/config'
 import {generateFilename} from './../lib/Filename'
 import type {Filename} from './../lib/Filename'
-import WeeklyExporter from './WeeklyExporter'
+import {WeeklyExporter, CaExporter, CaHandDeliveryExporter, USExporter, AusExporter} from './WeeklyExporter'
 import type {result, input} from '../exporter'
 
 const SUBSCRIPTION_NAME = 'Subscription.Name'
@@ -66,7 +66,14 @@ function getHolidaySuspensions (downloadStream: ReadStream): Promise<Set<string>
 async function processSubs (downloadStream: ReadStream, deliveryDate: moment, stage: string, holidaySuspensions: Set<string>): Promise<Array<Filename>> {
   let config = await fetchConfig()
   console.log('loaded ' + holidaySuspensions.size + ' holiday suspensions')
-  let exporters = [new WeeklyExporter('United Kingdom', deliveryDate, config.fulfilments.weekly.UK.uploadFolder), new WeeklyExporter('Canada', deliveryDate, config.fulfilments.weekly.UK.uploadFolder)]
+  let exporters = [
+    new WeeklyExporter('United Kingdom', deliveryDate, config.fulfilments.weekly.UK.uploadFolder),
+    new CaExporter('Canada', deliveryDate, config.fulfilments.weekly.CA.uploadFolder),
+    new CaHandDeliveryExporter('Canada', deliveryDate, config.fulfilments.weekly.CAHAND.uploadFolder),
+    new USExporter('USA', deliveryDate, config.fulfilments.weekly.USA.uploadFolder),
+    new AusExporter('Australia', deliveryDate, config.fulfilments.weekly.AU.uploadFolder)
+
+  ]
 
   let csvStream = csv.parse({
     headers: true
