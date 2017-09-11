@@ -161,10 +161,10 @@ async function compare (config: Config, fulfilment: uploadDownload & { key: stri
     let sfOutput:customersMap = await fetchCSV(sfPath, fulfilment.key)
     let guOutput:customersMap = await fetchCSV(guPath, fulfilment.key)
 
-    if (pair.fulfilment == null || Object.keys(guOutput) === 0) {
+    if (pair.fulfilment == null || Object.keys(guOutput).length === 0) {
       console.log(`fulfilment file missing rows`)
       return
-    } if (pair.salesforce == null || Object.keys(sfOutput) === 0) {
+    } if (pair.salesforce == null || Object.keys(sfOutput).length === 0) {
       console.log(`salesforce file missing rows`)
       return
     }
