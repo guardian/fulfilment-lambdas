@@ -53,26 +53,33 @@ function mergeAddressFields (address1: string, address2: string): any {
 }
 
 function normalise (entry: any) {
-  let copy = {...entry}
   let address1 = entry['Customer Address Line 1'] || ''
   let address2 = entry['Customer Address Line 2'] || ''
-  delete copy['Customer Address Line 1']
-  delete copy['Customer Address Line 2']
+  let customerAddress = mergeAddressFields(address1, address2)
 
-  copy['Customer Address'] = mergeAddressFields(address1, address2)
-  delete copy['Delivery Quantity']
-  delete copy['Sent Date']
-  copy['Customer Telephone'] = entry['Customer Telephone'].replace(/^0|\+44/, '')
-  return copy
+  let telephone = (entry['Customer Telephone'] || '').replace(/^0|\+44/, '')
+
+  return {
+    ...entry,
+    'Customer Telephone': telephone,
+    'Sent Date': null,
+    'Delivery Quantity': null,
+    'Customer Address': customerAddress,
+    'Customer Address Line 1': null,
+    'Customer Address Line 2': null
+  }
 }
 async function compareAll () {
   let config = await fetchConfig()
-  let compareFulfilment = folder => compare(config, folder)
-  let fulfilments = [config.fulfilments.homedelivery, ...Object.keys(config.fulfilments.weekly).map(k => config.fulfilments.weekly[k])]
+  let compareFulfilment = fulfilment => compare(config, fulfilment)
+  let fulfilments = [
+    {...config.fulfilments.homedelivery, key: 'Customer Reference'},
+    ...Object.keys(config.fulfilments.weekly).map(k => ({...config.fulfilments.weekly[k], key: 'Subscriber ID'}))
+  ]
 
   return Promise.all(fulfilments.map(compareFulfilment))
 }
-async function compare (config: Config, fulfilment: uploadDownload) {
+async function compare (config: Config, fulfilment: uploadDownload & { key: string}) {
   // Comparing the salesforce fulfilments in the download folder to the
   // ones we generated in the uploads folder.
   console.log(`Running fulfilment for ${fulfilment.downloadFolder.name}`)
@@ -151,8 +158,16 @@ async function compare (config: Config, fulfilment: uploadDownload) {
       logCache.push(entry)
     }
 
-    let sfOutput:customersMap = await fetchCSV(sfPath)
-    let guOutput:customersMap = await fetchCSV(guPath)
+    let sfOutput:customersMap = await fetchCSV(sfPath, fulfilment.key)
+    let guOutput:customersMap = await fetchCSV(guPath, fulfilment.key)
+
+    if (pair.fulfilment == null || Object.keys(guOutput) === 0) {
+      console.log(`fulfilment file missing rows`)
+      return
+    } if (pair.salesforce == null || Object.keys(sfOutput) === 0) {
+      console.log(`salesforce file missing rows`)
+      return
+    }
 
     log(compareSentDates(sfOutput, guOutput))
     Object.keys(sfOutput).forEach((id) => {
@@ -197,7 +212,7 @@ function notEmpty (str: ?string):boolean {
   return !str == null || !!str
 }
 
-function fetchCSV (path: S3Path):Promise<customersMap> {
+function fetchCSV (path: S3Path, key: string):Promise<customersMap> {
   let customers: {[string]:Array<customer>} = {}
   console.log(`Fetching ${path.Key} from ${path.Bucket}`)
   let csvStream = s3.getObject(path).createReadStream()
@@ -208,11 +223,11 @@ function fetchCSV (path: S3Path):Promise<customersMap> {
       console.log('ignoring invalid data: ' + data)
     }).on('data', (data:customer) => {
       line++
-      if (data['Customer Reference'] == null) {
+      if (data[key] == null) {
         console.log(`No customer ref on line ${line}`)
         return
       }
-      let id = data['Customer Reference']
+      let id = data[key]
       if (id in customers) {
         console.log(`Duplicate id found ${id}`)
         customers[id].push(data)
