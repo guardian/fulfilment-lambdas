@@ -58,8 +58,10 @@ export class Zuora {
         console.log('statusCode:', response && response.statusCode)
 
         if (response.statusCode !== 200) {
+          console.log(`error response status ${response.statusCode}`)
           reject(new NamedError('api_call_error', `error response status ${response.statusCode}`))
         } else if (body.errorCode) {
+          console.log(`zuora error! code: ${body.errorCode} : ${body.message}`)
           reject(new NamedError('api_call_error', `zuora error! code: ${body.errorCode} : ${body.message}`))
         } else {
           resolve(body.id)
