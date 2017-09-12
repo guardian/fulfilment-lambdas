@@ -17,43 +17,52 @@ async function queryZuora (deliveryDate, config: Config) {
     {
       'name': 'WeeklySubscriptions',
       'query': `
-        SELECT
-            RateplanCharge.quantity,
-            Subscription.Name,
-              SoldToContact.Address1,
-              SoldToContact.Address2,
-              SoldToContact.City, 
-              SoldToContact.Company_Name__c,
-              SoldToContact.Country, 
-              SoldToContact.Title__c,
-              SoldToContact.FirstName, 
-              SoldToContact.LastName, 
-              SoldToContact.PostalCode, 
-              SoldToContact.State,
-              Subscription.CanadaHandDelivery__c,
-              Subscription.AutoRenew
-          FROM
-            rateplancharge
-          WHERE
-           (Subscription.Status = 'Active' OR Subscription.Status = 'Cancelled') AND
-           ProductRatePlanCharge.ProductType__c is not null AND
-           Product.Name like 'Guardian Weekly%' AND
-           RatePlanCharge.EffectiveStartDate <= '${formattedDate}' AND
-           (Subscription.AutoRenew = true OR RatePlanCharge.EffectiveEndDate >= '${formattedDate}') AND
-           RatePlan.AmendmentType != 'RemoveProduct'`
+      SELECT
+      RateplanCharge.quantity,
+      Subscription.Name,
+      SoldToContact.Address1,
+      SoldToContact.Address2,
+      SoldToContact.City,
+      SoldToContact.Company_Name__c,
+      SoldToContact.Country,
+      SoldToContact.Title__c,
+      SoldToContact.FirstName,
+      SoldToContact.LastName,
+      SoldToContact.PostalCode,
+      SoldToContact.State,
+      Subscription.CanadaHandDelivery__c,
+      Subscription.AutoRenew,
+      Subscription.Status,
+      ProductRatePlanCharge.ProductType__c,
+      Product.Name,
+      RatePlanCharge.EffectiveStartDate,
+      RatePlanCharge.EffectiveEndDate,
+      RatePlan.AmendmentType,
+      Subscription.TermEndDate
+        FROM
+          rateplancharge
+        WHERE
+         (Subscription.Status = 'Active' OR Subscription.Status = 'Cancelled') AND
+         ProductRatePlanCharge.ProductType__c = 'Guardian Weekly' AND
+         RatePlanCharge.EffectiveStartDate <= '${formattedDate}' AND
+         (
+          (Subscription.AutoRenew = true AND RatePlanCharge.EffectiveEndDate >= '${formattedDate}') OR
+          (Subscription.AutoRenew = false AND Subscription.TermEndDate >= '${formattedDate}')
+         ) AND
+         RatePlan.AmendmentType != 'RemoveProduct'`
     }
   const holidaySuspensionQuery: Query =
     {
       'name': 'WeeklyHolidaySuspensions',
       'query': `
-      SELECT 
+      SELECT
         Subscription.Name
-      FROM 
-        rateplancharge 
+      FROM
+        rateplancharge
       WHERE
        (Subscription.Status = 'Active' OR Subscription.Status = 'Cancelled') AND
-       ProductRatePlanCharge.ProductType__c = 'Adjustment' AND 
-       RateplanCharge.Name = 'Holiday Credit' AND 
+       ProductRatePlanCharge.ProductType__c = 'Adjustment' AND
+       RateplanCharge.Name = 'Holiday Credit' AND
        RatePlanCharge.EffectiveStartDate <= '${formattedDate}' AND
        RatePlanCharge.HolidayEnd__c >= '${formattedDate}' AND
        RatePlan.AmendmentType != 'RemoveProduct'`
