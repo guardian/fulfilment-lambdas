@@ -1,6 +1,6 @@
 RatePlanCharge.Quantity,Subscription.Name,SoldToContact.Address1,SoldToContact.Address2,SoldToContact.City,SoldToContact.Country,SoldToContact.Title__c,SoldToContact.FirstName,SoldToContact.LastName,SoldToContact.PostalCode,SoldToContact.State,SoldToContact.WorkPhone,SoldToContact.SpecialDeliveryInstructions__c
 1,A-S00062593,92 York Way,92 York Way,London,United Kingdom,Mr,uABT7JsOnyAiFqwao1c,uABT7JsOnyAiFqwao1c,NW1A 1AA,,,
-1,A-S00062368,123 Fake Street,123 Fake Street,Faketown,United Kingdom,Miss,DNVdgozI30Qh47okU1c,DNVdgozI30Qh47okU1c,123 123,,,
+1,A-S00062368,123 Fake Street,123 Fake Street,Faketown,United Kingdom,Miss,.,DNVdgozI30Qh47okU1c,123 123,,,
 1,A-S00062346,test billing address line 1,,test billing town,United Kingdom,,NJvKOa0dGdiAp0uRU1c,NJvKOa0dGdiAp0uRU1c,PE7 1LQ,,,
 1,A-S00069777,1 STREEET,,London,United Kingdom,Mr,HQQ1rY8A1kowTKg7NDc,HQQ1rY8A1kowTKg7NDc,A4 1AA,Greater London,3213213213,
 1,A-S00069850,"The Guardian Media Group, Kings Place, 90 York Way","The Guardian Media Group, Kings Place, 90 York Way",London,United Kingdom,,FX7Y6THUdmHsp7WLcDc,FX7Y6THUdmHsp7WLcDc,N1 9GU,,,
