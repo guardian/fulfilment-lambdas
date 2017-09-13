@@ -1,7 +1,7 @@
 // @flow
 import AWS from 'aws-sdk'
 import {Readable} from 'stream'
-import {NamedError} from './NamedError'
+import NamedError from './NamedError'
 import {Filename} from './Filename'
 let s3 = new AWS.S3({signatureVersion: 'v4'})
 const BUCKET = 'fulfilment-output-test'
@@ -42,7 +42,8 @@ export async function upload (source: Buffer | string | Readable, filename: stri
     throw new NamedError('S3 error', 's3.upload returned null, this should never happen')
   }
   let result = await upload.promise()
-  if (result.Location == null || result.ETag == null || result.Bucket == null || result.key == null) {
+  if (result.Location == null || result.ETag == null || result.Bucket == null || result.Key == null) {
+    console.log(result)
     throw new NamedError('S3 error', 's3.upload.promise has missing fields, this should never happen')
   }
   return result
