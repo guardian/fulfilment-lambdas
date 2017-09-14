@@ -106,7 +106,6 @@ async function processSubs (downloadStream: ReadStream, deliveryDate: moment, st
     headers: outputHeaders
   })
 
-
   let csvStream = csv.parse({
     headers: true
   })
