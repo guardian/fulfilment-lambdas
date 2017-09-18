@@ -47,7 +47,8 @@ async function queryZuora (deliveryDate, config: Config) {
          (
           (Subscription.AutoRenew = true AND RatePlanCharge.EffectiveEndDate > '${formattedDate}') OR
           (Subscription.AutoRenew = false AND Subscription.TermEndDate > '${formattedDate}')
-         )`
+         ) AND 
+         ( RatePlan.AmendmentType != 'RemoveProduct' OR RatePlanCharge.EffectiveEndDate >= '${formattedDate}' )`
     }
   const holidaySuspensionQuery: Query =
     {

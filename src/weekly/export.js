@@ -84,9 +84,6 @@ async function processSubs (downloadStream: ReadStream, deliveryDate: moment, st
     })
     .on('data', (data) => {
       let subscriptionName = data[SUBSCRIPTION_NAME]
-      let changeType = data['RatePlan.AmendmentType']
-      let endDate = moment(data['RatePlanCharge.EffectiveEndDate'])
-      if (changeType === 'RemoveProduct' && deliveryDate.isSameOrAfter(endDate)) return
       if (holidaySuspensions.has(subscriptionName)) return
 
       exporters
