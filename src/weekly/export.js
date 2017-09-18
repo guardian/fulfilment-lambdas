@@ -78,26 +78,28 @@ async function processSubs (downloadStream: ReadStream, deliveryDate: moment, st
   let csvStream = csv.parse({
     headers: true
   })
-      .on('data-invalid', function (data) {
-        // TODO CAN WE LOG PII?
-        console.log('ignoring invalid data: ' + data)
+    .on('data-invalid', function (data) {
+      // TODO CAN WE LOG PII?
+      console.log('ignoring invalid data: ' + data)
+    })
+    .on('data', (data) => {
+      let subscriptionName = data[SUBSCRIPTION_NAME]
+      let changeType = data['RatePlan.AmendmentType']
+      let endDate = moment(data['RatePlanCharge.EffectiveEndDate'])
+      if (changeType === 'RemoveProduct' && deliveryDate.isSameOrAfter(endDate)) return
+      if (holidaySuspensions.has(subscriptionName)) return
+
+      exporters
+      .filter(exporter => exporter.useForRow(data))
+      .map(exporter => {
+        exporter.processRow(data)
       })
-      .on('data', function (data) {
-        let subscriptionName = data[SUBSCRIPTION_NAME]
-        if (!holidaySuspensions.has(subscriptionName)) {
-          exporters.map(exporter => {
-            if (exporter.useForRow(data)) {
-              exporter.processRow(data)
-            }
-          })
-        }
-      }
-  )
-      .on('end', function () {
-        exporters.map(exporter => {
-          exporter.end()
-        })
+    })
+    .on('end', function () {
+      exporters.map(exporter => {
+        exporter.end()
       })
+    })
 
   downloadStream.on('error', function (err) {
     throw new Error(`error reading holidaySuspensions: ${err}`)

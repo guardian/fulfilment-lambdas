@@ -11,7 +11,6 @@ type input = {
 }
 async function queryZuora (deliveryDate, config: Config) {
   const formattedDate = deliveryDate.format('YYYY-MM-DD')
- // const deliveryDay = deliveryDate.format('dddd')
   const zuora = new Zuora(config)
   const subsQuery: Query =
     {
@@ -46,8 +45,8 @@ async function queryZuora (deliveryDate, config: Config) {
          ProductRatePlanCharge.ProductType__c = 'Guardian Weekly' AND
          RatePlanCharge.EffectiveStartDate <= '${formattedDate}' AND
          (
-          (Subscription.AutoRenew = true AND RatePlanCharge.EffectiveEndDate >= '${formattedDate}') OR
-          (Subscription.AutoRenew = false AND Subscription.TermEndDate >= '${formattedDate}')
+          (Subscription.AutoRenew = true AND RatePlanCharge.EffectiveEndDate > '${formattedDate}') OR
+          (Subscription.AutoRenew = false AND Subscription.TermEndDate > '${formattedDate}')
          )`
     }
   const holidaySuspensionQuery: Query =
