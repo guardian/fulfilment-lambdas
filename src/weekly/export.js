@@ -85,7 +85,6 @@ async function processSubs (downloadStream: ReadStream, deliveryDate: moment, st
     .on('data', (data) => {
       let subscriptionName = data[SUBSCRIPTION_NAME]
       if (holidaySuspensions.has(subscriptionName)) return
-
       exporters
       .filter(exporter => exporter.useForRow(data))
       .map(exporter => {

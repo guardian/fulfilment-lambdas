@@ -40,16 +40,15 @@ async function queryZuora (deliveryDate, config: Config) {
       Subscription.TermEndDate
         FROM
           rateplancharge
-        WHERE
-         (Subscription.Status = 'Active' OR Subscription.Status = 'Cancelled') AND
-         ProductRatePlanCharge.ProductType__c = 'Guardian Weekly' AND
-         RatePlanCharge.EffectiveStartDate <= '${formattedDate}' AND
-         (
-          (Subscription.AutoRenew = true AND RatePlanCharge.EffectiveEndDate > '${formattedDate}') OR
-          (Subscription.AutoRenew = false AND Subscription.TermEndDate > '${formattedDate}')
-         ) AND 
-         ( RatePlan.AmendmentType != 'RemoveProduct' OR RatePlanCharge.EffectiveEndDate >= '${formattedDate}' )`
-    }
+        WHERE (Subscription.Status = 'Active' OR Subscription.Status = 'Cancelled') AND
+        ProductRatePlanCharge.ProductType__c = 'Guardian Weekly' AND
+        RatePlanCharge.EffectiveStartDate <= '${formattedDate}' AND
+        (
+         (Subscription.AutoRenew = true AND RatePlanCharge.EffectiveEndDate > '${formattedDate}') OR
+         (Subscription.AutoRenew = false AND Subscription.TermEndDate > '${formattedDate}')
+        )   AND  (RatePlan.AmendmentType IS NULL OR RatePlan.AmendmentType != 'RemoveProduct' OR RatePlanCharge.EffectiveEndDate > '${formattedDate}' )
+    `}
+
   const holidaySuspensionQuery: Query =
     {
       'name': 'WeeklyHolidaySuspensions',
