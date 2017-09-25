@@ -9,6 +9,64 @@ Parameters:
             - CODE
         Default: CODE
 Resources:
+  FulfilmentAccessLogBucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: 'fulfilment-s3-logs-[STAGE]'
+      AccessControl: 'private'
+      LoggingConfiguration:
+        DestinationBucketName: 'fulfilment-s3-logs-[STAGE]'
+        LogFilePrefix: 'logs-logs/'
+      VersioningConfiguration:
+        Status: 'Enabled'
+  SalesForceBackupBucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: 'fulfilment-salesforce-backup-[STAGE]'
+      AccessControl: 'private'
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteOldFiles
+            Prefix: ''
+            Status: Enabled
+            ExpirationInDays: 21
+      LoggingConfiguration:
+        DestinationBucketName: 'fulfilment-s3-logs-[STAGE]'
+        LogFilePrefix: 'fulfilment-salesforce-backup-[STAGE]/'
+      VersioningConfiguration:
+        Status: 'Enabled'
+  ZuoraExportBucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: 'fulfilment-zuora-staging-[STAGE]'
+      AccessControl: 'private'
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteOldFiles
+            Prefix: ''
+            Status: Enabled
+            ExpirationInDays: 21
+      LoggingConfiguration:
+        DestinationBucketName: 'fulfilment-s3-logs-[STAGE]'
+        LogFilePrefix: 'fulfilment-salesforce-backup-[STAGE]/'
+      VersioningConfiguration: 
+        Status: 'Enabled'
+  FulfilmentBucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: 'fulfilment-export-[STAGE]'
+      AccessControl: 'private'
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteOldFiles
+            Prefix: ''
+            Status: Enabled
+            ExpirationInDays: 21
+      LoggingConfiguration:
+        DestinationBucketName: 'fulfilment-s3-logs-[STAGE]'
+        LogFilePrefix: 'fulfilment-export-[STAGE]/'
+      VersioningConfiguration:
+        Status: 'Enabled'
   FulfilmentWorkersLambdaRole:
         Type: AWS::IAM::Role
         Properties:
