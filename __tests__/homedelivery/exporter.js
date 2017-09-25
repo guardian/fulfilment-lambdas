@@ -59,7 +59,7 @@ function verify (done, expectedError, expectedResponse, expectedFileName) {
             done.fail(err)
             return
           }
-          expect(expectedContents).toEqual(mockOutput)
+          expect(mockOutput).toEqual(expectedContents)
           done()
         })
       }

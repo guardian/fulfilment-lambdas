@@ -103,7 +103,8 @@ async function processSubs (downloadStream: ReadStream, deliveryDate: moment, st
 
   console.log('loaded ' + holidaySuspensions.size + ' holiday suspensions')
   let writeCSVStream = csv.createWriteStream({
-    headers: outputHeaders
+    headers: outputHeaders,
+    quoteColumns: true
   })
 
   let csvStream = csv.parse({
