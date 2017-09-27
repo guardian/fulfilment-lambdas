@@ -66,14 +66,23 @@ function getHolidaySuspensions (downloadStream: ReadStream): Promise<Set<string>
 async function processSubs (downloadStream: ReadStream, deliveryDate: moment, stage: string, holidaySuspensions: Set<string>): Promise<Array<Filename>> {
   let config = await fetchConfig()
   console.log('loaded ' + holidaySuspensions.size + ' holiday suspensions')
+  //TODO REFACTOR THIS
+  let rowExporter = new WeeklyExporter('Rest of the world', deliveryDate, config.fulfilments.weekly.ROW.uploadFolder)
+
   let exporters = [
     new WeeklyExporter('United Kingdom', deliveryDate, config.fulfilments.weekly.UK.uploadFolder),
     new CaExporter('Canada', deliveryDate, config.fulfilments.weekly.CA.uploadFolder),
     new CaHandDeliveryExporter('Canada', deliveryDate, config.fulfilments.weekly.CAHAND.uploadFolder),
     new USExporter('United States', deliveryDate, config.fulfilments.weekly.US.uploadFolder),
-    new AusExporter('Australia', deliveryDate, config.fulfilments.weekly.AU.uploadFolder)
-
+    new AusExporter('Australia', deliveryDate, config.fulfilments.weekly.AU.uploadFolder),
+    new WeeklyExporter('France', deliveryDate, config.fulfilments.weekly.FR.uploadFolder),
+    new WeeklyExporter('New Zealand', deliveryDate, config.fulfilments.weekly.NZ.uploadFolder),
+    new WeeklyExporter('Hong Kong', deliveryDate, config.fulfilments.weekly.HK.uploadFolder),
+    new WeeklyExporter('Vanuatu', deliveryDate, config.fulfilments.weekly.VU.uploadFolder),
+    rowExporter
   ]
+
+
 
   let csvStream = csv.parse({
     headers: true
@@ -85,11 +94,8 @@ async function processSubs (downloadStream: ReadStream, deliveryDate: moment, st
     .on('data', (data) => {
       let subscriptionName = data[SUBSCRIPTION_NAME]
       if (holidaySuspensions.has(subscriptionName)) return
-      exporters
-      .filter(exporter => exporter.useForRow(data))
-      .map(exporter => {
-        exporter.processRow(data)
-      })
+     let selectedExporter = exporters.find(exporter => exporter.useForRow(data)) || rowExporter
+     selectedExporter.processRow(data)
     })
     .on('end', function () {
       exporters.map(exporter => {
