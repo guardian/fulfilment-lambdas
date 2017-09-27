@@ -52,7 +52,8 @@ export class WeeklyExporter {
   constructor (country: string, deliveryDate: moment, folder: S3Folder) {
     this.country = country
     this.writeCSVStream = csv.createWriteStream({
-      headers: outputHeaders
+      headers: outputHeaders,
+      quoteColumns: true
     })
 
     this.sentDate = moment().format('DD/MM/YYYY')
