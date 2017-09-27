@@ -221,8 +221,7 @@ function verify (done, expectedError, expectedResponse, expectedFileNames) {
 
 beforeEach(() => {
   process.env.Stage = 'CODE'
-  let mockOutput = {}
-
+  mockOutput = {}
 })
 
 test('should return error on missing query subscriptions query result for weekly', done => {
@@ -274,13 +273,12 @@ test('should generate correct fulfilment file for weekly', done => {
     ]
   }
 
-  //todo this response maybe should include the full path
   let expectedResponse = {...input, 'fulfilmentFile': '2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv'}
   let expectedFileNames = [
-    "TEST/fulfilments/Weekly_UK/2017-07-06_WEEKLY.csv",
-   "TEST/fulfilments/Weekly_CA/2017-07-06_WEEKLY.csv" ,
-   "TEST/fulfilments/Weekly_CA_HAND/2017-07-06_WEEKLY.csv",
-   "TEST/fulfilments/Weekly_US/2017-07-06_WEEKLY.csv",
-   "TEST/fulfilments/Weekly_AU/2017-07-06_WEEKLY.csv"]
+    'TEST/fulfilments/Weekly_UK/2017-07-06_WEEKLY.csv',
+    'TEST/fulfilments/Weekly_CA/2017-07-06_WEEKLY.csv',
+    'TEST/fulfilments/Weekly_CA_HAND/2017-07-06_WEEKLY.csv',
+    'TEST/fulfilments/Weekly_US/2017-07-06_WEEKLY.csv',
+    'TEST/fulfilments/Weekly_AU/2017-07-06_WEEKLY.csv']
   handler(input, {}, verify(done, null, expectedResponse, expectedFileNames))
 })

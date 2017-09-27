@@ -1,9 +1,8 @@
-
 // @flow
 import csv from 'fast-csv'
 import moment from 'moment'
 import type { S3Folder } from './../lib/storage'
-import {getCanadianState, getUSState} from './../lib/states'
+import { getCanadianState, getUSState } from './../lib/states'
 
 // input headers
 const ADDRESS_1 = 'SoldToContact.Address1'
@@ -18,7 +17,7 @@ const SUBSCRIPTION_NAME = 'Subscription.Name'
 const QUANTITY = 'RatePlanCharge.Quantity'
 const COMPANY_NAME = 'SoldToContact.Company_Name__c'
 const SHOULD_HAND_DELIVER = 'Subscription.CanadaHandDelivery__c'
- // output headers
+// output headers
 
 const CUSTOMER_REFERENCE = 'Subscriber ID'
 const CUSTOMER_FULL_NAME = 'Name'
@@ -61,7 +60,8 @@ export class WeeklyExporter {
     this.formattedDeliveryDate = deliveryDate.format('DD/MM/YYYY')
     this.folder = folder
   }
-  useForRow (row:{[string]:string}):boolean {
+
+  useForRow (row: { [string]: string }): boolean {
     return !!(row[COUNTRY] && row[COUNTRY] === this.country)
   }
 
@@ -73,7 +73,7 @@ export class WeeklyExporter {
     return state
   }
 
-  processRow (row:{[string]:string}) {
+  processRow (row: { [string]: string }) {
     let outputCsvRow = {}
     outputCsvRow[CUSTOMER_REFERENCE] = row[SUBSCRIPTION_NAME]
     outputCsvRow[CUSTOMER_FULL_NAME] = this.formatAddress([row[TITLE], row[FIRST_NAME], row[LAST_NAME]].join(' ').trim())
@@ -99,13 +99,12 @@ export class AusExporter extends WeeklyExporter {
 }
 
 export class CaExporter extends WeeklyExporter {
-  handDelivery : string
-  constructor (country: string, deliveryDate: moment, folder: S3Folder) {
-    super(country, deliveryDate, folder)
-    this.handDelivery = 'No'
+  checkHandDelivery (handDeliveryValue: string): boolean {
+    return handDeliveryValue.trim().toUpperCase() !== 'YES'
   }
-  useForRow (row:{[string]:string}):boolean {
-    return super.useForRow(row) && row[SHOULD_HAND_DELIVER] === this.handDelivery
+
+  useForRow (row: { [string]: string }): boolean {
+    return super.useForRow(row) && this.checkHandDelivery(row[SHOULD_HAND_DELIVER])
   }
 
   formatState (s: string) {
@@ -120,8 +119,7 @@ export class USExporter extends WeeklyExporter {
 }
 
 export class CaHandDeliveryExporter extends CaExporter {
-  constructor (country: string, deliveryDate: moment, folder: S3Folder) {
-    super(country, deliveryDate, folder)
-    this.handDelivery = 'Yes'
+  checkHandDelivery (handDeliveryValue: string): boolean {
+    return handDeliveryValue.trim().toUpperCase() === 'YES'
   }
 }
