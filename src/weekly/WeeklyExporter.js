@@ -83,8 +83,6 @@ export class WeeklyExporter {
   }
 
   formatQuantity (quantity: string) {
-    console.log('FORMATTING QUANANT')
-    console.log(quantity)
     let floatValue = parseFloat(quantity)
     if (!floatValue) {
       return ''
