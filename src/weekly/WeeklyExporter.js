@@ -17,6 +17,7 @@ const SUBSCRIPTION_NAME = 'Subscription.Name'
 const QUANTITY = 'RatePlanCharge.Quantity'
 const COMPANY_NAME = 'SoldToContact.Company_Name__c'
 const SHOULD_HAND_DELIVER = 'Subscription.CanadaHandDelivery__c'
+const STATE = 'SoldToContact.State'
 // output headers
 
 const CUSTOMER_REFERENCE = 'Subscriber ID'
@@ -74,17 +75,36 @@ export class WeeklyExporter {
     return state
   }
 
+  toUpperCase (value: string) {
+    if (value) {
+      return value.trim().toUpperCase()
+    }
+    return value
+  }
+
+  formatQuantity (quantity: string) {
+    console.log('FORMATTING QUANANT')
+    console.log(quantity)
+    let floatValue = parseFloat(quantity)
+    if (!floatValue) {
+      return ''
+    }
+    return floatValue.toFixed(1)
+  }
+
   processRow (row: { [string]: string }) {
     let outputCsvRow = {}
+    let addressLine1 = [row[ADDRESS_1], row[ADDRESS_2]].filter(x => x).join(", ")
+
     outputCsvRow[CUSTOMER_REFERENCE] = row[SUBSCRIPTION_NAME]
     outputCsvRow[CUSTOMER_FULL_NAME] = this.formatAddress([row[TITLE], row[FIRST_NAME], row[LAST_NAME]].join(' ').trim())
     outputCsvRow[CUSTOMER_COMPANY_NAME] = this.formatAddress(row[COMPANY_NAME])
-    outputCsvRow[CUSTOMER_ADDRESS_LINE_1] = this.formatAddress(row[ADDRESS_1])
-    outputCsvRow[CUSTOMER_ADDRESS_LINE_2] = this.formatAddress(row[ADDRESS_2])
-    outputCsvRow[CUSTOMER_ADDRESS_LINE_3] = this.formatAddress(this.formatState(row[CITY]))
-    outputCsvRow[CUSTOMER_POSTCODE] = this.formatAddress(row[POSTAL_CODE])
-    outputCsvRow[DELIVERY_QUANTITY] = row[QUANTITY]
-    outputCsvRow[CUSTOMER_COUNTRY] = row[COUNTRY]
+    outputCsvRow[CUSTOMER_ADDRESS_LINE_1] = this.formatAddress(addressLine1)
+    outputCsvRow[CUSTOMER_ADDRESS_LINE_2] = this.toUpperCase(row[CITY])
+    outputCsvRow[CUSTOMER_ADDRESS_LINE_3] = this.formatState(row[STATE])
+    outputCsvRow[CUSTOMER_POSTCODE] = this.toUpperCase(row[POSTAL_CODE])
+    outputCsvRow[DELIVERY_QUANTITY] = this.formatQuantity(row[QUANTITY])
+    outputCsvRow[CUSTOMER_COUNTRY] = this.toUpperCase(row[COUNTRY])
     this.writeCSVStream.write(outputCsvRow)
   }
 
@@ -93,9 +113,9 @@ export class WeeklyExporter {
   }
 }
 
-export class AusExporter extends WeeklyExporter {
+export class UpperCaseAddressExporter extends WeeklyExporter {
   formatAddress (s: string) {
-    return s.toUpperCase()
+    return this.toUpperCase(s)
   }
 }
 

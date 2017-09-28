@@ -6,7 +6,7 @@ import { ReadStream } from 'fs'
 import {getStage, fetchConfig} from './../lib/config'
 import {generateFilename} from './../lib/Filename'
 import type {Filename} from './../lib/Filename'
-import {WeeklyExporter, CaExporter, CaHandDeliveryExporter, USExporter, AusExporter} from './WeeklyExporter'
+import {WeeklyExporter, CaExporter, CaHandDeliveryExporter, USExporter, UpperCaseAddressExporter} from './WeeklyExporter'
 import type {result, input} from '../exporter'
 
 const SUBSCRIPTION_NAME = 'Subscription.Name'
@@ -74,11 +74,11 @@ async function processSubs (downloadStream: ReadStream, deliveryDate: moment, st
     new CaExporter('Canada', deliveryDate, config.fulfilments.weekly.CA.uploadFolder),
     new CaHandDeliveryExporter('Canada', deliveryDate, config.fulfilments.weekly.CAHAND.uploadFolder),
     new USExporter('United States', deliveryDate, config.fulfilments.weekly.US.uploadFolder),
-    new AusExporter('Australia', deliveryDate, config.fulfilments.weekly.AU.uploadFolder),
+    new UpperCaseAddressExporter('Australia', deliveryDate, config.fulfilments.weekly.AU.uploadFolder),
     new WeeklyExporter('France', deliveryDate, config.fulfilments.weekly.FR.uploadFolder),
-    new WeeklyExporter('New Zealand', deliveryDate, config.fulfilments.weekly.NZ.uploadFolder),
+    new UpperCaseAddressExporter('New Zealand', deliveryDate, config.fulfilments.weekly.NZ.uploadFolder),
     new WeeklyExporter('Hong Kong', deliveryDate, config.fulfilments.weekly.HK.uploadFolder),
-    new WeeklyExporter('Vanuatu', deliveryDate, config.fulfilments.weekly.VU.uploadFolder),
+    new UpperCaseAddressExporter('Vanuatu', deliveryDate, config.fulfilments.weekly.VU.uploadFolder),
     rowExporter
   ]
 
