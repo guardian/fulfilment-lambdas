@@ -66,7 +66,6 @@ function getHolidaySuspensions (downloadStream: ReadStream): Promise<Set<string>
 async function processSubs (downloadStream: ReadStream, deliveryDate: moment, stage: string, holidaySuspensions: Set<string>): Promise<Array<Filename>> {
   let config = await fetchConfig()
   console.log('loaded ' + holidaySuspensions.size + ' holiday suspensions')
-  //TODO REFACTOR THIS
   let rowExporter = new WeeklyExporter('Rest of the world', deliveryDate, config.fulfilments.weekly.ROW.uploadFolder)
 
   let exporters = [
@@ -82,8 +81,6 @@ async function processSubs (downloadStream: ReadStream, deliveryDate: moment, st
     rowExporter
   ]
 
-
-
   let csvStream = csv.parse({
     headers: true
   })
@@ -94,8 +91,8 @@ async function processSubs (downloadStream: ReadStream, deliveryDate: moment, st
     .on('data', (data) => {
       let subscriptionName = data[SUBSCRIPTION_NAME]
       if (holidaySuspensions.has(subscriptionName)) return
-     let selectedExporter = exporters.find(exporter => exporter.useForRow(data)) || rowExporter
-     selectedExporter.processRow(data)
+      let selectedExporter = exporters.find(exporter => exporter.useForRow(data)) || rowExporter
+      selectedExporter.processRow(data)
     })
     .on('end', function () {
       exporters.map(exporter => {

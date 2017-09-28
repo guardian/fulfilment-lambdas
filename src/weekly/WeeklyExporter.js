@@ -94,7 +94,7 @@ export class WeeklyExporter {
 
   processRow (row: { [string]: string }) {
     let outputCsvRow = {}
-    let addressLine1 = [row[ADDRESS_1], row[ADDRESS_2]].filter(x => x).join(", ")
+    let addressLine1 = [row[ADDRESS_1], row[ADDRESS_2]].filter(x => x).join(', ')
 
     outputCsvRow[CUSTOMER_REFERENCE] = row[SUBSCRIPTION_NAME]
     outputCsvRow[CUSTOMER_FULL_NAME] = this.formatAddress([row[TITLE], row[FIRST_NAME], row[LAST_NAME]].join(' ').trim())
