@@ -51,7 +51,7 @@ jest.mock('../../src/lib/config', () => ({
             },
             downloadFolder: {
               folderId: 'folderId1',
-              name: 'Guardian Weekly (Vaunatu)',
+              name: 'Guardian Weekly (Vanuatu)',
               bucket: 'fulfilment-bucket-name',
               prefix: 'TEST/salesforce_output/weekly/vu/'
             }
@@ -163,7 +163,7 @@ jest.mock('../../src/lib/config', () => ({
             },
             downloadFolder: {
               folderId: 'folderId8',
-              name: 'Guardian Weekly (Vanatu)',
+              name: 'Guardian Weekly (canada hand delivery)',
               bucket: 'fulfilment-bucket-name',
               prefix: 'TEST/salesforce_output/weekly/ca_hand/'
             }
