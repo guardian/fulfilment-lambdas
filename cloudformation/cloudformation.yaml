@@ -12,15 +12,34 @@ Mappings:
   EnvironmentBucketMap:
     CODE:
       "logs": "fulfilment-s3-logs-code"
-      "salesforce": "fulfilment-salesforce-backup-code"
-      "zuora": "fulfilment-zuora-staging-code"
       "export": "fulfilment-export-code"
     PROD:
       "logs": "fulfilment-s3-logs-prod"
-      "salesforce": "fulfilment-salesforce-backup-prod"
-      "zuora": "fulfilment-zuora-staging-prod"
       "export": "fulfilment-export-prod"
 Resources:
+  EncryptBucketPolicy:
+    Properties:
+      Bucket: FulfilmentBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Sid: DenyIncorrectEncryptionHeader
+          Effect: Deny
+          Principal: "*"
+          Action: s3:PutObject
+          Resource: arn:aws:s3:::YourBucket/*
+          Condition:
+            StringNotEquals:
+              s3:x-amz-server-side-encryption: AES256
+        - Sid: DenyUnEncryptedObjectUploads
+          Effect: Deny
+          Principal: "*"
+          Action: s3:PutObject
+          Resource: arn:aws:s3:::YourBucket/*
+          Condition:
+            'Null':
+              s3:x-amz-server-side-encryption: 'true'
+
   FulfilmentAccessLogBucket:
     Type: "AWS::S3::Bucket"
     Properties:
@@ -39,54 +58,6 @@ Resources:
         LogFilePrefix: "logs-logs/"
       VersioningConfiguration:
         Status: "Enabled"
-  SalesForceBackupBucket:
-    Type: "AWS::S3::Bucket"
-    Properties:
-      BucketName:
-        Fn::FindInMap:
-          - EnvironmentBucketMap
-          - Ref: Stage
-          - "salesforce"
-      AccessControl: Private
-      LifecycleConfiguration:
-        Rules:
-          - Id: DeleteOldFilesSF
-            Prefix: ""
-            Status: Enabled
-            ExpirationInDays: 21
-      LoggingConfiguration:
-        DestinationBucketName:
-          Fn::FindInMap:
-            - EnvironmentBucketMap
-            - Ref: Stage
-            - "logs"
-        LogFilePrefix: "fulfilment-salesforce-backup-_[STAGE]/"
-      VersioningConfiguration:
-        Status: "Enabled"
-  ZuoraExportBucket:
-    Type: "AWS::S3::Bucket"
-    Properties:
-      BucketName:
-        Fn::FindInMap:
-          - EnvironmentBucketMap
-          - Ref: Stage
-          - "zuora"
-      AccessControl: Private
-      LifecycleConfiguration:
-        Rules:
-          - Id: DeleteOldFiles
-            Prefix: ""
-            Status: Enabled
-            ExpirationInDays: 21
-      LoggingConfiguration:
-        DestinationBucketName:
-          Fn::FindInMap:
-            - EnvironmentBucketMap
-            - Ref: Stage
-            - "logs"
-        LogFilePrefix: "fulfilment-salesforce-backup-_[STAGE]/"
-      VersioningConfiguration:
-        Status: "Enabled"
   FulfilmentBucket:
     Type: "AWS::S3::Bucket"
     Properties:
@@ -98,17 +69,21 @@ Resources:
       AccessControl: Private
       LifecycleConfiguration:
         Rules:
-          - Id: DeleteOldFiles
+          - Id: DeleteAllOldFiles
             Prefix: ""
             Status: Enabled
-            ExpirationInDays: 21
+            ExpirationInDays: 365
+          - Id: DeleteOldFilesZuora
+            Prefix: "zuora"
+            Status: Enabled
+            ExpirationInDays: 14
       LoggingConfiguration:
         DestinationBucketName:
           Fn::FindInMap:
             - EnvironmentBucketMap
             - Ref: Stage
             - "logs"
-        LogFilePrefix: "fulfilment-export-_[STAGE]/"
+        LogFilePrefix: "fulfilment-salesforce-backup-_[STAGE]/"
       VersioningConfiguration:
         Status: "Enabled"
   FulfilmentWorkersLambdaRole:
