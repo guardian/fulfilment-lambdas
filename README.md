@@ -13,7 +13,7 @@ The credentials come from S3 bucket ....
 ## Running Locally
 
 Each lambda can be run locally using the appropriate `yarn run:` command. This uses [lambda-local](https://github.com/ashiina/lambda-local) to emulate the AWS environment. 
-_Note: A specific build is referenced in package.json as there is a bug in lambda-local regarding aws credentials that hasn't been fixed in master_
+_Note: A specific build is referenced in `package.json` as there is a bug in lambda-local regarding aws credentials that hasn't been fixed in master_
 
 To install dependencies for running locally:
 ```bash
@@ -24,7 +24,7 @@ And to transpile the lambdas:
 ```bash
 yarn compile
 ```
-This will transpile any ES6/7 into javascript which will run on the Node 6.10 environoment of AWS.
+This will transpile any ES6/7 into javascript which will run on the Node 6.10 environment of AWS.
 
 ## Verifier
 There is a separate lambda to allow correctness checking.
