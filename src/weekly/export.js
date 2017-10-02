@@ -6,7 +6,7 @@ import { ReadStream } from 'fs'
 import {getStage, fetchConfig} from './../lib/config'
 import {generateFilename} from './../lib/Filename'
 import type {Filename} from './../lib/Filename'
-import {WeeklyExporter, CaExporter, CaHandDeliveryExporter, USExporter, AusExporter} from './WeeklyExporter'
+import {WeeklyExporter, CaExporter, CaHandDeliveryExporter, USExporter, UpperCaseAddressExporter} from './WeeklyExporter'
 import type {result, input} from '../exporter'
 
 const SUBSCRIPTION_NAME = 'Subscription.Name'
@@ -66,13 +66,19 @@ function getHolidaySuspensions (downloadStream: ReadStream): Promise<Set<string>
 async function processSubs (downloadStream: ReadStream, deliveryDate: moment, stage: string, holidaySuspensions: Set<string>): Promise<Array<Filename>> {
   let config = await fetchConfig()
   console.log('loaded ' + holidaySuspensions.size + ' holiday suspensions')
+  let rowExporter = new WeeklyExporter('Rest of the world', deliveryDate, config.fulfilments.weekly.ROW.uploadFolder)
+
   let exporters = [
     new WeeklyExporter('United Kingdom', deliveryDate, config.fulfilments.weekly.UK.uploadFolder),
     new CaExporter('Canada', deliveryDate, config.fulfilments.weekly.CA.uploadFolder),
     new CaHandDeliveryExporter('Canada', deliveryDate, config.fulfilments.weekly.CAHAND.uploadFolder),
     new USExporter('United States', deliveryDate, config.fulfilments.weekly.US.uploadFolder),
-    new AusExporter('Australia', deliveryDate, config.fulfilments.weekly.AU.uploadFolder)
-
+    new UpperCaseAddressExporter('Australia', deliveryDate, config.fulfilments.weekly.AU.uploadFolder),
+    new WeeklyExporter('France', deliveryDate, config.fulfilments.weekly.FR.uploadFolder),
+    new UpperCaseAddressExporter('New Zealand', deliveryDate, config.fulfilments.weekly.NZ.uploadFolder),
+    new WeeklyExporter('Hong Kong', deliveryDate, config.fulfilments.weekly.HK.uploadFolder),
+    new UpperCaseAddressExporter('Vanuatu', deliveryDate, config.fulfilments.weekly.VU.uploadFolder),
+    rowExporter
   ]
 
   let csvStream = csv.parse({
@@ -85,11 +91,8 @@ async function processSubs (downloadStream: ReadStream, deliveryDate: moment, st
     .on('data', (data) => {
       let subscriptionName = data[SUBSCRIPTION_NAME]
       if (holidaySuspensions.has(subscriptionName)) return
-      exporters
-      .filter(exporter => exporter.useForRow(data))
-      .map(exporter => {
-        exporter.processRow(data)
-      })
+      let selectedExporter = exporters.find(exporter => exporter.useForRow(data)) || rowExporter
+      selectedExporter.processRow(data)
     })
     .on('end', function () {
       exporters.map(exporter => {

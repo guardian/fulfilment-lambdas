@@ -51,7 +51,7 @@ jest.mock('../../src/lib/config', () => ({
             },
             downloadFolder: {
               folderId: 'folderId1',
-              name: 'Guardian Weekly (Vanatu)',
+              name: 'Guardian Weekly (Vanuatu)',
               bucket: 'fulfilment-bucket-name',
               prefix: 'TEST/salesforce_output/weekly/vu/'
             }
@@ -163,7 +163,7 @@ jest.mock('../../src/lib/config', () => ({
             },
             downloadFolder: {
               folderId: 'folderId8',
-              name: 'Guardian Weekly (Vanatu)',
+              name: 'Guardian Weekly (canada hand delivery)',
               bucket: 'fulfilment-bucket-name',
               prefix: 'TEST/salesforce_output/weekly/ca_hand/'
             }
@@ -273,12 +273,17 @@ test('should generate correct fulfilment file for weekly', done => {
     ]
   }
 
-  let expectedResponse = {...input, 'fulfilmentFile': '2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv'}
+  let expectedResponse = {...input, 'fulfilmentFile': '2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv'}
   let expectedFileNames = [
     'TEST/fulfilments/Weekly_UK/2017-07-06_WEEKLY.csv',
     'TEST/fulfilments/Weekly_CA/2017-07-06_WEEKLY.csv',
     'TEST/fulfilments/Weekly_CA_HAND/2017-07-06_WEEKLY.csv',
     'TEST/fulfilments/Weekly_US/2017-07-06_WEEKLY.csv',
-    'TEST/fulfilments/Weekly_AU/2017-07-06_WEEKLY.csv']
+    'TEST/fulfilments/Weekly_AU/2017-07-06_WEEKLY.csv',
+    'TEST/fulfilments/Weekly_FR/2017-07-06_WEEKLY.csv',
+    'TEST/fulfilments/Weekly_ROW/2017-07-06_WEEKLY.csv',
+    'TEST/fulfilments/Weekly_HK/2017-07-06_WEEKLY.csv',
+    'TEST/fulfilments/Weekly_VU/2017-07-06_WEEKLY.csv',
+    'TEST/fulfilments/Weekly_NZ/2017-07-06_WEEKLY.csv']
   handler(input, {}, verify(done, null, expectedResponse, expectedFileNames))
 })
