@@ -17,29 +17,6 @@ Mappings:
       "logs": "fulfilment-s3-logs-prod"
       "export": "fulfilment-export-prod"
 Resources:
-  EncryptBucketPolicy:
-    Properties:
-      Bucket: FulfilmentBucket
-      PolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-        - Sid: DenyIncorrectEncryptionHeader
-          Effect: Deny
-          Principal: "*"
-          Action: s3:PutObject
-          Resource: arn:aws:s3:::YourBucket/*
-          Condition:
-            StringNotEquals:
-              s3:x-amz-server-side-encryption: AES256
-        - Sid: DenyUnEncryptedObjectUploads
-          Effect: Deny
-          Principal: "*"
-          Action: s3:PutObject
-          Resource: arn:aws:s3:::YourBucket/*
-          Condition:
-            'Null':
-              s3:x-amz-server-side-encryption: 'true'
-
   FulfilmentAccessLogBucket:
     Type: "AWS::S3::Bucket"
     Properties:
@@ -86,6 +63,31 @@ Resources:
         LogFilePrefix: "fulfilment-salesforce-backup-_[STAGE]/"
       VersioningConfiguration:
         Status: "Enabled"
+  EncryptBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: FulfilmentBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Sid: DenyIncorrectEncryptionHeader
+          Effect: Deny
+          Principal: "*"
+          Action: s3:PutObject
+          Resource:
+            Fn::Join: ['', ['arn:aws:s3:::', {Ref: FulfilmentBucket}, '/*' ]]
+          Condition:
+            StringNotEquals:
+              s3:x-amz-server-side-encryption: AES256
+        - Sid: DenyUnEncryptedObjectUploads
+          Effect: Deny
+          Principal: "*"
+          Action: s3:PutObject
+          Resource:
+            Fn::Join: ['', ['arn:aws:s3:::', {Ref: FulfilmentBucket}, '/*' ]]
+          Condition:
+            'Null':
+              s3:x-amz-server-side-encryption: 'true'
   FulfilmentWorkersLambdaRole:
         Type: AWS::IAM::Role
         Properties:
