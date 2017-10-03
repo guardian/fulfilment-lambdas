@@ -37,7 +37,7 @@ async function queryZuora (deliveryDate, config: Config) {
      RatePlanCharge.EffectiveStartDate <= '${formattedDate}' AND
      (
       ( Subscription.Status = 'Active' AND ( Subscription.AutoRenew = true OR RatePlanCharge.EffectiveEndDate >= '${formattedDate}' ) ) OR
-      ( Subscription.Status = 'Cancelled' AND RatePlanCharge.EffectiveEndDate > '${formattedDate} )'
+      ( Subscription.Status = 'Cancelled' AND RatePlanCharge.EffectiveEndDate > '${formattedDate}' )
      ) AND
      (RatePlanCharge.MRR != 0 OR ProductRatePlan.FrontendId__c != 'EchoLegacy')`
     } // NB to avoid case where subscription gets auto renewed after fulfilment time
