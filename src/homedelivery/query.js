@@ -10,6 +10,7 @@ async function queryZuora (deliveryDate, config: Config) {
   const formattedDate = deliveryDate.format('YYYY-MM-DD')
   const deliveryDay = deliveryDate.format('dddd')
   const zuora = new Zuora(config)
+  const currentDate = moment().format('YYYY-MM-DD')
   const subsQuery: Query =
     {
       'name': 'Subscriptions',
@@ -27,25 +28,17 @@ async function queryZuora (deliveryDate, config: Config) {
         SoldToContact.PostalCode,
         SoldToContact.State,
         SoldToContact.workPhone,
-        SoldToContact.SpecialDeliveryInstructions__c,
-        Subscription.Version,
-        Subscription.Status,
-        RateplanCharge.Version,
-        RatePlanCharge.EffectiveEndDate,
-        RatePlan.AmendmentType,
-        RateplanCharge.Id
-        
-      FROM
+        SoldToContact.SpecialDeliveryInstructions__c
+    FROM
       rateplancharge
     WHERE
      (Subscription.Status = 'Active' OR Subscription.Status = 'Cancelled') AND
      ProductRatePlanCharge.ProductType__c = 'Print ${deliveryDay}' AND
      Product.Name = 'Newspaper Delivery' AND
-     (RatePlan.AmendmentType IS NULL OR RatePlan.AmendmentType != 'RemoveProduct') AND
      RatePlanCharge.EffectiveStartDate <= '${formattedDate}' AND
      (
       ( 
-        Subscription.Status = 'Active' AND Subscription.AutoRenew = true AND RatePlanCharge.IsLastSegment = true
+        Subscription.Status = 'Active' AND Subscription.AutoRenew = true AND RatePlanCharge.EffectiveEndDate >= '${currentDate}'
       )
       OR
       (
