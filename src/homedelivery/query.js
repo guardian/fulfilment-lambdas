@@ -38,7 +38,7 @@ async function queryZuora (deliveryDate, config: Config) {
      RatePlanCharge.EffectiveStartDate <= '${formattedDate}' AND
      (
       ( 
-        Subscription.Status = 'Active' AND Subscription.AutoRenew = true AND RatePlanCharge.EffectiveEndDate >= '${currentDate}'
+        Subscription.Status = 'Active' AND Subscription.AutoRenew = true AND RatePlanCharge.EffectiveStartDate >= '${currentDate}' AND RatePlanCharge.EffectiveEndDate >= '${currentDate}'
       )
       OR
       (
