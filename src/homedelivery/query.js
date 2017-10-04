@@ -27,18 +27,36 @@ async function queryZuora (deliveryDate, config: Config) {
         SoldToContact.PostalCode,
         SoldToContact.State,
         SoldToContact.workPhone,
-        SoldToContact.SpecialDeliveryInstructions__c
-    FROM
+        SoldToContact.SpecialDeliveryInstructions__c,
+        Subscription.Version,
+        Subscription.Status,
+        RateplanCharge.Version,
+        RatePlanCharge.EffectiveEndDate,
+        RatePlan.AmendmentType,
+        RateplanCharge.Id
+        
+      FROM
       rateplancharge
     WHERE
      (Subscription.Status = 'Active' OR Subscription.Status = 'Cancelled') AND
      ProductRatePlanCharge.ProductType__c = 'Print ${deliveryDay}' AND
      Product.Name = 'Newspaper Delivery' AND
+     (RatePlan.AmendmentType IS NULL OR RatePlan.AmendmentType != 'RemoveProduct') AND
      RatePlanCharge.EffectiveStartDate <= '${formattedDate}' AND
      (
-      ( Subscription.Status = 'Active' AND ( Subscription.AutoRenew = true OR RatePlanCharge.EffectiveEndDate >= '${formattedDate}' ) ) OR
-      ( Subscription.Status = 'Cancelled' AND RatePlanCharge.EffectiveEndDate > '${formattedDate}' )
-     ) AND
+      ( 
+        Subscription.Status = 'Active' AND Subscription.AutoRenew = true AND RatePlanCharge.IsLastSegment = true
+      )
+      OR
+      (
+        Subscription.Status = 'Active' AND RatePlanCharge.EffectiveEndDate >= '${formattedDate}'
+      )
+      OR
+      ( 
+        Subscription.Status = 'Cancelled' AND RatePlanCharge.EffectiveEndDate > '${formattedDate}' 
+      )
+     ) 
+     AND
      (RatePlanCharge.MRR != 0 OR ProductRatePlan.FrontendId__c != 'EchoLegacy')`
     } // NB to avoid case where subscription gets auto renewed after fulfilment time
   const holidaySuspensionQuery: Query =
