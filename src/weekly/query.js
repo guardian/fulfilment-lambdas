@@ -11,13 +11,14 @@ type input = {
 }
 async function queryZuora (deliveryDate, config: Config) {
   const formattedDate = deliveryDate.format('YYYY-MM-DD')
+  const aWeekBeforeDelivery = deliveryDate.subtract(7, 'days').format('YYYY-MM-DD')
   const zuora = new Zuora(config)
+
   const subsQuery: Query =
     {
       'name': 'WeeklySubscriptions',
       'query': `
       SELECT
-      RateplanCharge.quantity,
       Subscription.Name,
       SoldToContact.Address1,
       SoldToContact.Address2,
@@ -29,28 +30,34 @@ async function queryZuora (deliveryDate, config: Config) {
       SoldToContact.LastName,
       SoldToContact.PostalCode,
       SoldToContact.State,
-      Subscription.CanadaHandDelivery__c,
-      Subscription.AutoRenew,
-      Subscription.Status,
-      ProductRatePlanCharge.ProductType__c,
-      Product.Name,
-      RatePlanCharge.EffectiveStartDate,
-      RatePlanCharge.EffectiveEndDate,
-      RatePlan.AmendmentType,
-      Subscription.TermEndDate
-        FROM
-          rateplancharge
-        WHERE (Subscription.Status = 'Active' OR Subscription.Status = 'Cancelled') AND
-        ProductRatePlanCharge.ProductType__c = 'Guardian Weekly' AND
-        RatePlanCharge.EffectiveStartDate <= '${formattedDate}' AND
+      Subscription.CanadaHandDelivery__c
+      FROM
+        rateplan
+      WHERE 
+        ( Subscription.Status = 'Active' OR 
+          Subscription.Status = 'Cancelled'
+        ) AND
+        Product.ProductType__c = 'Guardian Weekly' AND
         (
-         (Subscription.AutoRenew = true AND (
-          (Subscription.Status = 'Active' AND RatePlanCharge.EffectiveEndDate >= '${formattedDate}') 
-          OR (Subscription.Status = 'Cancelled' AND RatePlanCharge.EffectiveEndDate > '${formattedDate}')
-         )) 
-         OR
-         (Subscription.AutoRenew = false AND Subscription.TermEndDate > '${formattedDate}')
-        )   AND  (RatePlan.AmendmentType IS NULL OR RatePlan.AmendmentType != 'RemoveProduct' OR RatePlanCharge.EffectiveEndDate > '${formattedDate}' )
+          RatePlan.AmendmentType IS NULL OR 
+          RatePlan.AmendmentType != 'RemoveProduct'
+        ) AND
+        Subscription.ContractAcceptanceDate <= '${formattedDate}' AND
+        (
+          (
+             Subscription.AutoRenew = true AND
+             Subscription.Status = 'Active'   
+          ) OR
+          (
+            Subscription.Status = 'Cancelled' AND
+            Subscription.TermEndDate >= '${aWeekBeforeDelivery}'
+          ) OR
+          (
+           Subscription.Status = 'Active' AND  
+           Subscription.AutoRenew = false AND
+           Subscription.TermEndDate >= '${aWeekBeforeDelivery}'
+          )
+        )
     `}
 
   const holidaySuspensionQuery: Query =
