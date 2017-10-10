@@ -10,7 +10,7 @@ type input = {
   deliveryDateDaysFromNow: ?number
 }
 async function queryZuora (deliveryDate, config: Config) {
-  const formattedDate = deliveryDate.format('YYYY-MM-DD')
+  const formattedDeliveryDate = deliveryDate.format('YYYY-MM-DD')
   const aWeekBeforeDelivery = deliveryDate.subtract(7, 'days').format('YYYY-MM-DD')
   const zuora = new Zuora(config)
 
@@ -42,7 +42,7 @@ async function queryZuora (deliveryDate, config: Config) {
           RatePlan.AmendmentType IS NULL OR 
           RatePlan.AmendmentType != 'RemoveProduct'
         ) AND
-        Subscription.ContractAcceptanceDate <= '${formattedDate}' AND
+        Subscription.ContractAcceptanceDate <= '${formattedDeliveryDate}' AND
         (
           (
              Subscription.AutoRenew = true AND
@@ -72,12 +72,12 @@ async function queryZuora (deliveryDate, config: Config) {
        (Subscription.Status = 'Active' OR Subscription.Status = 'Cancelled') AND
        ProductRatePlanCharge.ProductType__c = 'Adjustment' AND
        RateplanCharge.Name = 'Holiday Credit' AND
-       RatePlanCharge.EffectiveStartDate <= '${formattedDate}' AND
-       RatePlanCharge.HolidayEnd__c >= '${formattedDate}' AND
+       RatePlanCharge.EffectiveStartDate <= '${formattedDeliveryDate}' AND
+       RatePlanCharge.HolidayEnd__c >= '${formattedDeliveryDate}' AND
        RatePlan.AmendmentType != 'RemoveProduct'`
     }
   let jobId = await zuora.query('Fulfilment-Queries', subsQuery, holidaySuspensionQuery)
-  return {deliveryDate: formattedDate, jobId: jobId}
+  return {deliveryDate: formattedDeliveryDate, jobId: jobId}
 }
 
 function getDeliveryDate (input: input) {
