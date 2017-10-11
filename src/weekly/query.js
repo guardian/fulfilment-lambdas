@@ -34,15 +34,12 @@ async function queryZuora (deliveryDate, config: Config) {
       FROM
         rateplan
       WHERE 
-        ( Subscription.Status = 'Active' OR 
-          Subscription.Status = 'Cancelled'
-        ) AND
         Product.ProductType__c = 'Guardian Weekly' AND
         (
           RatePlan.AmendmentType IS NULL OR 
           RatePlan.AmendmentType != 'RemoveProduct'
         ) AND
-        Subscription.ContractAcceptanceDate <= '${formattedDeliveryDate}' AND
+        Subscription.SubscriptionStartDate <= '${formattedDeliveryDate}' AND
         (
           (
              Subscription.AutoRenew = true AND
