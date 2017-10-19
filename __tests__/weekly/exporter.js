@@ -235,7 +235,7 @@ test('should return error on missing query subscriptions query result for weekly
       },
       {
         queryName: 'WeeklyIntroductoryPeriods',
-        fileName: 'weeklyIntroductoryPeriods_2017-07-06.csv'
+        fileName: 'WeeklyIntroductoryPeriods_2017-07-06.csv'
       }
     ]
   }
