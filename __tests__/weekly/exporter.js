@@ -231,7 +231,11 @@ test('should return error on missing query subscriptions query result for weekly
     results: [
       {
         queryName: 'WeeklyHolidaySuspensions',
-        fileName: 'WeeklyHolidaySuspensions_2017-07-06.csv'
+        fileName: 'WeeklyHolidaySuspensions_2017-07-06.csv',
+      },
+      {
+        queryName: 'WeeklyIntroductoryPeriods',
+        fileName: 'weeklyIntroductoryPeriods_2017-07-06.csv'
       }
     ]
   }
@@ -250,6 +254,10 @@ test('should return error on invalid deliveryDate for weekly', done => {
     {
       queryName: 'WeeklyHolidaySuspensions',
       fileName: 'WeeklyHolidaySuspensions_2017-07-06.csv'
+    },
+    {
+      queryName: 'WeeklyIntroductoryPeriods',
+      fileName: 'weeklyIntroductoryPeriods_2017-07-06.csv'
     }
     ]
   }
@@ -269,6 +277,10 @@ test('should generate correct fulfilment file for weekly', done => {
       {
         queryName: 'WeeklyHolidaySuspensions',
         fileName: 'WeeklyHolidaySuspensions_2017-07-06.csv'
+      },
+      {
+        queryName: 'WeeklyIntroductoryPeriods',
+        fileName: 'weeklyIntroductoryPeriods_2017-07-06.csv'
       }
     ]
   }

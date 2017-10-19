@@ -30,16 +30,19 @@ async function queryZuora (deliveryDate, config: Config) {
       SoldToContact.LastName,
       SoldToContact.PostalCode,
       SoldToContact.State,
-      Subscription.CanadaHandDelivery__c
+      Subscription.CanadaHandDelivery__c,
+      Account.sfContactId__c
       FROM
         rateplan
       WHERE 
         Product.ProductType__c = 'Guardian Weekly' AND
+        RatePlan.Name != 'Guardian Weekly 6 Issues' AND
+        RatePlan.Name != 'Guardian Weekly 12 Issues' AND
         (
           RatePlan.AmendmentType IS NULL OR 
           RatePlan.AmendmentType != 'RemoveProduct'
         ) AND
-        Subscription.SubscriptionStartDate <= '${formattedDeliveryDate}' AND
+        Subscription.ContractAcceptanceDate <= '${formattedDeliveryDate}' AND
         (
           (
              Subscription.AutoRenew = true AND
@@ -56,7 +59,36 @@ async function queryZuora (deliveryDate, config: Config) {
           )
         )
     `}
-
+// TODO should we include subs when the effective end date == delivery day ?
+  const introductoryPeriodQuery: Query =
+    {
+      'name': 'WeeklyIntroductoryPeriods',
+      'query': `
+      SELECT
+      Subscription.Name,
+      SoldToContact.Address1,
+      SoldToContact.Address2,
+      SoldToContact.City,
+      SoldToContact.Company_Name__c,
+      SoldToContact.Country,
+      SoldToContact.Title__c,
+      SoldToContact.FirstName,
+      SoldToContact.LastName,
+      SoldToContact.PostalCode,
+      SoldToContact.State,
+      Subscription.CanadaHandDelivery__c,
+      Account.sfContactId__c
+      FROM
+        RatePlanCharge
+      WHERE 
+       (Subscription.Status = 'Active' OR Subscription.Status = 'Cancelled') AND
+         Product.ProductType__c = 'Guardian Weekly' AND
+        ( RatePlan.Name = 'Guardian Weekly 6 Issues' OR RatePlan.Name = 'Guardian Weekly 12 Issues' ) AND
+        ( RatePlan.AmendmentType IS NULL OR RatePlan.AmendmentType != 'RemoveProduct' ) AND
+        RatePlanCharge.EffectiveStartDate <= '${formattedDeliveryDate}' AND
+        RatePlanCharge.EffectiveEndDate > '${formattedDeliveryDate}' 
+    `}
+  console.log(introductoryPeriodQuery.query)
   const holidaySuspensionQuery: Query =
     {
       'name': 'WeeklyHolidaySuspensions',
@@ -73,7 +105,7 @@ async function queryZuora (deliveryDate, config: Config) {
        RatePlanCharge.HolidayEnd__c >= '${formattedDeliveryDate}' AND
        RatePlan.AmendmentType != 'RemoveProduct'`
     }
-  let jobId = await zuora.query('Fulfilment-Queries', subsQuery, holidaySuspensionQuery)
+  let jobId = await zuora.query('Fulfilment-Queries', subsQuery, holidaySuspensionQuery, introductoryPeriodQuery)
   return {deliveryDate: formattedDeliveryDate, jobId: jobId}
 }
 

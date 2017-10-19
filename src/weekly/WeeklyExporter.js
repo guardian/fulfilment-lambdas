@@ -91,6 +91,10 @@ export class WeeklyExporter {
   }
 
   processRow (row: { [string]: string }) {
+//todo quick fix for now
+    if (row[SUBSCRIPTION_NAME] == 'Subscription.Name') {
+      return;
+    }
     let outputCsvRow = {}
     let addressLine1 = [row[ADDRESS_1], row[ADDRESS_2]].filter(x => x).join(', ')
 
