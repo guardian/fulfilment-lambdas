@@ -257,7 +257,7 @@ test('should return error on invalid deliveryDate for weekly', done => {
     },
     {
       queryName: 'WeeklyIntroductoryPeriods',
-      fileName: 'weeklyIntroductoryPeriods_2017-07-06.csv'
+      fileName: 'WeeklyIntroductoryPeriods_2017-07-06.csv'
     }
     ]
   }
@@ -280,7 +280,7 @@ test('should generate correct fulfilment file for weekly', done => {
       },
       {
         queryName: 'WeeklyIntroductoryPeriods',
-        fileName: 'weeklyIntroductoryPeriods_2017-07-06.csv'
+        fileName: 'WeeklyIntroductoryPeriods_2017-07-06.csv'
       }
     ]
   }
