@@ -1,7 +1,7 @@
 // @flow
 import csv from 'fast-csv'
 import moment from 'moment'
-import  CombinedStream from 'combined-stream2'
+import CombinedStream from 'combined-stream2'
 import { upload, createReadStream } from './../lib/storage'
 import { ReadStream } from 'fs'
 import {getStage, fetchConfig} from './../lib/config'
@@ -64,9 +64,6 @@ function getHolidaySuspensions (downloadStream: ReadStream): Promise<Set<string>
       .pipe(csvStream)
   })
 }
-class RowSource{
-
-}
 async function processSubs (downloadStream: ReadStream, deliveryDate: moment, stage: string, holidaySuspensions: Set<string>): Promise<Array<Filename>> {
   let config = await fetchConfig()
   console.log('loaded ' + holidaySuspensions.size + ' holiday suspensions')
@@ -98,11 +95,11 @@ async function processSubs (downloadStream: ReadStream, deliveryDate: moment, st
       let selectedExporter = exporters.find(exporter => exporter.useForRow(data)) || rowExporter
       selectedExporter.processRow(data)
     })
-    .on("error", function(data){
-      console.log("Error processing csv:")
+    .on('error', function (data) {
+      console.log('Error processing csv:')
       console.log(data)
-    return false;
-  })
+      return false
+    })
     .on('end', function () {
       exporters.map(exporter => {
         exporter.end()
@@ -139,9 +136,9 @@ export async function weeklyExport (input: input) {
   let holidaySuspensions = await getHolidaySuspensions(holidaySuspensionsStream)
   let introductoryPeriodStream = await getDownloadStream(input.results, stage, INTRODUCTORY_QUERY_NAME)
   let NonIntroductorySubsStream = await getDownloadStream(input.results, stage, SUBSCRIPTIONS_QUERY_NAME)
-  let subscriptionsStream = CombinedStream.create();
-  subscriptionsStream.append(introductoryPeriodStream);
-  subscriptionsStream.append(NonIntroductorySubsStream);
+  let subscriptionsStream = CombinedStream.create()
+  subscriptionsStream.append(introductoryPeriodStream)
+  subscriptionsStream.append(NonIntroductorySubsStream)
   let outputFileNames = await processSubs(subscriptionsStream, deliveryDate, stage, holidaySuspensions)
   return outputFileNames.map(f => f.filename).join()
 }

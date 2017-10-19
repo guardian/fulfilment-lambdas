@@ -14,7 +14,7 @@ const FIRST_NAME = 'SoldToContact.FirstName'
 const LAST_NAME = 'SoldToContact.LastName'
 const POSTAL_CODE = 'SoldToContact.PostalCode'
 const SUBSCRIPTION_NAME = 'Subscription.Name'
-const QUANTITY = 'RatePlanCharge.Quantity'
+// const QUANTITY = 'RatePlanCharge.Quantity'
 const COMPANY_NAME = 'SoldToContact.Company_Name__c'
 const SHOULD_HAND_DELIVER = 'Subscription.CanadaHandDelivery__c'
 const STATE = 'SoldToContact.State'
@@ -91,9 +91,9 @@ export class WeeklyExporter {
   }
 
   processRow (row: { [string]: string }) {
-//todo quick fix for now
-    if (row[SUBSCRIPTION_NAME] == 'Subscription.Name') {
-      return;
+   // todo quick fix for now
+    if (row[SUBSCRIPTION_NAME] === 'Subscription.Name') {
+      return
     }
     let outputCsvRow = {}
     let addressLine1 = [row[ADDRESS_1], row[ADDRESS_2]].filter(x => x).join(', ')
@@ -105,7 +105,7 @@ export class WeeklyExporter {
     outputCsvRow[CUSTOMER_ADDRESS_LINE_2] = this.toUpperCase(row[CITY])
     outputCsvRow[CUSTOMER_ADDRESS_LINE_3] = this.formatState(row[STATE])
     outputCsvRow[CUSTOMER_POSTCODE] = this.toUpperCase(row[POSTAL_CODE])
-    outputCsvRow[DELIVERY_QUANTITY] = '1.0' //todo see what to do with this!
+    outputCsvRow[DELIVERY_QUANTITY] = '1.0' // todo see what to do with this!
     outputCsvRow[CUSTOMER_COUNTRY] = this.toUpperCase(row[COUNTRY])
     this.writeCSVStream.write(outputCsvRow)
   }

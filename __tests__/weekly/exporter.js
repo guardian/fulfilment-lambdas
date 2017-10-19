@@ -231,7 +231,7 @@ test('should return error on missing query subscriptions query result for weekly
     results: [
       {
         queryName: 'WeeklyHolidaySuspensions',
-        fileName: 'WeeklyHolidaySuspensions_2017-07-06.csv',
+        fileName: 'WeeklyHolidaySuspensions_2017-07-06.csv'
       },
       {
         queryName: 'WeeklyIntroductoryPeriods',
