@@ -18,9 +18,9 @@ function getCutOffDate (deliveryDate: moment) {
   }
   // TODO this code just replicates what the sf fulfilment does to minimize the differences, maybe we could change it later to just use the daysUntilDelivery
   if (daysUntilDelivery <= 6) {
-    return deliveryDate.subtract(7, 'days')
+    return deliveryDate.subtract(6, 'days')
   } else {
-    return deliveryDate.subtract(14, 'days')
+    return deliveryDate.subtract(13, 'days')
   }
 }
 
