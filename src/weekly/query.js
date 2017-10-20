@@ -9,9 +9,24 @@ type input = {
   deliveryDate: ?string,
   deliveryDateDaysFromNow: ?number
 }
+
+function getCutOffDate (deliveryDate: moment) {
+  let today = moment().startOf('day')
+  let daysUntilDelivery = deliveryDate.diff(today)
+  if (daysUntilDelivery >= 0) {
+    return deliveryDate
+  }
+  // TODO this code just replicates what the sf fulfilment does to minimize the differences, maybe we could change it later to just use the daysUntilDelivery
+  if (daysUntilDelivery <= 6) {
+    return deliveryDate.subtract(7, 'days')
+  } else {
+    return deliveryDate.subtract(14, 'days')
+  }
+}
+
 async function queryZuora (deliveryDate, config: Config) {
   const formattedDeliveryDate = deliveryDate.format('YYYY-MM-DD')
-  const aWeekBeforeDelivery = deliveryDate.subtract(7, 'days').format('YYYY-MM-DD')
+  const cutOffDate = getCutOffDate(deliveryDate).format('YYYY-MM-DD')
   const zuora = new Zuora(config)
 
   const subsQuery: Query =
@@ -49,12 +64,12 @@ async function queryZuora (deliveryDate, config: Config) {
           ) OR
           (
             Subscription.Status = 'Cancelled' AND
-            Subscription.TermEndDate >= '${aWeekBeforeDelivery}'
+            Subscription.TermEndDate >= '${cutOffDate}'
           ) OR
           (
            Subscription.Status = 'Active' AND  
            Subscription.AutoRenew = false AND
-           Subscription.TermEndDate >= '${aWeekBeforeDelivery}'
+           Subscription.TermEndDate >= '${cutOffDate}'
           )
         )
     `}
