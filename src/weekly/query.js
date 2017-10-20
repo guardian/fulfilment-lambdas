@@ -73,7 +73,6 @@ async function queryZuora (deliveryDate, config: Config) {
           )
         )
     `}
-// TODO should we include subs when the effective end date == delivery day ?
   const introductoryPeriodQuery: Query =
     {
       'name': 'WeeklyIntroductoryPeriods',
@@ -101,7 +100,6 @@ async function queryZuora (deliveryDate, config: Config) {
         RatePlanCharge.EffectiveStartDate <= '${formattedDeliveryDate}' AND
         RatePlanCharge.EffectiveEndDate > '${formattedDeliveryDate}' 
     `}
-  console.log(introductoryPeriodQuery.query)
   const holidaySuspensionQuery: Query =
     {
       'name': 'WeeklyHolidaySuspensions',
