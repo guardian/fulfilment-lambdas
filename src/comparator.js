@@ -248,7 +248,6 @@ function fetchCSV (path: S3Path, key: string):Promise<customersMap> {
 function renderDifference (diff: Array<Difference>):Array<string> {
   return diff.map((d:Difference) => {
     let path = d.path.join()
-
     switch (d.kind) {
       case 'N':
         return `New field found at ${path}`
@@ -261,7 +260,6 @@ function renderDifference (diff: Array<Difference>):Array<string> {
           return `Field ${path} changed`
         }
     }
-
     return `Unidentified change at ${path}`
   })
 }
