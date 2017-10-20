@@ -13,7 +13,7 @@ type input = {
 function getCutOffDate (deliveryDate: moment) {
   let today = moment().startOf('day')
   let daysUntilDelivery = deliveryDate.diff(today)
-  if (daysUntilDelivery >= 0) {
+  if (daysUntilDelivery <= 0) {
     return deliveryDate
   }
   // TODO this code just replicates what the sf fulfilment does to minimize the differences, maybe we could change it later to just use the daysUntilDelivery
