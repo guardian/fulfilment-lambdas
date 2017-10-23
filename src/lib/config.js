@@ -67,7 +67,7 @@ export function getStage (): Promise<Stage> {
 function fetchConfigForStage (stage: Stage): Promise<Config> {
   console.log('Fetching configuration file from S3.')
   return new Promise((resolve, reject) => {
-    const key = 'fulfilment.private.TEST.json'
+    const key = 'fulfilment.private.json'
     const bucket = `fulfilment-private/${stage}`
     console.log(`loading ${stage} configuration from ${bucket}/${key}`)
 
