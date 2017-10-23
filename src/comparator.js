@@ -248,15 +248,17 @@ function fetchCSV (path: S3Path, key: string):Promise<customersMap> {
 function renderDifference (diff: Array<Difference>):Array<string> {
   return diff.map((d:Difference) => {
     let path = d.path.join()
-    if (typeof d.lhs === 'string' && typeof d.rhs === 'string') {
-      switch (d.kind) {
-        case 'N':
-          return `New field found at ${path}`
-        case 'D':
-          return `Field deleted from ${path} `
-        case 'E':
+    switch (d.kind) {
+      case 'N':
+        return `New field found at ${path}`
+      case 'D':
+        return `Field deleted from ${path} `
+      case 'E':
+        if (typeof d.lhs === 'string' && typeof d.rhs === 'string') {
           return `Field ${path} changed from "${d.lhs}" to "${d.rhs}"`
-      }
+        } else {
+          return `Field ${path} changed`
+        }
     }
     return `Unidentified change at ${path}`
   })
