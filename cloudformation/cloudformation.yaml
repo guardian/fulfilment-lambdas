@@ -65,6 +65,7 @@ Resources:
         Status: "Enabled"
   EncryptBucketPolicy:
     Type: AWS::S3::BucketPolicy
+    DependsOn: FulfilmentBucket
     Properties:
       Bucket: FulfilmentBucket
       PolicyDocument:
