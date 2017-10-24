@@ -91,6 +91,7 @@ Resources:
               s3:x-amz-server-side-encryption: 'true'
   FulfilmentWorkersLambdaRole:
         Type: AWS::IAM::Role
+        DependsOn: FulfilmentBucket
         Properties:
             RoleName: !Sub FulfilmentWorkers-${Stage}
             AssumeRolePolicyDocument:
@@ -135,14 +136,15 @@ Resources:
                             - s3:GetObjectVersion
                             - s3:DeleteObjectVersion
                             Resource:
-                              !Sub arn:aws:s3:::fulfilment-output-test/${Stage}/*
+                                Fn::Join: ['', ['arn:aws:s3:::', {Ref: FulfilmentBucket}, '/*' ]]
                 - PolicyName: ListWorkBucket
                   PolicyDocument:
                       Statement:
                          - Effect: Allow
                            Action:
                            - s3:ListBucket
-                           Resource: arn:aws:s3:::fulfilment-output-test
+                           Resource:
+                              Fn::Join: ['', ['arn:aws:s3:::', {Ref: FulfilmentBucket}, '/*' ]]
   SalesforceUploaderLambda:
     Type: "AWS::Lambda::Function"
     Properties:
