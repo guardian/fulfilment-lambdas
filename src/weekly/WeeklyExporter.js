@@ -91,7 +91,6 @@ export class WeeklyExporter {
   }
 
   processRow (row: { [string]: string }) {
-   // todo quick fix for now
     if (row[SUBSCRIPTION_NAME] === 'Subscription.Name') {
       return
     }
@@ -105,7 +104,7 @@ export class WeeklyExporter {
     outputCsvRow[CUSTOMER_ADDRESS_LINE_2] = this.toUpperCase(row[CITY])
     outputCsvRow[CUSTOMER_ADDRESS_LINE_3] = this.formatState(row[STATE])
     outputCsvRow[CUSTOMER_POSTCODE] = this.toUpperCase(row[POSTAL_CODE])
-    outputCsvRow[DELIVERY_QUANTITY] = '1.0' // todo see what to do with this!
+    outputCsvRow[DELIVERY_QUANTITY] = '1.0' 
     outputCsvRow[CUSTOMER_COUNTRY] = this.toUpperCase(row[COUNTRY])
     this.writeCSVStream.write(outputCsvRow)
   }
