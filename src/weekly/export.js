@@ -136,7 +136,7 @@ export async function weeklyExport (input: input) {
   let holidaySuspensions = await getHolidaySuspensions(holidaySuspensionsStream)
   let introductoryPeriodStream = await getDownloadStream(input.results, stage, INTRODUCTORY_QUERY_NAME)
   let NonIntroductorySubsStream = await getDownloadStream(input.results, stage, SUBSCRIPTIONS_QUERY_NAME)
-  let subscriptionsStream = MultiStream( [introductoryPeriodStream, NonIntroductorySubsStream])
+  let subscriptionsStream = MultiStream([introductoryPeriodStream, NonIntroductorySubsStream])
   let outputFileNames = await processSubs(subscriptionsStream, deliveryDate, stage, holidaySuspensions)
   return outputFileNames.map(f => f.filename).join()
 }
