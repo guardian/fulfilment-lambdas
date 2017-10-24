@@ -104,7 +104,7 @@ export class WeeklyExporter {
     outputCsvRow[CUSTOMER_ADDRESS_LINE_2] = this.toUpperCase(row[CITY])
     outputCsvRow[CUSTOMER_ADDRESS_LINE_3] = this.formatState(row[STATE])
     outputCsvRow[CUSTOMER_POSTCODE] = this.toUpperCase(row[POSTAL_CODE])
-    outputCsvRow[DELIVERY_QUANTITY] = '1.0' 
+    outputCsvRow[DELIVERY_QUANTITY] = '1.0'
     outputCsvRow[CUSTOMER_COUNTRY] = this.toUpperCase(row[COUNTRY])
     this.writeCSVStream.write(outputCsvRow)
   }
