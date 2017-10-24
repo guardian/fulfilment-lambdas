@@ -74,7 +74,10 @@ function fetchConfigForStage (stage: Stage): Promise<Config> {
     s3.getObject(
       { Bucket: bucket, Key: key },
       function (err, data) {
-        if (err) { reject(new NamedError('config_error', `Error fetching config for S3 : ${err}`)) } else {
+        if (err) {
+          console.log(`Error fetching config for S3 : ${err}`)
+          reject(new NamedError('config_error', `Error fetching config for S3 : ${err}`))
+        } else {
           let json = JSON.parse(Buffer.from(data.Body))
           console.log('Config succesfully downloaded and parsed.')
           resolve({

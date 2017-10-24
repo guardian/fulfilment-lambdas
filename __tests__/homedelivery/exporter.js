@@ -27,7 +27,7 @@ jest.mock('../../src/lib/storage', () => {
       mockOutput = await streamToString(stream)
       return outputLocation
     },
-    createReadStream: (filePath) => {
+    createReadStream: async (filePath) => {
       let testFilePath = `./__tests__/resources/${filePath}`
       console.log(`loading test file ${testFilePath} ...`)
       return fs.createReadStream(testFilePath)
