@@ -1,7 +1,7 @@
 // @flow
 import csv from 'fast-csv'
 import moment from 'moment'
-import CombinedStream from 'combined-stream2'
+import MultiStream from 'multistream'
 import { upload, createReadStream } from './../lib/storage'
 import { ReadStream } from 'fs'
 import {getStage, fetchConfig} from './../lib/config'
@@ -136,9 +136,7 @@ export async function weeklyExport (input: input) {
   let holidaySuspensions = await getHolidaySuspensions(holidaySuspensionsStream)
   let introductoryPeriodStream = await getDownloadStream(input.results, stage, INTRODUCTORY_QUERY_NAME)
   let NonIntroductorySubsStream = await getDownloadStream(input.results, stage, SUBSCRIPTIONS_QUERY_NAME)
-  let subscriptionsStream = CombinedStream.create()
-  subscriptionsStream.append(introductoryPeriodStream)
-  subscriptionsStream.append(NonIntroductorySubsStream)
+  let subscriptionsStream = MultiStream( [introductoryPeriodStream, NonIntroductorySubsStream])
   let outputFileNames = await processSubs(subscriptionsStream, deliveryDate, stage, holidaySuspensions)
   return outputFileNames.map(f => f.filename).join()
 }
