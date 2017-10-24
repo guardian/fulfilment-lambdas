@@ -40,7 +40,7 @@ type apiGatewayLambdaInput = {
 
 async function copyToUploadedFolder (stage, s3Path, sfFileName) {
   try {
-    let uploadedPath = `${stage}/uploaded/${sfFileName}`
+    let uploadedPath = `uploaded/${sfFileName}`
     await
       copyObject(s3Path, uploadedPath)
   } catch (err) {
@@ -72,7 +72,7 @@ export function handler (input: apiGatewayLambdaInput, context: any, callback: (
 
   async function getFileData (stage, date) {
     let s3FileName = date.format(DATE_FORMAT) + '_HOME_DELIVERY.csv'
-    let s3Path = `${stage}/fulfilment_output/${s3FileName}`
+    let s3Path = `fulfilment_output/${s3FileName}`
     try {
       let file = await getObject(s3Path)
       return Promise.resolve({
