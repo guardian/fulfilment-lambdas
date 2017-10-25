@@ -67,7 +67,7 @@ Resources:
     Type: AWS::S3::BucketPolicy
     DependsOn: FulfilmentBucket
     Properties:
-      Bucket: FulfilmentBucket
+      Bucket: !Sub ${FulfilmentBucket}
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -75,8 +75,7 @@ Resources:
           Effect: Deny
           Principal: "*"
           Action: s3:PutObject
-          Resource:
-            Fn::Join: ['', ['arn:aws:s3:::', {Ref: FulfilmentBucket}, '/*' ]]
+          Resource: !Sub arn:aws:s3:::${FulfilmentBucket}/*
           Condition:
             StringNotEquals:
               s3:x-amz-server-side-encryption: AES256
@@ -84,8 +83,7 @@ Resources:
           Effect: Deny
           Principal: "*"
           Action: s3:PutObject
-          Resource:
-            Fn::Join: ['', ['arn:aws:s3:::', {Ref: FulfilmentBucket}, '/*' ]]
+          Resource: !Sub arn:aws:s3:::${FulfilmentBucket}/*
           Condition:
             'Null':
               s3:x-amz-server-side-encryption: 'true'
@@ -119,8 +117,7 @@ Resources:
                       Statement:
                           - Effect: Allow
                             Action: s3:GetObject
-                            Resource:
-                              !Sub arn:aws:s3:::fulfilment-private/${Stage}/*
+                            Resource: !Sub arn:aws:s3:::fulfilment-private/${Stage}/*
                 - PolicyName: WorkBucket
                   PolicyDocument:
                       Statement:
@@ -135,16 +132,14 @@ Resources:
                             - s3:PutObject
                             - s3:GetObjectVersion
                             - s3:DeleteObjectVersion
-                            Resource:
-                                Fn::Join: ['', ['arn:aws:s3:::', {Ref: FulfilmentBucket}, '/*' ]]
+                            Resource: !Sub arn:aws:s3:::${FulfilmentBucket}/*
                 - PolicyName: ListWorkBucket
                   PolicyDocument:
                       Statement:
                          - Effect: Allow
                            Action:
                            - s3:ListBucket
-                           Resource:
-                              Fn::Join: ['', ['arn:aws:s3:::', {Ref: FulfilmentBucket}, '/*' ]]
+                           Resource: !Sub arn:aws:s3:::${FulfilmentBucket}/*
   SalesforceUploaderLambda:
     Type: "AWS::Lambda::Function"
     Properties:
