@@ -141,7 +141,7 @@ Resources:
                          - Effect: Allow
                            Action:
                            - s3:ListBucket
-                           Resource: !Sub arn:aws:s3:::${FulfilmentBucket}/*
+                           Resource: !Sub arn:aws:s3:::${FulfilmentBucket}
   SalesforceUploaderLambda:
     Type: "AWS::Lambda::Function"
     Properties:
