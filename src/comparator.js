@@ -212,10 +212,10 @@ function notEmpty (str: ?string):boolean {
   return !str == null || !!str
 }
 
-function fetchCSV (path: S3Path, key: string):Promise<customersMap> {
+async function fetchCSV (path: S3Path, key: string):Promise<customersMap> {
   let customers: {[string]:Array<customer>} = {}
   console.log(`Fetching ${path.Key} from ${path.Bucket}`)
-  let csvStream = s3.getObject(path).createReadStream()
+  let csvStream = await s3.getObject(path).createReadStream()
   console.log('Initialising parser.')
   return new Promise((resolve, reject) => {
     let line = 0

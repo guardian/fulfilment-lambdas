@@ -1,10 +1,20 @@
 // @flow
 import AWS from 'aws-sdk'
 import {Readable} from 'stream'
+import {getStage} from './config'
 import NamedError from './NamedError'
 import {Filename} from './Filename'
 let s3 = new AWS.S3({signatureVersion: 'v4'})
-const BUCKET = 'fulfilment-output-test'
+
+const STAGE = getStage()
+
+const BUCKETS = {
+  CODE: 'fulfilment-export-code',
+  PROD: 'fulfilment-export-prod'
+}
+
+const getBucket = async () => BUCKETS[await STAGE]
+
 export type S3UploadResponse = {
   Location: string,
   ETag: string,
@@ -27,12 +37,12 @@ export async function ls (folder: S3Folder) {
 
 export async function upload (source: Buffer | string | Readable, filename: string | Filename, folder: ?S3Folder): Promise<S3UploadResponse> {
   let outputLocation = getFilename(filename)
-
+  let bucket = await getBucket()
   let key = folder ? `${folder.prefix}${outputLocation}` : outputLocation
-  console.log(`uploading to ${BUCKET}/${key}`)
+  console.log(`uploading to ${bucket}/${key}`)
 
   let params = {
-    Bucket: BUCKET,
+    Bucket: bucket,
     Key: key,
     Body: source,
     ServerSideEncryption: 'aws:kms'
@@ -49,31 +59,36 @@ export async function upload (source: Buffer | string | Readable, filename: stri
   return result
 }
 
-export function createReadStream (path: string) {
-  console.log(`reading file from ${BUCKET}/${path}`)
-  let options = {Bucket: BUCKET, Key: path}
+export async function createReadStream (path: string) {
+  let bucket = await getBucket()
+  console.log(`reading file from ${bucket}/${path}`)
+  let options = {Bucket: bucket, Key: path}
 
   return s3.getObject(options).createReadStream()
 }
 
-export function getObject (path: string) {
-  let options = {Bucket: BUCKET, Key: path}
+export async function getObject (path: string) {
+  let bucket = await getBucket()
+  let options = {Bucket: bucket, Key: path}
   console.log(`Retrieving file ${options.Key} from S3 bucket ${options.Bucket}.`)
   return s3.getObject(options).promise()
 }
 
-export function copyObject (sourcePath: string, destPath: string) {
+export async function copyObject (sourcePath: string, destPath: string) {
+  let bucket = await getBucket()
   let options = {
-    Bucket: BUCKET,
-    CopySource: `${BUCKET}/${sourcePath}`,
+    Bucket: bucket,
+    CopySource: `${bucket}/${sourcePath}`,
     Key: destPath
   }
-  console.log(`copying file ${BUCKET}/${sourcePath} to ${BUCKET}/${destPath}`)
+  console.log(`copying file ${bucket}/${sourcePath} to ${bucket}/${destPath}`)
   return s3.copyObject(options).promise()
 }
 
-export function getFileInfo (path: string) {
-  let options = {Bucket: BUCKET, Key: path}
+export async function getFileInfo (path: string) {
+  let bucket = await getBucket()
+
+  let options = {Bucket: bucket, Key: path}
   console.log(`Retrieving information for file ${options.Key} from S3 bucket ${options.Bucket}.`)
   return s3.headObject(options).promise()
 }

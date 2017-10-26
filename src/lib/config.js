@@ -67,14 +67,17 @@ export function getStage (): Promise<Stage> {
 function fetchConfigForStage (stage: Stage): Promise<Config> {
   console.log('Fetching configuration file from S3.')
   return new Promise((resolve, reject) => {
-    const key = 'fulfilment.private.TEST.json'
+    const key = 'fulfilment.private.json'
     const bucket = `fulfilment-private/${stage}`
     console.log(`loading ${stage} configuration from ${bucket}/${key}`)
 
     s3.getObject(
       { Bucket: bucket, Key: key },
       function (err, data) {
-        if (err) { reject(new NamedError('config_error', `Error fetching config for S3 : ${err}`)) } else {
+        if (err) {
+          console.log(`Error fetching config for S3 : ${err}`)
+          reject(new NamedError('config_error', `Error fetching config for S3 : ${err}`))
+        } else {
           let json = JSON.parse(Buffer.from(data.Body))
           console.log('Config succesfully downloaded and parsed.')
           resolve({

@@ -8,9 +8,90 @@ Parameters:
             - PROD
             - CODE
         Default: CODE
+Mappings:
+  EnvironmentBucketMap:
+    CODE:
+      "logs": "fulfilment-s3-logs-code"
+      "export": "fulfilment-export-code"
+    PROD:
+      "logs": "fulfilment-s3-logs-prod"
+      "export": "fulfilment-export-prod"
 Resources:
+  FulfilmentAccessLogBucket:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      BucketName:
+        Fn::FindInMap:
+          - EnvironmentBucketMap
+          - Ref: Stage
+          - "logs"
+      AccessControl: LogDeliveryWrite
+      LoggingConfiguration:
+        DestinationBucketName:
+          Fn::FindInMap:
+            - EnvironmentBucketMap
+            - Ref: Stage
+            - "logs"
+        LogFilePrefix: "logs-logs/"
+      VersioningConfiguration:
+        Status: "Enabled"
+  FulfilmentBucket:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      BucketName:
+        Fn::FindInMap:
+          - EnvironmentBucketMap
+          - Ref: Stage
+          - "export"
+      AccessControl: Private
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteAllOldFiles
+            Prefix: ""
+            Status: Enabled
+            ExpirationInDays: 365
+          - Id: DeleteOldFilesZuora
+            Prefix: "zuora"
+            Status: Enabled
+            ExpirationInDays: 14
+      LoggingConfiguration:
+        DestinationBucketName:
+          Fn::FindInMap:
+            - EnvironmentBucketMap
+            - Ref: Stage
+            - "logs"
+        LogFilePrefix: "fulfilment-salesforce-backup-_[STAGE]/"
+      VersioningConfiguration:
+        Status: "Enabled"
+  EncryptBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    DependsOn: FulfilmentBucket
+    Properties:
+      Bucket: !Sub ${FulfilmentBucket}
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Sid: DenyIncorrectEncryptionHeader
+          Effect: Deny
+          Principal: "*"
+          Action: s3:PutObject
+          Resource: !Sub arn:aws:s3:::${FulfilmentBucket}/*
+          Condition:
+            StringNotEquals:
+              s3:x-amz-server-side-encryption:
+              - AES256
+              - aws:kms
+        - Sid: DenyUnEncryptedObjectUploads
+          Effect: Deny
+          Principal: "*"
+          Action: s3:PutObject
+          Resource: !Sub arn:aws:s3:::${FulfilmentBucket}/*
+          Condition:
+            'Null':
+              s3:x-amz-server-side-encryption: 'true'
   FulfilmentWorkersLambdaRole:
         Type: AWS::IAM::Role
+        DependsOn: FulfilmentBucket
         Properties:
             RoleName: !Sub FulfilmentWorkers-${Stage}
             AssumeRolePolicyDocument:
@@ -38,8 +119,7 @@ Resources:
                       Statement:
                           - Effect: Allow
                             Action: s3:GetObject
-                            Resource:
-                              !Sub arn:aws:s3:::fulfilment-private/${Stage}/*
+                            Resource: !Sub arn:aws:s3:::fulfilment-private/${Stage}/*
                 - PolicyName: WorkBucket
                   PolicyDocument:
                       Statement:
@@ -54,15 +134,14 @@ Resources:
                             - s3:PutObject
                             - s3:GetObjectVersion
                             - s3:DeleteObjectVersion
-                            Resource:
-                              !Sub arn:aws:s3:::fulfilment-output-test/${Stage}/*
+                            Resource: !Sub arn:aws:s3:::${FulfilmentBucket}/*
                 - PolicyName: ListWorkBucket
                   PolicyDocument:
                       Statement:
                          - Effect: Allow
                            Action:
                            - s3:ListBucket
-                           Resource: arn:aws:s3:::fulfilment-output-test
+                           Resource: !Sub arn:aws:s3:::${FulfilmentBucket}
   SalesforceUploaderLambda:
     Type: "AWS::Lambda::Function"
     Properties:

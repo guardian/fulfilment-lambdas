@@ -38,7 +38,7 @@ function getDownloadStream (results: Array<result>, stage: string, queryName: st
       reject(new Error(`Invalid input cannot find unique query called ${queryName}`))
       return
     }
-    let path = `${stage}/zuoraExport/${fileName}`
+    let path = `zuoraExport/${fileName}`
     resolve(createReadStream(path))
   })
 }

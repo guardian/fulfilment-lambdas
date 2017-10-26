@@ -9,9 +9,9 @@ let mockSalesForce = {
 
 jest.mock('../src/lib/storage', () => {
   let validPaths = [
-    'CODE/fulfilment_output/2017-06-12_HOME_DELIVERY.csv',
-    'CODE/fulfilment_output/2017-06-13_HOME_DELIVERY.csv',
-    'CODE/fulfilment_output/2017-06-14_HOME_DELIVERY.csv'
+    'fulfilment_output/2017-06-12_HOME_DELIVERY.csv',
+    'fulfilment_output/2017-06-13_HOME_DELIVERY.csv',
+    'fulfilment_output/2017-06-14_HOME_DELIVERY.csv'
   ]
   return {
     copyObject: jest.fn(() => Promise.resolve('ok')),
@@ -93,7 +93,7 @@ function verify (done, expectedResponse, expectedFulfilmentDays) {
         let formattedDate = parsedDate.format('DD_MM_YYYY')
         let expectedSalesForceFileName = `HOME_DELIVERY_${dayOfTheWeek}_${formattedDate}.csv`
         expect(mockSalesForce.uploadDocument).toHaveBeenCalledWith(expectedSalesForceFileName, expectedFolder, 'csv would be here')
-        expect(mockStorage.copyObject).toHaveBeenCalledWith(`CODE/fulfilment_output/${date}_HOME_DELIVERY.csv`, `CODE/uploaded/${expectedSalesForceFileName}`)
+        expect(mockStorage.copyObject).toHaveBeenCalledWith(`fulfilment_output/${date}_HOME_DELIVERY.csv`, `uploaded/${expectedSalesForceFileName}`)
       })
       done()
     } catch (error) {
