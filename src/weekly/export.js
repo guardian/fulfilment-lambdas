@@ -1,6 +1,7 @@
 // @flow
 import csv from 'fast-csv'
 import moment from 'moment'
+import MultiStream from 'multistream'
 import { upload, createReadStream } from './../lib/storage'
 import { ReadStream } from 'fs'
 import {getStage, fetchConfig} from './../lib/config'
@@ -12,6 +13,7 @@ import type {result, input} from '../exporter'
 const SUBSCRIPTION_NAME = 'Subscription.Name'
 const HOLIDAYS_QUERY_NAME = 'WeeklyHolidaySuspensions'
 const SUBSCRIPTIONS_QUERY_NAME = 'WeeklySubscriptions'
+const INTRODUCTORY_QUERY_NAME = 'WeeklyIntroductoryPeriods'
 
 function getDownloadStream (results: Array<result>, stage: string, queryName: string): Promise<ReadStream> {
   function getFileName (queryName) {
@@ -62,7 +64,6 @@ function getHolidaySuspensions (downloadStream: ReadStream): Promise<Set<string>
       .pipe(csvStream)
   })
 }
-
 async function processSubs (downloadStream: ReadStream, deliveryDate: moment, stage: string, holidaySuspensions: Set<string>): Promise<Array<Filename>> {
   let config = await fetchConfig()
   console.log('loaded ' + holidaySuspensions.size + ' holiday suspensions')
@@ -93,6 +94,11 @@ async function processSubs (downloadStream: ReadStream, deliveryDate: moment, st
       if (holidaySuspensions.has(subscriptionName)) return
       let selectedExporter = exporters.find(exporter => exporter.useForRow(data)) || rowExporter
       selectedExporter.processRow(data)
+    })
+    .on('error', function (data) {
+      console.log('Error processing csv:')
+      console.log(data)
+      return false
     })
     .on('end', function () {
       exporters.map(exporter => {
@@ -128,7 +134,9 @@ export async function weeklyExport (input: input) {
   let deliveryDate = await getDeliveryDate(input)
   let holidaySuspensionsStream = await getDownloadStream(input.results, stage, HOLIDAYS_QUERY_NAME)
   let holidaySuspensions = await getHolidaySuspensions(holidaySuspensionsStream)
-  let subscriptionsStream = await getDownloadStream(input.results, stage, SUBSCRIPTIONS_QUERY_NAME)
+  let introductoryPeriodStream = await getDownloadStream(input.results, stage, INTRODUCTORY_QUERY_NAME)
+  let NonIntroductorySubsStream = await getDownloadStream(input.results, stage, SUBSCRIPTIONS_QUERY_NAME)
+  let subscriptionsStream = MultiStream([introductoryPeriodStream, NonIntroductorySubsStream])
   let outputFileNames = await processSubs(subscriptionsStream, deliveryDate, stage, holidaySuspensions)
   return outputFileNames.map(f => f.filename).join()
 }
