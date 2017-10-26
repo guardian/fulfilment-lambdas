@@ -79,7 +79,8 @@ export async function copyObject (sourcePath: string, destPath: string) {
   let options = {
     Bucket: bucket,
     CopySource: `${bucket}/${sourcePath}`,
-    Key: destPath
+    Key: destPath,
+    ServerSideEncryption: 'aws:kms'
   }
   console.log(`copying file ${bucket}/${sourcePath} to ${bucket}/${destPath}`)
   return s3.copyObject(options).promise()
