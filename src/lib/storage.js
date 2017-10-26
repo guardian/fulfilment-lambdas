@@ -50,8 +50,6 @@ export async function upload (source: Buffer | string | Readable, filename: stri
     throw new NamedError('S3 error', 's3.upload returned null, this should never happen')
   }
   let result = await upload.promise()
-  console.log('hello')
-  console.log(result)
   if (result.Location == null || result.ETag == null || result.Bucket == null || result.Key == null) {
     console.log(result)
     throw new NamedError('S3 error', 's3.upload.promise has missing fields, this should never happen')
