@@ -13,6 +13,8 @@ const BUCKETS = {
   PROD: 'fulfilment-export-prod'
 }
 
+const getBucket = async () => BUCKETS[await STAGE]
+
 export type S3UploadResponse = {
   Location: string,
   ETag: string,
@@ -35,7 +37,7 @@ export async function ls (folder: S3Folder) {
 
 export async function upload (source: Buffer | string | Readable, filename: string | Filename, folder: ?S3Folder): Promise<S3UploadResponse> {
   let outputLocation = getFilename(filename)
-  let bucket = BUCKETS[await STAGE]
+  let bucket = await getBucket()
   let key = folder ? `${folder.prefix}${outputLocation}` : outputLocation
   console.log(`uploading to ${bucket}/${key}`)
 
@@ -58,7 +60,7 @@ export async function upload (source: Buffer | string | Readable, filename: stri
 }
 
 export async function createReadStream (path: string) {
-  let bucket = BUCKETS[await STAGE]
+  let bucket = await getBucket()
   console.log(`reading file from ${bucket}/${path}`)
   let options = {Bucket: bucket, Key: path}
 
@@ -66,14 +68,14 @@ export async function createReadStream (path: string) {
 }
 
 export async function getObject (path: string) {
-  let bucket = BUCKETS[await STAGE]
+  let bucket = await getBucket()
   let options = {Bucket: bucket, Key: path}
   console.log(`Retrieving file ${options.Key} from S3 bucket ${options.Bucket}.`)
   return s3.getObject(options).promise()
 }
 
 export async function copyObject (sourcePath: string, destPath: string) {
-  let bucket = BUCKETS[await STAGE]
+  let bucket = await getBucket()
   let options = {
     Bucket: bucket,
     CopySource: `${bucket}/${sourcePath}`,
@@ -84,7 +86,7 @@ export async function copyObject (sourcePath: string, destPath: string) {
 }
 
 export async function getFileInfo (path: string) {
-  let bucket = BUCKETS[await STAGE]
+  let bucket = await getBucket()
 
   let options = {Bucket: bucket, Key: path}
   console.log(`Retrieving information for file ${options.Key} from S3 bucket ${options.Bucket}.`)
