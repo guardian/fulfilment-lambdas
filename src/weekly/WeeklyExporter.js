@@ -24,7 +24,7 @@ const CUSTOMER_FULL_NAME = 'Name'
 const CUSTOMER_COMPANY_NAME = 'Company name'
 const CUSTOMER_ADDRESS_LINE_1 = 'Address 1'
 const CUSTOMER_ADDRESS_LINE_2 = 'Address 2'
-const CUSTOMER_ADDRESS_LINE_3 = 'Address 3'
+const CUSTOMER_ADDRESS_LINE_3 = 'Address  3'//replicating sf file
 const CUSTOMER_COUNTRY = 'Country'
 const CUSTOMER_POSTCODE = 'Post code'
 const DELIVERY_QUANTITY = 'Copies'
@@ -92,7 +92,7 @@ export class WeeklyExporter {
     outputCsvRow[CUSTOMER_FULL_NAME] = this.formatAddress([row[TITLE], row[FIRST_NAME], row[LAST_NAME]].join(' ').trim())
     outputCsvRow[CUSTOMER_COMPANY_NAME] = this.formatAddress(row[COMPANY_NAME])
     outputCsvRow[CUSTOMER_ADDRESS_LINE_1] = this.formatAddress(addressLine1)
-    outputCsvRow[CUSTOMER_ADDRESS_LINE_2] = this.toUpperCase(row[CITY])
+    outputCsvRow[CUSTOMER_ADDRESS_LINE_2] = this.formatAddress(row[CITY])
     outputCsvRow[CUSTOMER_ADDRESS_LINE_3] = this.formatState(row[STATE])
     outputCsvRow[CUSTOMER_POSTCODE] = this.toUpperCase(row[POSTAL_CODE])
     outputCsvRow[DELIVERY_QUANTITY] = '1.0'
