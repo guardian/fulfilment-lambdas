@@ -6,9 +6,13 @@ import diff from 'deep-diff'
 import type {Difference} from 'deep-diff'
 import QuoteRemover from './lib/QuoteRemover'
 import type { S3Folder } from './lib/storage'
-import type { Config, uploadDownload } from './lib/config'
+import type { Config, fulfilmentType, uploadDownload } from './lib/config'
 import {extractFilename} from './lib/Filename'
 import type {Filename} from './lib/Filename'
+
+const WEEKLY: FulfimentProduct = 'WEEKLY'
+const HOME_DELIVERY: FulfimentProduct = 'HOME_DELIVERY'
+type FulfimentProduct = 'WEEKLY' | 'HOME_DELIVERY'
 
 type S3Path = {
   Bucket: string,
@@ -52,13 +56,11 @@ function mergeAddressFields (address1: string, address2: string): any {
   return fullAddress.join()
 }
 
-function normalise (entry: any) {
+function normaliseHd (entry: any) {
   let address1 = entry['Customer Address Line 1'] || ''
   let address2 = entry['Customer Address Line 2'] || ''
   let customerAddress = mergeAddressFields(address1, address2)
-
   let telephone = (entry['Customer Telephone'] || '').replace(/^0|\+44/, '')
-
   return {
     ...entry,
     'Customer Telephone': telephone,
@@ -69,17 +71,86 @@ function normalise (entry: any) {
     'Customer Address Line 2': null
   }
 }
+
+let alternativeCountryNames = new Map([
+  ['GBR', 'UNITED KINGDOM'],
+  ['AU', 'AUSTRALIA'],
+  ['USA', 'UNITED STATES'],
+  ['CA', 'CANADA'],
+  ['THE NETHERLANDS', 'NETHERLANDS'],
+  ['HOLLAND', 'NETHERLANDS'],
+  ['TANZANIA', 'TANZANIA, UNITED REPUBLIC OF'],
+  ['RUSSIA', 'RUSSIAN FEDERATION'],
+  ['ANTIGUA', 'ANTIGUA AND BARBUDA'],
+  ['MACAU', 'MACAO'],
+  ['SOUTH KOREA', 'KOREA, REPUBLIC OF'],
+  ['IRAN', 'IRAN, ISLAMIC REPUBLIC OF'],
+  ['LAOS', 'LAOS, PEOPLE\'S DEMOCRATIC REPUBLIC OF'],
+  ['BRITISH VIRGIN ISLANDS', 'VIRGIN ISLANDS, BRITISH'],
+  ['KYRGYSTAN', 'KYRGYZSTAN'],
+  ['BOSNIA-HERZEGOVINA', 'BOSNIA AND HERZEGOVINA'],
+  ['CAPE VERDE ISLANDS', 'CAPE VERDE'],
+  ['FALKLAND ISLANDS', 'FALKLAND ISLANDS (MALVINAS)'],
+  ['VIETNAM', 'VIET NAM'],
+  ['TRINIDAD AND TOBAGO', 'TRINIDAD & TOBAGO']
+]);
+
+function normaliseWeekly (entry: any) {
+  let address1 = entry['Address 1'] || ''
+  let normalisedName = entry['Name']
+    .replace("Mr. ", "Mr ")
+    .replace('Dr. ', 'Dr ')
+    .replace('Prof. ', 'Prof ')
+    .replace('Mrs. ', 'Mrs ')
+    .replace('Ms. ', 'Ms ')
+    .replace('Mx. ', 'Mx ')
+    .replace('Rev. ', 'Rev ')
+    .replace("MR. ", "MR ")
+    .replace('DR. ', 'DR ')
+    .replace('PROF. ', 'PROF ')
+    .replace('MRS. ', 'MRS ')
+    .replace('MS. ', 'MS ')
+    .replace('REV. ', 'REV')
+    .replace('MX. ', 'MX ')
+
+  let normalisedAddress = mergeAddressFields(address1, '')
+
+  let country = entry['Country']
+
+  if (alternativeCountryNames.has(country)) {
+    country = alternativeCountryNames.get(country)
+  }
+
+
+  return {
+    ...entry,
+    'Sent Date': null,
+    'Address 1': normalisedAddress,
+    'Name': normalisedName,
+    'Country' : country
+  }
+}
+
+function normalise (product: FulfimentProduct, entry: any) {
+  if (product === WEEKLY) {
+    return normaliseWeekly(entry)
+  }
+  if (product === HOME_DELIVERY) {
+    return normaliseHd(entry)
+  }
+  return entry
+}
 async function compareAll () {
   let config = await fetchConfig()
   let compareFulfilment = fulfilment => compare(config, fulfilment)
   let fulfilments = [
-    {...config.fulfilments.homedelivery, key: 'Customer Reference'},
-    ...Object.keys(config.fulfilments.weekly).map(k => ({...config.fulfilments.weekly[k], key: 'Subscriber ID'}))
+    {...config.fulfilments.homedelivery, key: 'Customer Reference', product: HOME_DELIVERY},
+    ...Object.keys(config.fulfilments.weekly).map(k => ({...config.fulfilments.weekly[k], key: 'Subscriber ID', product: WEEKLY}))
   ]
 
   return Promise.all(fulfilments.map(compareFulfilment))
 }
-async function compare (config: Config, fulfilment: uploadDownload & { key: string}) {
+async function compare (config: Config, fulfilment: uploadDownload & { key: string, product: FulfimentProduct}) {
   // Comparing the salesforce fulfilments in the download folder to the
   // ones we generated in the uploads folder.
   console.log(`Running fulfilment for ${fulfilment.downloadFolder.name}`)
@@ -185,7 +256,7 @@ async function compare (config: Config, fulfilment: uploadDownload & { key: stri
       if (s.length > 1) {
         log(`Multiple subscriptions for ${id} comparing [0] against [0]`)
       }
-      let differences: ?Array<Difference> = diff(normalise(s[0]), normalise(g[0]))
+      let differences: ?Array<Difference> = diff(normalise(fulfilment.product, s[0]), normalise(fulfilment.product, g[0]))
       if (differences != null) {
         renderDifference(differences).map(s => `${id}: ${s}`).map(log)
       }

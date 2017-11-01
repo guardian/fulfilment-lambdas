@@ -109,6 +109,10 @@ export class UpperCaseAddressExporter extends WeeklyExporter {
   formatAddress (s: string) {
     return this.toUpperCase(s)
   }
+
+  formatState (s: string) {
+    return this.toUpperCase(s)
+  }
 }
 
 export class CaExporter extends WeeklyExporter {
