@@ -6,13 +6,13 @@ import diff from 'deep-diff'
 import type {Difference} from 'deep-diff'
 import QuoteRemover from './lib/QuoteRemover'
 import type { S3Folder } from './lib/storage'
-import type { Config, fulfilmentType, uploadDownload } from './lib/config'
+import type { Config, uploadDownload } from './lib/config'
 import {extractFilename} from './lib/Filename'
 import type {Filename} from './lib/Filename'
 
+type FulfimentProduct = 'WEEKLY' | 'HOME_DELIVERY'
 const WEEKLY: FulfimentProduct = 'WEEKLY'
 const HOME_DELIVERY: FulfimentProduct = 'HOME_DELIVERY'
-type FulfimentProduct = 'WEEKLY' | 'HOME_DELIVERY'
 
 type S3Path = {
   Bucket: string,
@@ -93,19 +93,19 @@ let alternativeCountryNames = new Map([
   ['FALKLAND ISLANDS', 'FALKLAND ISLANDS (MALVINAS)'],
   ['VIETNAM', 'VIET NAM'],
   ['TRINIDAD AND TOBAGO', 'TRINIDAD & TOBAGO']
-]);
+])
 
 function normaliseWeekly (entry: any) {
   let address1 = entry['Address 1'] || ''
   let normalisedName = entry['Name']
-    .replace("Mr. ", "Mr ")
+    .replace('Mr. ', 'Mr ')
     .replace('Dr. ', 'Dr ')
     .replace('Prof. ', 'Prof ')
     .replace('Mrs. ', 'Mrs ')
     .replace('Ms. ', 'Ms ')
     .replace('Mx. ', 'Mx ')
     .replace('Rev. ', 'Rev ')
-    .replace("MR. ", "MR ")
+    .replace('MR. ', 'MR ')
     .replace('DR. ', 'DR ')
     .replace('PROF. ', 'PROF ')
     .replace('MRS. ', 'MRS ')
@@ -121,13 +121,12 @@ function normaliseWeekly (entry: any) {
     country = alternativeCountryNames.get(country)
   }
 
-
   return {
     ...entry,
     'Sent Date': null,
     'Address 1': normalisedAddress,
     'Name': normalisedName,
-    'Country' : country
+    'Country': country
   }
 }
 
