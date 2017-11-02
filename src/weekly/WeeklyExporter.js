@@ -82,7 +82,6 @@ export class WeeklyExporter {
   }
 
   getFullName (zTitle: string, zFirstName: string, zLastName: string) {
-
     let firstName = zFirstName
     if (firstName.trim() === '.') {
       firstName = ''
