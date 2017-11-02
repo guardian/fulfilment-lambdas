@@ -81,6 +81,15 @@ export class WeeklyExporter {
     return value
   }
 
+  getFullName (zTitle: string, zFirstName: string, zLastName: string) {
+
+    let firstName = zFirstName
+    if (firstName.trim() === '.') {
+      firstName = ''
+    }
+    return [zTitle, firstName, zLastName].join(' ').trim()
+  }
+
   processRow (row: { [string]: string }) {
     if (row[SUBSCRIPTION_NAME] === 'Subscription.Name') {
       return
@@ -88,8 +97,10 @@ export class WeeklyExporter {
     let outputCsvRow = {}
     let addressLine1 = [row[ADDRESS_1], row[ADDRESS_2]].filter(x => x).join(', ')
 
+    let fullName = this.getFullName(row[TITLE], row[FIRST_NAME], row[LAST_NAME])
+
     outputCsvRow[CUSTOMER_REFERENCE] = row[SUBSCRIPTION_NAME]
-    outputCsvRow[CUSTOMER_FULL_NAME] = this.formatAddress([row[TITLE], row[FIRST_NAME], row[LAST_NAME]].join(' ').trim())
+    outputCsvRow[CUSTOMER_FULL_NAME] = this.formatAddress(fullName)
     outputCsvRow[CUSTOMER_COMPANY_NAME] = this.formatAddress(row[COMPANY_NAME])
     outputCsvRow[CUSTOMER_ADDRESS_LINE_1] = this.formatAddress(addressLine1)
     outputCsvRow[CUSTOMER_ADDRESS_LINE_2] = this.formatAddress(row[CITY])
