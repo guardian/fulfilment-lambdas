@@ -110,7 +110,7 @@ function normaliseWeekly (entry: any) {
     .replace('PROF. ', 'PROF ')
     .replace('MRS. ', 'MRS ')
     .replace('MS. ', 'MS ')
-    .replace('REV. ', 'REV')
+    .replace('REV. ', 'REV ')
     .replace('MX. ', 'MX ')
 
   let normalisedAddress = mergeAddressFields(address1, '')
