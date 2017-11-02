@@ -24,7 +24,7 @@ const CUSTOMER_FULL_NAME = 'Name'
 const CUSTOMER_COMPANY_NAME = 'Company name'
 const CUSTOMER_ADDRESS_LINE_1 = 'Address 1'
 const CUSTOMER_ADDRESS_LINE_2 = 'Address 2'
-const CUSTOMER_ADDRESS_LINE_3 = 'Address 3'
+const CUSTOMER_ADDRESS_LINE_3 = 'Address  3'// extra space added on purpose to replicate sf file
 const CUSTOMER_COUNTRY = 'Country'
 const CUSTOMER_POSTCODE = 'Post code'
 const DELIVERY_QUANTITY = 'Copies'
@@ -81,6 +81,14 @@ export class WeeklyExporter {
     return value
   }
 
+  getFullName (zTitle: string, zFirstName: string, zLastName: string) {
+    let firstName = zFirstName
+    if (firstName.trim() === '.') {
+      firstName = ''
+    }
+    return [zTitle, firstName, zLastName].join(' ').trim()
+  }
+
   processRow (row: { [string]: string }) {
     if (row[SUBSCRIPTION_NAME] === 'Subscription.Name') {
       return
@@ -88,11 +96,13 @@ export class WeeklyExporter {
     let outputCsvRow = {}
     let addressLine1 = [row[ADDRESS_1], row[ADDRESS_2]].filter(x => x).join(', ')
 
+    let fullName = this.getFullName(row[TITLE], row[FIRST_NAME], row[LAST_NAME])
+
     outputCsvRow[CUSTOMER_REFERENCE] = row[SUBSCRIPTION_NAME]
-    outputCsvRow[CUSTOMER_FULL_NAME] = this.formatAddress([row[TITLE], row[FIRST_NAME], row[LAST_NAME]].join(' ').trim())
+    outputCsvRow[CUSTOMER_FULL_NAME] = this.formatAddress(fullName)
     outputCsvRow[CUSTOMER_COMPANY_NAME] = this.formatAddress(row[COMPANY_NAME])
     outputCsvRow[CUSTOMER_ADDRESS_LINE_1] = this.formatAddress(addressLine1)
-    outputCsvRow[CUSTOMER_ADDRESS_LINE_2] = this.toUpperCase(row[CITY])
+    outputCsvRow[CUSTOMER_ADDRESS_LINE_2] = this.formatAddress(row[CITY])
     outputCsvRow[CUSTOMER_ADDRESS_LINE_3] = this.formatState(row[STATE])
     outputCsvRow[CUSTOMER_POSTCODE] = this.toUpperCase(row[POSTAL_CODE])
     outputCsvRow[DELIVERY_QUANTITY] = '1.0'
@@ -107,6 +117,10 @@ export class WeeklyExporter {
 
 export class UpperCaseAddressExporter extends WeeklyExporter {
   formatAddress (s: string) {
+    return this.toUpperCase(s)
+  }
+
+  formatState (s: string) {
     return this.toUpperCase(s)
   }
 }
