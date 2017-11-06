@@ -67,11 +67,11 @@ export class WeeklyExporter {
   }
 
   formatAddress (name: string) {
-    return name
+    return name.trim()
   }
 
   formatState (state: string) {
-    return state
+    return state.trim()
   }
 
   toUpperCase (value: string) {
@@ -82,11 +82,11 @@ export class WeeklyExporter {
   }
 
   getFullName (zTitle: string, zFirstName: string, zLastName: string) {
-    let firstName = zFirstName
-    if (firstName.trim() === '.') {
+    let firstName = zFirstName.trim()
+    if (firstName === '.') {
       firstName = ''
     }
-    return [zTitle, firstName, zLastName].join(' ').trim()
+    return [zTitle, firstName, zLastName.trim()].join(' ')
   }
 
   processRow (row: { [string]: string }) {
@@ -117,7 +117,7 @@ export class WeeklyExporter {
 
 export class UpperCaseAddressExporter extends WeeklyExporter {
   formatAddress (s: string) {
-    return this.toUpperCase(s)
+    return this.toUpperCase(s).trim()
   }
 
   formatState (s: string) {
