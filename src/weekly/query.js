@@ -1,4 +1,4 @@
-// @flow
+//TODO FIX AND ADD FLOW BACK
 import { fetchConfig } from './../lib/config'
 import type { Config } from './../lib/config'
 import { Zuora } from './../lib/Zuora'
@@ -153,6 +153,7 @@ export function getDeliveryDate (input: input) {
   }
 
   if (input.deliveryDayOfWeek && typeof input.minDaysInAdvance === 'number') {
+
     let dayOfWeek = input.deliveryDayOfWeek.toUpperCase().trim()
     if (!weekDays.has(dayOfWeek)) {
       throw new Error(`${input.deliveryDayOfWeek} is not a valid day of the week`)
