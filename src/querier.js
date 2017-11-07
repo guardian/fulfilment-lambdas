@@ -8,7 +8,9 @@ import type {input as output} from './fetcher'
 export type input = {
   type: fulfilmentType,
   deliveryDate: ?string,
-  deliveryDateDaysFromNow: ?number
+  deliveryDateDaysFromNow: ?number,
+  deliveryDayOfWeek: ?string,
+  minDaysInAdvance: ?number
 }
 export function handler (input: ?input, context:?any, callback:Function) {
   if (input == null) {

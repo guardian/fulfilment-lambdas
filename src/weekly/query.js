@@ -1,13 +1,14 @@
 // @flow
 import { fetchConfig } from './../lib/config'
-import type {Config} from './../lib/config'
-import {Zuora} from './../lib/Zuora'
-import type {Query} from './../lib/Zuora'
+import type { Config } from './../lib/config'
+import { Zuora } from './../lib/Zuora'
+import type { Query } from './../lib/Zuora'
 import moment from 'moment'
 
 type input = {
   deliveryDate: ?string,
-  deliveryDateDaysFromNow: ?number
+  deliveryDayOfWeek: ?string,
+  minDaysInAdvance: ?number
 }
 
 function getCutOffDate (deliveryDate: moment) {
@@ -72,7 +73,8 @@ async function queryZuora (deliveryDate, config: Config) {
            Subscription.TermEndDate >= '${cutOffDate}'
           )
         )
-    `}
+    `
+    }
   const introductoryPeriodQuery: Query =
     {
       'name': 'WeeklyIntroductoryPeriods',
@@ -99,7 +101,8 @@ async function queryZuora (deliveryDate, config: Config) {
         ( RatePlan.AmendmentType IS NULL OR RatePlan.AmendmentType != 'RemoveProduct' ) AND
         RatePlanCharge.EffectiveStartDate <= '${formattedDeliveryDate}' AND
         RatePlanCharge.EffectiveEndDate > '${formattedDeliveryDate}' 
-    `}
+    `
+    }
   const holidaySuspensionQuery: Query =
     {
       'name': 'WeeklyHolidaySuspensions',
@@ -120,7 +123,24 @@ async function queryZuora (deliveryDate, config: Config) {
   return {deliveryDate: formattedDeliveryDate, jobId: jobId}
 }
 
-function getDeliveryDate (input: input) {
+let weekDays = new Map([
+  ['SUNDAY', 0],
+  ['MONDAY', 1],
+  ['TUESDAY', 2],
+  ['WEDNESDAY', 3],
+  ['THURSDAY', 4],
+  ['FRIDAY', 5],
+  ['SATURDAY', 6],
+  ['SUN', 0],
+  ['MON', 1],
+  ['TUE', 2],
+  ['WED', 3],
+  ['THU', 4],
+  ['FRI', 5],
+  ['SAT', 6]
+])
+
+export function getDeliveryDate (input: input) {
   if (input.deliveryDate) {
     let deliveryDate = moment(input.deliveryDate, 'YYYY-MM-DD')
     if (!deliveryDate.isValid()) {
@@ -132,11 +152,23 @@ function getDeliveryDate (input: input) {
     return deliveryDate
   }
 
-  if (input.deliveryDateDaysFromNow || typeof input.deliveryDateDaysFromNow === 'number') {
-    let deliveryDateDaysFromNow = input.deliveryDateDaysFromNow
-    return moment().add(deliveryDateDaysFromNow, 'days')
+  if (input.deliveryDayOfWeek && typeof input.minDaysInAdvance === 'number') {
+    let dayOfWeek = input.deliveryDayOfWeek.toUpperCase().trim()
+    if (!weekDays.has(dayOfWeek)) {
+      throw new Error(`${input.deliveryDayOfWeek} is not a valid day of the week`)
+    }
+    let dayOfWeekNum = weekDays.get(dayOfWeek)
+    let minDaysInAdvance = input.minDaysInAdvance
+    let minDate = moment().startOf('day').add(minDaysInAdvance, 'days')
+    let dayInWeek = minDate.clone().weekday(dayOfWeekNum)
+
+    if (dayInWeek.isBefore(minDate)) {
+      return dayInWeek.add(7, 'days')
+    } else {
+      return dayInWeek
+    }
   }
-  throw new Error('deliveryDate or deliveryDateDaysFromNow input param must be provided')
+  throw new Error('deliveryDate or (deliveryDayOfWeek and minDaysInAdvance) input params must be provided')
 }
 
 export async function weeklyQuery (input: input) {
