@@ -1,4 +1,4 @@
-// TODO FIX AND ADD FLOW BACK
+// @flow
 import { fetchConfig } from './../lib/config'
 import type { Config } from './../lib/config'
 import { Zuora } from './../lib/Zuora'
@@ -123,7 +123,7 @@ async function queryZuora (deliveryDate, config: Config) {
   return {deliveryDate: formattedDeliveryDate, jobId: jobId}
 }
 
-let weekDays = new Map([
+let weekDays:Map<string, number> = new Map([
   ['SUNDAY', 0],
   ['MONDAY', 1],
   ['TUESDAY', 2],
@@ -152,12 +152,12 @@ export function getDeliveryDate (input: input) {
     return deliveryDate
   }
   if (input.deliveryDayOfWeek && typeof input.minDaysInAdvance === 'number') {
-    let dayOfWeek = input.deliveryDayOfWeek.toUpperCase().trim()
-    if (!weekDays.has(dayOfWeek)) {
-      throw new Error(`${input.deliveryDayOfWeek} is not a valid day of the week`)
-    }
-    let dayOfWeekNum = weekDays.get(dayOfWeek)
+    let dayOfWeek = input.deliveryDayOfWeek
     let minDaysInAdvance = input.minDaysInAdvance
+    let dayOfWeekNum = weekDays.get(dayOfWeek.toUpperCase().trim())
+    if (dayOfWeekNum === undefined || dayOfWeekNum == null) {
+      throw new Error(`${dayOfWeek} is not a valid day of the week`)
+    }
     let minDate = moment().startOf('day').add(minDaysInAdvance, 'days')
     let dayInWeek = minDate.clone().weekday(dayOfWeekNum)
 
