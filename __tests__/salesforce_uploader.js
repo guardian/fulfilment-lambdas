@@ -93,7 +93,7 @@ function verify (done, expectedResponse, expectedFulfilmentDays) {
         let formattedDate = parsedDate.format('DD_MM_YYYY')
         let expectedSalesForceFileName = `HOME_DELIVERY_${dayOfTheWeek}_${formattedDate}.csv`
         let expectedDescription = `Home Delivery fulfilment file ${expectedSalesForceFileName}`
-        expect(mockSalesForce.uploadDocument).toHaveBeenCalledWith(expectedSalesForceFileName, expectedFolder,expectedDescription, 'csv would be here')
+        expect(mockSalesForce.uploadDocument).toHaveBeenCalledWith(expectedSalesForceFileName, expectedFolder, expectedDescription, 'csv would be here')
         expect(mockStorage.copyObject).toHaveBeenCalledWith(`fulfilment_output/${date}_HOME_DELIVERY.csv`, `uploaded/${expectedSalesForceFileName}`)
       })
       done()

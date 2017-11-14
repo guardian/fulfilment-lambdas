@@ -1,16 +1,14 @@
 // @flow
 
-import { fetchConfig } from '..//lib/config'
-import { uploadFiles } from '..//lib/salesforceUpload'
+import { fetchConfig } from '../lib/config'
+import { uploadFiles } from '../lib/salesforceUpload'
 import moment from 'moment'
-
-const DATE_FORMAT = 'YYYY-MM-DD'
 
 type weeklyUploaderInput = {
   deliveryDate: string
 }
 
-function getDeliveryDate (input: input) {
+function getDeliveryDate (input: weeklyUploaderInput) {
   if (!input.deliveryDate) {
     throw new Error('deliveryDate must be in the format "YYYY-MM-DD"')
   }
@@ -26,8 +24,8 @@ async function asyncHandler (input: weeklyUploaderInput) {
   console.log('Config fetched successfully.')
   let deliveryDate = getDeliveryDate(input)
   console.log(`delivery date is ${input.deliveryDate}`)
- // const salesforce = await authenticate(config)
- return uploadFiles (config, deliveryDate)
+  // const salesforce = await authenticate(config)
+  return uploadFiles(config, deliveryDate)
 }
 
 export function handler (input: weeklyUploaderInput, context: any, callback: (error: any, response: any) => void) {

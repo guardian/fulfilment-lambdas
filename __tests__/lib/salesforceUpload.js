@@ -163,9 +163,9 @@ jest.mock('../../src/lib/salesforceAuthenticator', () => {
 })
 
 jest.mock('../../src/lib/config')
-jest.mock('../../src/lib/storage');
+jest.mock('../../src/lib/storage')
 let mockedStorage = require('../../src/lib/storage')
-mockedStorage.getObject = jest.fn().mockImplementation( path => {
+mockedStorage.getObject = jest.fn().mockImplementation(path => {
   return Promise.resolve({
     file: {
       Body: 'something'
@@ -173,42 +173,42 @@ mockedStorage.getObject = jest.fn().mockImplementation( path => {
   })
 })
 
-    // createReadStream: async (filePath) => {
-    //   let testFilePath = `./__tests__/resources/${filePath}`
-    //   console.log(`loading test file ${testFilePath} ...`)
-    //   return fs.createReadStream(testFilePath)
-    // }
-//  }
-//})
-
 test('uploadFiles', done => {
 // mock current date..
   MockDate.set('11/07/2017 02:31')
 
   let deliveryDate = moment('2017-11-17')
 
- sfUpload.uploadFiles(config, deliveryDate).then(res => {
-   try {
-     expect(mockedStorage.getObject.mock.calls.length).toBe(10)
-     let getObjectCalls = mockedStorage.getObject.mock.calls
-     expect(mockedStorage.getObject).toHaveBeenCalledWith('TEST/fulfilments/Weekly_NZ/2017-11-17_WEEKLY.csv')
-     expect(mockedStorage.getObject).toHaveBeenCalledWith('TEST/fulfilments/Weekly_VU/2017-11-17_WEEKLY.csv')
-     expect(mockedStorage.getObject).toHaveBeenCalledWith('TEST/fulfilments/Weekly_UK/2017-11-17_WEEKLY.csv')
-     expect(mockedStorage.getObject).toHaveBeenCalledWith('TEST/fulfilments/Weekly_US/2017-11-17_WEEKLY.csv')
-     expect(mockedStorage.getObject).toHaveBeenCalledWith('TEST/fulfilments/Weekly_HK/2017-11-17_WEEKLY.csv')
-     expect(mockedStorage.getObject).toHaveBeenCalledWith('TEST/fulfilments/Weekly_ROW/2017-11-17_WEEKLY.csv')
-     expect(mockedStorage.getObject).toHaveBeenCalledWith('TEST/fulfilments/Weekly_AU/2017-11-17_WEEKLY.csv')
-     expect(mockedStorage.getObject).toHaveBeenCalledWith('TEST/fulfilments/Weekly_FR/2017-11-17_WEEKLY.csv')
-     expect(mockedStorage.getObject).toHaveBeenCalledWith('TEST/fulfilments/Weekly_CA_HAND/2017-11-17_WEEKLY.csv')
-     expect(mockedStorage.getObject).toHaveBeenCalledWith('TEST/fulfilments/Weekly_CA/2017-11-17_WEEKLY.csv')
-     let expectedResponse =  [{"id": "documentId", "name": "GWNZ_17_11_2017_07112017_02.csv"}, {"id": "documentId", "name": "GWFR_17_11_2017_07112017_02.csv"}, {"id": "documentId", "name": "GWAU_17_11_2017_07112017_02.csv"}, {"id": "documentId", "name": "GWCA_17_11_2017_07112017_02.csv"}, {"id": "documentId", "name": "GWCA_HAND_17_11_2017_07112017_02.csv"}, {"id": "documentId", "name": "GWHK_17_11_2017_07112017_02.csv"}, {"id": "documentId", "name": "GWRW_17_11_2017_07112017_02.csv"}, {"id": "documentId", "name": "GWUK_17_11_2017_07112017_02.csv"}, {"id": "documentId", "name": "GWUS_17_11_2017_07112017_02.csv"}, {"id": "documentId", "name": "GWVA_17_11_2017_07112017_02.csv"}]
-
-     expect(res).toEqual(expectedResponse)
-    done()
-   }
-   catch(e) {
-     console.log("DONE FAIL")
-     done.fail(e)
-   }
- })
+  sfUpload.uploadFiles(config, deliveryDate).then(res => {
+    try {
+      expect(mockedStorage.getObject.mock.calls.length).toBe(10)
+      expect(mockedStorage.getObject).toHaveBeenCalledWith('TEST/fulfilments/Weekly_NZ/2017-11-17_WEEKLY.csv')
+      expect(mockedStorage.getObject).toHaveBeenCalledWith('TEST/fulfilments/Weekly_VU/2017-11-17_WEEKLY.csv')
+      expect(mockedStorage.getObject).toHaveBeenCalledWith('TEST/fulfilments/Weekly_UK/2017-11-17_WEEKLY.csv')
+      expect(mockedStorage.getObject).toHaveBeenCalledWith('TEST/fulfilments/Weekly_US/2017-11-17_WEEKLY.csv')
+      expect(mockedStorage.getObject).toHaveBeenCalledWith('TEST/fulfilments/Weekly_HK/2017-11-17_WEEKLY.csv')
+      expect(mockedStorage.getObject).toHaveBeenCalledWith('TEST/fulfilments/Weekly_ROW/2017-11-17_WEEKLY.csv')
+      expect(mockedStorage.getObject).toHaveBeenCalledWith('TEST/fulfilments/Weekly_AU/2017-11-17_WEEKLY.csv')
+      expect(mockedStorage.getObject).toHaveBeenCalledWith('TEST/fulfilments/Weekly_FR/2017-11-17_WEEKLY.csv')
+      expect(mockedStorage.getObject).toHaveBeenCalledWith('TEST/fulfilments/Weekly_CA_HAND/2017-11-17_WEEKLY.csv')
+      expect(mockedStorage.getObject).toHaveBeenCalledWith('TEST/fulfilments/Weekly_CA/2017-11-17_WEEKLY.csv')
+      let expectedResponse = [
+        { id: 'documentId', name: 'GWNZ_17_11_2017_07112017_02.csv' },
+        { id: 'documentId', name: 'GWFR_17_11_2017_07112017_02.csv' },
+        { id: 'documentId', name: 'GWAU_17_11_2017_07112017_02.csv' },
+        { id: 'documentId', name: 'GWCA_17_11_2017_07112017_02.csv' },
+        { id: 'documentId', name: 'GWCA_HAND_17_11_2017_07112017_02.csv' },
+        { id: 'documentId', name: 'GWHK_17_11_2017_07112017_02.csv' },
+        { id: 'documentId', name: 'GWRW_17_11_2017_07112017_02.csv' },
+        { id: 'documentId', name: 'GWUK_17_11_2017_07112017_02.csv' },
+        { id: 'documentId', name: 'GWUS_17_11_2017_07112017_02.csv' },
+        { id: 'documentId', name: 'GWVA_17_11_2017_07112017_02.csv' }
+      ]
+      expect(res).toEqual(expectedResponse)
+      done()
+    } catch (e) {
+      console.log('DONE FAIL')
+      done.fail(e)
+    }
+  })
 })

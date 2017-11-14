@@ -45,7 +45,7 @@ export class Salesforce {
       formData: form
     })
   }
-  async uploadDocument (path: string, folder: folder, description: string,  body: Buffer) {
+  async uploadDocument (path: string, folder: folder, description: string, body: Buffer) {
      // build a little json
     let message = {
       'Description': description,
