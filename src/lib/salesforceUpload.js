@@ -22,9 +22,9 @@ type UploadInfo = {
   destination: sfDestination
 }
 
-export async function uploadFiles (config: Config, deliveryDate: moment) {
+export async function uploadFiles (config: Config, fulfilmentType: fulfilmentType, deliveryDate: moment) {
   const salesforce = await authenticate(config)
-  let filesToUpload = getFolders(config, 'weekly', deliveryDate)
+  let filesToUpload = getFolders(config, fulfilmentType, deliveryDate)
   let filePromises = filesToUpload.map(async fileToUpload => {
     let fileData = await getFileData(fileToUpload.source)
     return {
@@ -32,8 +32,9 @@ export async function uploadFiles (config: Config, deliveryDate: moment) {
       fileData: fileData
     }
   })
-  let files = await Promise.all(filePromises)
-  let uploadResults = files.map(f => { return uploadFile(f, salesforce) })
+  let allFileResponse = await Promise.all(filePromises)
+  let successFulFileResponses = allFileResponse.filter(f => f.fileData.file != null)
+  let uploadResults = successFulFileResponses.map(f => { return uploadFile(f, salesforce) })
   return Promise.all(uploadResults)
 }
 
@@ -58,13 +59,23 @@ async function getFileData (source: S3Folder) {
       file: file
     })
   } catch (err) {
-    console.log('error from  S3:')
+    console.log(`could not download ${source.prefix}, error from S3:`)
     console.log(err)
-    throw err
+    return Promise.resolve({
+      s3Path: s3Path,
+      file: null
+    })
   }
 }
 
-// todo see if we have to change the names of the config to sf and s3 folders as they are both sometimes used for upload or download
+function formatFulfilmentType (type: fulfilmentType) {
+  if (type === 'weekly') {
+    return 'Weekly'
+  }
+  if (type === 'homedelivery') {
+    return 'Home Delivery'
+  }
+}
 function getUploadInfo (fulfilmentType: fulfilmentType, upDown: uploadDownload, destFileName: string, sourceFileName: string): UploadInfo {
   return {
     source: {
@@ -73,10 +84,10 @@ function getUploadInfo (fulfilmentType: fulfilmentType, upDown: uploadDownload, 
     },
     destination: {
       fileName: destFileName,
-      sfDescriptionPrefix: `${fulfilmentType} fulfilment file `,
+      sfDescriptionPrefix: `${formatFulfilmentType(fulfilmentType)} fulfilment file `,
       sfFolder: {
-        folderId: upDown.downloadFolder.folderId,
-        name: upDown.downloadFolder.name
+        folderId: upDown.uploadFolder.folderId,
+        name: upDown.uploadFolder.name
       }
     }
   }
@@ -88,7 +99,7 @@ function getFolders (config: Config, type: fulfilmentType, deliveryDate: moment)
   let uploadTimeStamp = moment().format('DDMMYYYY_HH')
 
   if (type === 'homedelivery') {
-    let sourceFileName = `${deliveryDate.format('YYYY-MM-DD')}.csv`
+    let sourceFileName = `${deliveryDate.format('YYYY-MM-DD')}_HOME_DELIVERY.csv`
     let deliveryDayOfTheWeek = deliveryDate.format('dddd')
     let destinationFileName = `HOME_DELIVERY_${deliveryDayOfTheWeek}_${sfFormattedDeliveryDate}.csv`
     return [getUploadInfo(type, config.fulfilments.homedelivery, destinationFileName, sourceFileName)]

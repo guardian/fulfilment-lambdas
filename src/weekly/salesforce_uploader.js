@@ -25,7 +25,7 @@ async function asyncHandler (input: weeklyUploaderInput) {
   let deliveryDate = getDeliveryDate(input)
   console.log(`delivery date is ${input.deliveryDate}`)
   // const salesforce = await authenticate(config)
-  return uploadFiles(config, deliveryDate)
+  return uploadFiles(config, 'weekly', deliveryDate)
 }
 
 export function handler (input: weeklyUploaderInput, context: any, callback: (error: any, response: any) => void) {
