@@ -1,8 +1,6 @@
 // @flow
 import type { Config, uploadDownload, fulfilmentType } from './config'
 import type { Salesforce, folder } from './salesforceAuthenticator'
-import { authenticate } from './salesforceAuthenticator'
-
 import type { S3Folder } from './storage'
 import { getObject } from './storage'
 import moment from 'moment'
@@ -15,15 +13,14 @@ type sfDestination = {
 
 type FileUpload = {
   destination: sfDestination,
-  fileData: any // not sure what this is supposed to be mayeb check aws
+  fileData: any // not sure what this is supposed to be maybe check AWS
 }
 type UploadInfo = {
   source: S3Folder,
   destination: sfDestination
 }
 
-export async function uploadFiles (config: Config, fulfilmentType: fulfilmentType, deliveryDate: moment) {
-  const salesforce = await authenticate(config)
+export async function uploadFiles (config: Config, salesforce: Salesforce, fulfilmentType: fulfilmentType, deliveryDate: moment) {
   let filesToUpload = getFolders(config, fulfilmentType, deliveryDate)
   let filePromises = filesToUpload.map(async fileToUpload => {
     let fileData = await getFileData(fileToUpload.source)
@@ -32,6 +29,7 @@ export async function uploadFiles (config: Config, fulfilmentType: fulfilmentTyp
       fileData: fileData
     }
   })
+
   let allFileResponse = await Promise.all(filePromises)
   let successFulFileResponses = allFileResponse.filter(f => f.fileData.file != null)
   let uploadResults = successFulFileResponses.map(f => { return uploadFile(f, salesforce) })
@@ -68,13 +66,14 @@ async function getFileData (source: S3Folder) {
   }
 }
 
-function formatFulfilmentType (type: fulfilmentType) {
+function formatFulfilmentType (type: fulfilmentType):string {
   if (type === 'weekly') {
     return 'Weekly'
   }
   if (type === 'homedelivery') {
     return 'Home Delivery'
   }
+  return ''
 }
 function getUploadInfo (fulfilmentType: fulfilmentType, upDown: uploadDownload, destFileName: string, sourceFileName: string): UploadInfo {
   return {
@@ -95,7 +94,6 @@ function getUploadInfo (fulfilmentType: fulfilmentType, upDown: uploadDownload, 
 
 function getFolders (config: Config, type: fulfilmentType, deliveryDate: moment): UploadInfo[] {
   let sfFormattedDeliveryDate = deliveryDate.format('DD_MM_YYYY')
-  // maybe we could get creation date from the actual files but it probably doesn't matter
   let uploadTimeStamp = moment().format('DDMMYYYY_HH')
 
   if (type === 'homedelivery') {

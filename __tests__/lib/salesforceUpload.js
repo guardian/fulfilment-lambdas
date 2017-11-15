@@ -170,20 +170,15 @@ let mockSalesForce = {
   uploadDocument: jest.fn(() => Promise.resolve({id: 'documentId'}))
 }
 
-jest.mock('../../src/lib/salesforceAuthenticator', () => {
-  return {
-    authenticate: (config) => { return Promise.resolve(mockSalesForce) }
-  }
-})
 jest.mock('../../src/lib/config')
 jest.mock('../../src/lib/storage')
 let mockedStorage = require('../../src/lib/storage')
 
-function expectedUploadFolder(weeklyRegion: string) {
+function expectedUploadFolder (weeklyRegion: string) {
   let uploadFolder = config.fulfilments.weekly[weeklyRegion].uploadFolder
   return {
     folderId: uploadFolder.folderId,
-    name: uploadFolder.name,
+    name: uploadFolder.name
   }
 }
 
@@ -206,9 +201,9 @@ test('should upload weekly files', done => {
 
   let deliveryDate = moment('2017-11-17')
 
-  sfUpload.uploadFiles(config, 'weekly', deliveryDate).then(res => {
+  sfUpload.uploadFiles(config, mockSalesForce, 'weekly', deliveryDate).then(res => {
     try {
-      //downloads from s3
+      // downloads from s3
       expect(mockedStorage.getObject.mock.calls.length).toBe(10)
       expect(mockedStorage.getObject).toHaveBeenCalledWith('TEST/fulfilments/Weekly_NZ/2017-11-17_WEEKLY.csv')
       expect(mockedStorage.getObject).toHaveBeenCalledWith('TEST/fulfilments/Weekly_VU/2017-11-17_WEEKLY.csv')
@@ -220,32 +215,32 @@ test('should upload weekly files', done => {
       expect(mockedStorage.getObject).toHaveBeenCalledWith('TEST/fulfilments/Weekly_FR/2017-11-17_WEEKLY.csv')
       expect(mockedStorage.getObject).toHaveBeenCalledWith('TEST/fulfilments/Weekly_CA_HAND/2017-11-17_WEEKLY.csv')
       expect(mockedStorage.getObject).toHaveBeenCalledWith('TEST/fulfilments/Weekly_CA/2017-11-17_WEEKLY.csv')
-      
-      //uploads to sf
+
+      // uploads to sf
       expect(mockSalesForce.uploadDocument.mock.calls.length).toBe(10)
 
-      expect(mockSalesForce.uploadDocument).toHaveBeenCalledWith('GWNZ_17_11_2017_07112017_02.csv',expectedUploadFolder('NZ'), "Weekly fulfilment file  GWNZ_17_11_2017_07112017_02.csv",undefined)
-      expect(mockSalesForce.uploadDocument).toHaveBeenCalledWith('GWVA_17_11_2017_07112017_02.csv',expectedUploadFolder('VU'), "Weekly fulfilment file  GWVA_17_11_2017_07112017_02.csv",undefined)
-      expect(mockSalesForce.uploadDocument).toHaveBeenCalledWith('GWHK_17_11_2017_07112017_02.csv',expectedUploadFolder('HK'), "Weekly fulfilment file  GWHK_17_11_2017_07112017_02.csv",undefined)
-      expect(mockSalesForce.uploadDocument).toHaveBeenCalledWith('GWUS_17_11_2017_07112017_02.csv',expectedUploadFolder('US'), "Weekly fulfilment file  GWUS_17_11_2017_07112017_02.csv",undefined)
-      expect(mockSalesForce.uploadDocument).toHaveBeenCalledWith('GWCA_17_11_2017_07112017_02.csv',expectedUploadFolder('CA'), "Weekly fulfilment file  GWCA_17_11_2017_07112017_02.csv",undefined)
-      expect(mockSalesForce.uploadDocument).toHaveBeenCalledWith('GWAU_17_11_2017_07112017_02.csv',expectedUploadFolder('AU'), "Weekly fulfilment file  GWAU_17_11_2017_07112017_02.csv",undefined)
-      expect(mockSalesForce.uploadDocument).toHaveBeenCalledWith('GWUK_17_11_2017_07112017_02.csv',expectedUploadFolder('UK'), "Weekly fulfilment file  GWUK_17_11_2017_07112017_02.csv",undefined)
-      expect(mockSalesForce.uploadDocument).toHaveBeenCalledWith('GWRW_17_11_2017_07112017_02.csv',expectedUploadFolder('ROW'), "Weekly fulfilment file  GWRW_17_11_2017_07112017_02.csv",undefined)
-      expect(mockSalesForce.uploadDocument).toHaveBeenCalledWith('GWFR_17_11_2017_07112017_02.csv',expectedUploadFolder('FR'), "Weekly fulfilment file  GWFR_17_11_2017_07112017_02.csv",undefined)
-      expect(mockSalesForce.uploadDocument).toHaveBeenCalledWith('GWCA_HAND_17_11_2017_07112017_02.csv',expectedUploadFolder('CAHAND'), "Weekly fulfilment file  GWCA_HAND_17_11_2017_07112017_02.csv",undefined)
+      expect(mockSalesForce.uploadDocument).toHaveBeenCalledWith('GWNZ_17_11_2017_07112017_02.csv', expectedUploadFolder('NZ'), 'Weekly fulfilment file  GWNZ_17_11_2017_07112017_02.csv', undefined)
+      expect(mockSalesForce.uploadDocument).toHaveBeenCalledWith('GWVA_17_11_2017_07112017_02.csv', expectedUploadFolder('VU'), 'Weekly fulfilment file  GWVA_17_11_2017_07112017_02.csv', undefined)
+      expect(mockSalesForce.uploadDocument).toHaveBeenCalledWith('GWHK_17_11_2017_07112017_02.csv', expectedUploadFolder('HK'), 'Weekly fulfilment file  GWHK_17_11_2017_07112017_02.csv', undefined)
+      expect(mockSalesForce.uploadDocument).toHaveBeenCalledWith('GWUS_17_11_2017_07112017_02.csv', expectedUploadFolder('US'), 'Weekly fulfilment file  GWUS_17_11_2017_07112017_02.csv', undefined)
+      expect(mockSalesForce.uploadDocument).toHaveBeenCalledWith('GWCA_17_11_2017_07112017_02.csv', expectedUploadFolder('CA'), 'Weekly fulfilment file  GWCA_17_11_2017_07112017_02.csv', undefined)
+      expect(mockSalesForce.uploadDocument).toHaveBeenCalledWith('GWAU_17_11_2017_07112017_02.csv', expectedUploadFolder('AU'), 'Weekly fulfilment file  GWAU_17_11_2017_07112017_02.csv', undefined)
+      expect(mockSalesForce.uploadDocument).toHaveBeenCalledWith('GWUK_17_11_2017_07112017_02.csv', expectedUploadFolder('UK'), 'Weekly fulfilment file  GWUK_17_11_2017_07112017_02.csv', undefined)
+      expect(mockSalesForce.uploadDocument).toHaveBeenCalledWith('GWRW_17_11_2017_07112017_02.csv', expectedUploadFolder('ROW'), 'Weekly fulfilment file  GWRW_17_11_2017_07112017_02.csv', undefined)
+      expect(mockSalesForce.uploadDocument).toHaveBeenCalledWith('GWFR_17_11_2017_07112017_02.csv', expectedUploadFolder('FR'), 'Weekly fulfilment file  GWFR_17_11_2017_07112017_02.csv', undefined)
+      expect(mockSalesForce.uploadDocument).toHaveBeenCalledWith('GWCA_HAND_17_11_2017_07112017_02.csv', expectedUploadFolder('CAHAND'), 'Weekly fulfilment file  GWCA_HAND_17_11_2017_07112017_02.csv', undefined)
 
       let expectedResponse = [
-        { id: 'documentId', name: 'GWNZ_17_11_2017_07112017_02.csv' },
-        { id: 'documentId', name: 'GWFR_17_11_2017_07112017_02.csv' },
-        { id: 'documentId', name: 'GWAU_17_11_2017_07112017_02.csv' },
-        { id: 'documentId', name: 'GWCA_17_11_2017_07112017_02.csv' },
-        { id: 'documentId', name: 'GWCA_HAND_17_11_2017_07112017_02.csv' },
-        { id: 'documentId', name: 'GWHK_17_11_2017_07112017_02.csv' },
-        { id: 'documentId', name: 'GWRW_17_11_2017_07112017_02.csv' },
-        { id: 'documentId', name: 'GWUK_17_11_2017_07112017_02.csv' },
-        { id: 'documentId', name: 'GWUS_17_11_2017_07112017_02.csv' },
-        { id: 'documentId', name: 'GWVA_17_11_2017_07112017_02.csv' }
+        {id: 'documentId', name: 'GWNZ_17_11_2017_07112017_02.csv'},
+        {id: 'documentId', name: 'GWFR_17_11_2017_07112017_02.csv'},
+        {id: 'documentId', name: 'GWAU_17_11_2017_07112017_02.csv'},
+        {id: 'documentId', name: 'GWCA_17_11_2017_07112017_02.csv'},
+        {id: 'documentId', name: 'GWCA_HAND_17_11_2017_07112017_02.csv'},
+        {id: 'documentId', name: 'GWHK_17_11_2017_07112017_02.csv'},
+        {id: 'documentId', name: 'GWRW_17_11_2017_07112017_02.csv'},
+        {id: 'documentId', name: 'GWUK_17_11_2017_07112017_02.csv'},
+        {id: 'documentId', name: 'GWUS_17_11_2017_07112017_02.csv'},
+        {id: 'documentId', name: 'GWVA_17_11_2017_07112017_02.csv'}
       ]
       expect(res).toEqual(expectedResponse)
       done()
@@ -272,7 +267,7 @@ test('should ignore missing weekly files', done => {
 
   let deliveryDate = moment('2017-11-17')
 
-  sfUpload.uploadFiles(config, 'weekly', deliveryDate).then(res => {
+  sfUpload.uploadFiles(config, mockSalesForce, 'weekly', deliveryDate).then(res => {
     try {
       expect(mockedStorage.getObject.mock.calls.length).toBe(10)
       expect(mockedStorage.getObject).toHaveBeenCalledWith('TEST/fulfilments/Weekly_NZ/2017-11-17_WEEKLY.csv')
@@ -286,16 +281,15 @@ test('should ignore missing weekly files', done => {
       expect(mockedStorage.getObject).toHaveBeenCalledWith('TEST/fulfilments/Weekly_CA_HAND/2017-11-17_WEEKLY.csv')
       expect(mockedStorage.getObject).toHaveBeenCalledWith('TEST/fulfilments/Weekly_CA/2017-11-17_WEEKLY.csv')
 
-      //uploads to sf
+      // uploads to sf
       expect(mockSalesForce.uploadDocument.mock.calls.length).toBe(2)
 
-      expect(mockSalesForce.uploadDocument).toHaveBeenCalledWith('GWNZ_17_11_2017_07112017_02.csv',expectedUploadFolder('NZ'), "Weekly fulfilment file  GWNZ_17_11_2017_07112017_02.csv",undefined)
-      expect(mockSalesForce.uploadDocument).toHaveBeenCalledWith('GWVA_17_11_2017_07112017_02.csv',expectedUploadFolder('VU'), "Weekly fulfilment file  GWVA_17_11_2017_07112017_02.csv",undefined)
-
+      expect(mockSalesForce.uploadDocument).toHaveBeenCalledWith('GWNZ_17_11_2017_07112017_02.csv', expectedUploadFolder('NZ'), 'Weekly fulfilment file  GWNZ_17_11_2017_07112017_02.csv', undefined)
+      expect(mockSalesForce.uploadDocument).toHaveBeenCalledWith('GWVA_17_11_2017_07112017_02.csv', expectedUploadFolder('VU'), 'Weekly fulfilment file  GWVA_17_11_2017_07112017_02.csv', undefined)
 
       let expectedResponse = [
-        { id: 'documentId', name: 'GWNZ_17_11_2017_07112017_02.csv' },
-        { id: 'documentId', name: 'GWVA_17_11_2017_07112017_02.csv' }
+        {id: 'documentId', name: 'GWNZ_17_11_2017_07112017_02.csv'},
+        {id: 'documentId', name: 'GWVA_17_11_2017_07112017_02.csv'}
       ]
       expect(res).toEqual(expectedResponse)
       done()
@@ -319,12 +313,12 @@ test('should upload home delivery file', done => {
 
   let deliveryDate = moment('2017-11-17')
 
-  sfUpload.uploadFiles(config, 'homedelivery', deliveryDate).then(res => {
+  sfUpload.uploadFiles(config, mockSalesForce, 'homedelivery', deliveryDate).then(res => {
     try {
       expect(mockedStorage.getObject.mock.calls.length).toBe(1)
       expect(mockedStorage.getObject).toHaveBeenCalledWith('TEST/fulfilment_output/2017-11-17_HOME_DELIVERY.csv')
 
-      let expectedResponse = [ { id: 'documentId', name: 'HOME_DELIVERY_Friday_17_11_2017.csv' } ]
+      let expectedResponse = [{id: 'documentId', name: 'HOME_DELIVERY_Friday_17_11_2017.csv'}]
       expect(res).toEqual(expectedResponse)
       done()
     } catch (e) {

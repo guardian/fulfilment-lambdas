@@ -2,6 +2,7 @@
 
 import { fetchConfig } from '../lib/config'
 import { uploadFiles } from '../lib/salesforceUpload'
+import { authenticate } from '../lib/salesforceAuthenticator'
 import moment from 'moment'
 
 type weeklyUploaderInput = {
@@ -21,11 +22,12 @@ function getDeliveryDate (input: weeklyUploaderInput) {
 
 async function asyncHandler (input: weeklyUploaderInput) {
   let config = await fetchConfig()
+  let salesforce = await authenticate(config)
+
   console.log('Config fetched successfully.')
   let deliveryDate = getDeliveryDate(input)
   console.log(`delivery date is ${input.deliveryDate}`)
-  // const salesforce = await authenticate(config)
-  return uploadFiles(config, 'weekly', deliveryDate)
+  return uploadFiles(config, salesforce, 'weekly', deliveryDate)
 }
 
 export function handler (input: weeklyUploaderInput, context: any, callback: (error: any, response: any) => void) {
