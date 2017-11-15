@@ -25,14 +25,6 @@ let mockSalesForce = {
 jest.mock('../../src/lib/config')
 jest.mock('../../src/lib/storage')
 
-function expectedUploadFolder (weeklyRegion: string) {
-  let uploadFolder = config.fulfilments.weekly[weeklyRegion].uploadFolder
-  return {
-    folderId: uploadFolder.folderId,
-    name: uploadFolder.name
-  }
-}
-
 beforeEach(() => {
   mockSalesForce.uploadDocument.mock.calls = []
 })
@@ -51,7 +43,6 @@ test('should upload files', done => {
 
   sfUpload.uploadFiles(testInput, mockSalesForce).then(res => {
     try {
-
       // downloads from s3
       expect(mockedStorage.getObject.mock.calls.length).toBe(3)
       expect(mockedStorage.getObject).toHaveBeenCalledWith('source_path/file_1')
@@ -68,7 +59,7 @@ test('should upload files', done => {
       let expectedResponse = [
         {id: 'documentId', name: 'sfFilename_1'},
         {id: 'documentId', name: 'sfFilename_2'},
-        {id: 'documentId', name: 'sfFilename_3'},
+        {id: 'documentId', name: 'sfFilename_3'}
       ]
 
       expect(res).toEqual(expectedResponse)
@@ -77,7 +68,7 @@ test('should upload files', done => {
       done.fail(e)
     }
   })
- })
+})
 
 test('should ignore missing files', done => {
   let mockedStorage = require('../../src/lib/storage')
@@ -108,7 +99,7 @@ test('should ignore missing files', done => {
 
       let expectedResponse = [
         {id: 'documentId', name: 'sfFilename_1'},
-        {id: 'documentId', name: 'sfFilename_3'},
+        {id: 'documentId', name: 'sfFilename_3'}
       ]
 
       expect(res).toEqual(expectedResponse)
@@ -118,4 +109,3 @@ test('should ignore missing files', done => {
     }
   })
 })
-

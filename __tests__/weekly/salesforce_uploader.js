@@ -189,7 +189,7 @@ function expectedParamsFor (region: string) {
   if (filePrefix === 'VU') {
     filePrefix = 'VA'
   }
-let filename = `GW${filePrefix}_06_07_2017_07112017_02.csv`
+  let filename = `GW${filePrefix}_06_07_2017_07112017_02.csv`
   return {
     destination: {
       fileName: filename,

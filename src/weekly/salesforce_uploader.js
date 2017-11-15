@@ -41,9 +41,8 @@ function getUploadInfo (upDown: uploadDownload, destFileName: string, sourceFile
 
 async function asyncHandler (input: weeklyUploaderInput) {
   let config = await fetchConfig()
-  let salesforce = await authenticate(config)
-
   console.log('Config fetched successfully.')
+  let salesforce = await authenticate(config)
   let deliveryDate = getDeliveryDate(input)
   console.log(`delivery date is ${input.deliveryDate}`)
 
