@@ -13,7 +13,7 @@ type weeklyUploaderInput = {
 
 function getDeliveryDate (input: weeklyUploaderInput) {
   if (!input.deliveryDate) {
-    throw new Error('deliveryDate must be in the format "YYYY-MM-DD"')
+    throw new Error('missing input param: deliveryDate')
   }
   let deliveryDate = moment(input.deliveryDate, 'YYYY-MM-DD')
   if (!deliveryDate.isValid()) {

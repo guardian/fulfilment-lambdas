@@ -28,8 +28,8 @@ export async function uploadFiles (filesToUpload: UploadInfo[], salesforce: Sale
   })
 
   let allFileResponse = await Promise.all(filePromises)
-  let successFulFileResponses = allFileResponse.filter(f => f.fileData.file != null)
-  let uploadResults = successFulFileResponses.map(f => { return uploadFile(f, salesforce) })
+  let successfulFileResponses = allFileResponse.filter(f => f.fileData.file != null)
+  let uploadResults = successfulFileResponses.map(f => { return uploadFile(f, salesforce) })
   return Promise.all(uploadResults)
 }
 
