@@ -229,6 +229,23 @@ Resources:
       Environment:
         Variables:
           'Stage': !Sub ${Stage}
+  WeeklyUploaderLambda:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      FunctionName:
+          !Sub weekly-fulfilmentUploader-${Stage}
+      Description: "upload Guardian Weekly fulfilment files to salesforce"
+      Handler: "weekly/salesforce_uploader.handler"
+      Role: !GetAtt [ FulfilmentWorkersLambdaRole, Arn ]
+      Code:
+        S3Bucket: fulfilment-lambdas-dist
+        S3Key: !Sub membership/${Stage}/fulfilment-lambdas/fulfilment-lambdas.zip
+      MemorySize: 512
+      Runtime: nodejs6.10
+      Timeout: 300
+      Environment:
+        Variables:
+          'Stage': !Sub ${Stage}
   FulfilmentExporterLambda:
       Type: "AWS::Lambda::Function"
       Properties:

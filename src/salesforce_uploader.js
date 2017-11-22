@@ -60,7 +60,8 @@ export function handler (input: apiGatewayLambdaInput, context: any, callback: (
     let dateSuffix = fileData.date.format('DD_MM_YYYY')
     let outputFileName = `HOME_DELIVERY_${dayOfTheWeek}_${dateSuffix}.csv`
     console.log(`uploading ${outputFileName} to ${sfFolder.name}`)
-    let uploadResult = await salesforce.uploadDocument(outputFileName, sfFolder, fileData.file.Body)
+    let sfFileDescription = `Home Delivery fulfilment file ${outputFileName}`
+    let uploadResult = await salesforce.uploadDocument(outputFileName, sfFolder, sfFileDescription, fileData.file.Body)
     let lastModified = moment(fileData.file.LastModified).format('YYYY-MM-DD')
     await copyToUploadedFolder(stage, fileData.s3Path, outputFileName)
     return Promise.resolve({
