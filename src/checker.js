@@ -1,6 +1,6 @@
 // @flow
 import moment from 'moment'
-import { getStage } from './lib/config'
+import {getStage, fetchConfig} from './lib/config'
 import { getFileInfo } from './lib/storage'
 
 export function handler (input: ?any, context: ?any, callback: Function) {
@@ -35,10 +35,10 @@ function logCheckResult (checkPassed: boolean) {
 }
 
 async function checkFile (): Promise<boolean> {
-  let stage = await getStage()
+  let config = await fetchConfig()
   let today = moment()
   let tomorrow = moment().add(1, 'day')
-  let filePath = `${stage}/fulfilment_output/${tomorrow.format('YYYY-MM-DD')}_HOME_DELIVERY.csv`
+  let filePath = `${config.fulfilments.homedelivery.uploadFolder.prefix}${tomorrow.format('YYYY-MM-DD')}_HOME_DELIVERY.csv`
   let metadata = await getFileInfo(filePath)
   let lastModified = moment(metadata.LastModified)
   console.log(`Last modified date ${lastModified.format('YYYY-MM-DD')}`)

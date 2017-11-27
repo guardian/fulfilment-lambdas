@@ -8,6 +8,7 @@ let s3 = new AWS.S3({signatureVersion: 'v4'})
 
 const STAGE = getStage()
 
+//TODO maybe this could be read from the config ?
 const BUCKETS = {
   CODE: 'fulfilment-export-code',
   PROD: 'fulfilment-export-prod'
