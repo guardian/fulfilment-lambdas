@@ -307,7 +307,7 @@ Resources:
                },
                "WaitSomeTime": {
                  "Type": "Wait",
-                 "Seconds": 10,
+                 "Seconds": 180,
                  "Next": "FetchResults"
                },
                "FetchResults": {
