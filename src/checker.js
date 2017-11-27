@@ -1,13 +1,14 @@
 // @flow
 import moment from 'moment'
-import {getStage, fetchConfig} from './lib/config'
+import { fetchConfig } from './lib/config'
 import { getFileInfo } from './lib/storage'
 
 export function handler (input: ?any, context: ?any, callback: Function) {
   checkFile()
     .then(checkPassed => {
       logCheckResult(checkPassed)
-      callback(null, {result: 'passed'})
+      let resultString = checkPassed ? 'passed' : 'failed'
+      callback(null, {result: resultString})
     })
     .catch(e => {
       console.log(e)
