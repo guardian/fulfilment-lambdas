@@ -8,6 +8,8 @@ Parameters:
             - PROD
             - CODE
         Default: CODE
+Conditions:
+  CreateProdResources: !Equals [!Ref "Stage", "PROD"]
 Mappings:
   EnvironmentBucketMap:
     CODE:
@@ -589,3 +591,21 @@ Resources:
       Threshold: 1
       ComparisonOperator: LessThanThreshold
     DependsOn: fulfilmentCheckerMetricFilter
+
+  ExecutionFailureAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: CreateProdResources
+    Properties:
+      AlarmName: !Sub State Machine Failure in ${Stage} (Fulfilment state machine)
+      AlarmDescription: The fulfilment state machine failed during execution - please investigate.
+      MetricName: ExecutionsFailed
+      Namespace: AWS/States
+      Dimensions:
+        - Name: StateMachineArn
+          Value: !Ref FulfilmentStateMachine_[STAGE]
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 1
+      Period: 60
+      EvaluationPeriods: 1
+      Statistic: Sum
+    DependsOn: FulfilmentStateMachine_[STAGE]
