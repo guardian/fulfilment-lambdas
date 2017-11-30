@@ -596,6 +596,8 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Condition: CreateProdResources
     Properties:
+      AlarmActions:
+      - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:fulfilment-dev
       AlarmName: !Sub State Machine Failure in ${Stage} (Fulfilment state machine)
       AlarmDescription: The fulfilment state machine failed during execution - please investigate.
       MetricName: ExecutionsFailed
