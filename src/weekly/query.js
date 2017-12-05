@@ -76,7 +76,7 @@ async function queryZuora (deliveryDate, config: Config) {
           ) OR
           (
             Subscription.Status = 'Cancelled' AND
-            Subscription.TermEndDate >= '${formattedDeliveryDate}'
+            Subscription.TermEndDate >= '${cutOffDate}'
           ) OR
           (
            Subscription.Status = 'Active' AND  
