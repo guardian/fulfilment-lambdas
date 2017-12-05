@@ -65,7 +65,7 @@ async function queryZuora (deliveryDate, config: Config) {
             ) OR 
            (
             RatePlan.AmendmentType = 'NewProduct' AND 
-            Amendment.EffectiveDate <= '${formattedDeliveryDate}' 
+            Amendment.CustomerAcceptanceDate <= '${formattedDeliveryDate}' 
            )
         ) AND
         Subscription.ContractAcceptanceDate <= '${formattedDeliveryDate}' AND
