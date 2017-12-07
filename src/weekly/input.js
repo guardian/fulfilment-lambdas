@@ -1,7 +1,7 @@
 // @flow
 import moment from 'moment'
 
-type input = {
+export type input = {
   deliveryDate: ?string,
   deliveryDayOfWeek: ?string,
   minDaysInAdvance: ?number

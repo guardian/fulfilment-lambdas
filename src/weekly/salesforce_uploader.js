@@ -6,7 +6,8 @@ import { authenticate } from '../lib/salesforceAuthenticator'
 import type { uploadDownload } from '../lib/config'
 import type { UploadInfo } from '../lib/S3ToSalesforceUploader'
 import moment from 'moment'
-import { input, getDeliveryDate} from './input'
+import { getDeliveryDate } from './input'
+import type { input } from './input'
 
 function getUploadInfo (upDown: uploadDownload, destFileName: string, sourceFileName: string): UploadInfo {
   return {
@@ -57,7 +58,7 @@ async function asyncHandler (input: input) {
   return uploadFiles(filesToUpload, salesforce)
 }
 
-export function handler (input: weeklyUploaderInput, context: any, callback: (error: any, response: any) => void) {
+export function handler (input: input, context: any, callback: (error: any, response: any) => void) {
   asyncHandler(input)
     .then(uploadedFiles => {
       console.log('returning success ')

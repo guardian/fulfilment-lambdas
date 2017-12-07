@@ -4,8 +4,8 @@ import type { Config } from './../lib/config'
 import { Zuora } from './../lib/Zuora'
 import type { Query } from './../lib/Zuora'
 import moment from 'moment'
-import { input, getDeliveryDate} from './input'
-
+import { getDeliveryDate } from './input'
+import type { input } from './input'
 function getCutOffDate (deliveryDate: moment) {
   let today = moment().startOf('day')
   let daysUntilDelivery = deliveryDate.diff(today)
@@ -117,8 +117,6 @@ async function queryZuora (deliveryDate, config: Config) {
   let jobId = await zuora.query('Fulfilment-Queries', subsQuery, holidaySuspensionQuery, introductoryPeriodQuery)
   return {deliveryDate: formattedDeliveryDate, jobId: jobId}
 }
-
-
 
 export async function weeklyQuery (input: input) {
   let deliveryDate = getDeliveryDate(input)
