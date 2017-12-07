@@ -1,5 +1,5 @@
 /* eslint-env jest */
-import { getDeliveryDate } from '../../src/weekly/query'
+import { getDeliveryDate } from '../../src/weekly/input'
 import moment from 'moment'
 
 var MockDate = require('mockdate')
