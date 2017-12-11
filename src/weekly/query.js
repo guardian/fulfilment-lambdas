@@ -54,8 +54,19 @@ async function queryZuora (deliveryDate, config: Config) {
         RatePlan.Name != 'Guardian Weekly 6 Issues' AND
         RatePlan.Name != 'Guardian Weekly 12 Issues' AND
         (
-          RatePlan.AmendmentType IS NULL OR 
-          RatePlan.AmendmentType != 'RemoveProduct'
+          RatePlan.AmendmentType IS NULL OR
+          (
+            RatePlan.AmendmentType != 'RemoveProduct' AND 
+            RatePlan.AmendmentType != 'NewProduct' 
+           ) OR
+          (
+            RatePlan.AmendmentType = 'RemoveProduct' AND 
+            Amendment.EffectiveDate > '${formattedDeliveryDate}' 
+            ) OR 
+           (
+            RatePlan.AmendmentType = 'NewProduct' AND 
+            Amendment.CustomerAcceptanceDate <= '${formattedDeliveryDate}' 
+           )
         ) AND
         Subscription.ContractAcceptanceDate <= '${formattedDeliveryDate}' AND
         (
