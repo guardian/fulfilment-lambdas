@@ -1,7 +1,7 @@
 // @flow
 import moment from 'moment'
 
-export type input = {
+export type WeeklyInput = {
   deliveryDate: ?string,
   deliveryDayOfWeek: ?string,
   minDaysInAdvance: ?number
@@ -24,15 +24,12 @@ let weekDays:Map<string, number> = new Map([
   ['SAT', 6]
 ])
 
-export function getDeliveryDate (input: input) {
+export function getDeliveryDate (input: WeeklyInput) {
   if (input.deliveryDate) {
     let deliveryDate = moment(input.deliveryDate, 'YYYY-MM-DD')
     if (!deliveryDate.isValid()) {
       throw new Error('deliveryDate must be in the format "YYYY-MM-DD"')
-    } else {
-      console.log(deliveryDate)
-      console.log('is valid')
-    }
+    } 
     return deliveryDate
   }
   if (input.deliveryDayOfWeek && typeof input.minDaysInAdvance === 'number') {
