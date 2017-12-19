@@ -29,7 +29,7 @@ export function getDeliveryDate (input: WeeklyInput) {
     let deliveryDate = moment(input.deliveryDate, 'YYYY-MM-DD')
     if (!deliveryDate.isValid()) {
       throw new Error('deliveryDate must be in the format "YYYY-MM-DD"')
-    } 
+    }
     return deliveryDate
   }
   if (input.deliveryDayOfWeek && typeof input.minDaysInAdvance === 'number') {
