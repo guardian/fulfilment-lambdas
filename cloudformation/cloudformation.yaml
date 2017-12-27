@@ -473,7 +473,7 @@ Resources:
     Type: "AWS::Events::Rule"
     Properties:
       Description: "TriggerWeeklyFulfilmentUpload"
-      ScheduleExpression: "cron(00 3 ? * THU *)"
+      ScheduleExpression: "cron(00 11 ? * THU *)"
       State: "ENABLED"
       Targets:
         -
