@@ -469,7 +469,22 @@ Resources:
             "minDaysInAdvance" : 8
             }
           RoleArn: !GetAtt [ fulfilmentTriggerRole, Arn ]
-
+  WeeklyScheduledUploadRule:
+    Type: "AWS::Events::Rule"
+    Properties:
+      Description: "TriggerWeeklyFulfilmentUpload"
+      ScheduleExpression: "cron(00 11 ? * THU *)"
+      State: "ENABLED"
+      Targets:
+        -
+          Arn: !GetAtt WeeklyUploaderLambda.Arn
+          Id: !Sub weeklySfUploader_[STAGE]
+          Input: |
+            {
+            "type":"weekly",
+            "deliveryDayOfWeek": "friday",
+            "minDaysInAdvance" : 8
+            }
   SFDownloadScheduledRule:
     Type: "AWS::Events::Rule"
     Properties:
@@ -560,7 +575,13 @@ Resources:
       FunctionName: !GetAtt checkerLambda.Arn
       Principal: events.amazonaws.com
       SourceArn: !GetAtt CheckerScheduledRule.Arn
-
+  weeklyScheduledUploadPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt WeeklyUploaderLambda.Arn
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt WeeklyScheduledUploadRule.Arn
   sfDownloadSchedulePermission:
     Type: AWS::Lambda::Permission
     Properties:

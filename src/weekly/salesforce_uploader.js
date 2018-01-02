@@ -6,21 +6,8 @@ import { authenticate } from '../lib/salesforceAuthenticator'
 import type { uploadDownload } from '../lib/config'
 import type { UploadInfo } from '../lib/S3ToSalesforceUploader'
 import moment from 'moment'
-
-type weeklyUploaderInput = {
-  deliveryDate: string
-}
-
-function getDeliveryDate (input: weeklyUploaderInput) {
-  if (!input.deliveryDate) {
-    throw new Error('missing input param: deliveryDate')
-  }
-  let deliveryDate = moment(input.deliveryDate, 'YYYY-MM-DD')
-  if (!deliveryDate.isValid()) {
-    throw new Error('deliveryDate must be in the format "YYYY-MM-DD"')
-  }
-  return deliveryDate
-}
+import { getDeliveryDate } from './WeeklyInput'
+import type { WeeklyInput } from './WeeklyInput'
 
 function getUploadInfo (upDown: uploadDownload, destFileName: string, sourceFileName: string): UploadInfo {
   return {
@@ -39,12 +26,12 @@ function getUploadInfo (upDown: uploadDownload, destFileName: string, sourceFile
   }
 }
 
-async function asyncHandler (input: weeklyUploaderInput) {
+async function asyncHandler (input: WeeklyInput) {
   let config = await fetchConfig()
   console.log('Config fetched successfully.')
   let salesforce = await authenticate(config)
   let deliveryDate = getDeliveryDate(input)
-  console.log(`delivery date is ${input.deliveryDate}`)
+  console.log(`delivery date is ${deliveryDate.format('DD_MM_YYYY')}`)
 
   let sfFormattedDeliveryDate = deliveryDate.format('DD_MM_YYYY')
   let uploadTimeStamp = moment().format('DDMMYYYY_HH')
@@ -71,7 +58,7 @@ async function asyncHandler (input: weeklyUploaderInput) {
   return uploadFiles(filesToUpload, salesforce)
 }
 
-export function handler (input: weeklyUploaderInput, context: any, callback: (error: any, response: any) => void) {
+export function handler (input: WeeklyInput, context: any, callback: (error: any, response: any) => void) {
   asyncHandler(input)
     .then(uploadedFiles => {
       console.log('returning success ')
