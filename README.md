@@ -1,14 +1,13 @@
-This readme is a skeleton, please fill me out with some useful info!
-
 # fulfilment-lambdas
-This is a set of lambdas in a step function to allow us to fulfil from zuora.
+This project generates newspaper fulfilment files for the Home Delivery and Guardian Weekly products, currently sold [here](https://subscribe.theguardian.com).
 
-They are built in ES6, using [StandardJS](https://standardjs.com) and [Flow](http://flow.org).
+The file generation process is written as an [AWS Step Function](https://aws.amazon.com/step-functions/), which queries the subscription data in Zuora and constructs files based on the results.
 
-It is automatically built using teamcity and riffraff as CODE or PROD as appropriate.
+These files are uploaded to Salesforce, so that various distributors can download them. The upload process is carried out via a separate lambda (salesforce_uploader), and is triggered by a scheduled CloudWatch event (i.e. it is not part of the Step Function).
 
-The credentials come from S3 bucket ....
+There are various other lambdas in the project for file comparison and correctness checking. These are also currently triggered by scheduled CloudWatch events.
 
+All lambdas in this project are built in ES6, using [StandardJS](https://standardjs.com) and [Flow](http://flow.org).
 
 ## Running Locally
 
@@ -24,13 +23,10 @@ And to transpile the lambdas:
 ```bash
 yarn compile
 ```
-This will transpile any ES6/7 into javascript which will run on the Node 6.10 environoment of AWS.
+This will transpile any ES6/7 into javascript which will run on the Node 6.10 environment of AWS.
 
-## Verifier
-There is a separate lambda to allow correctness checking.
+## Build and Deployment
 
-## Salesforce Downloader
-This download the salesforce files every night so we can compare with the Zuora files on an ongoing basis.
-```bash
-yarn run:sf
-```
+We use TeamCity for CI on this project.
+
+All changes merged to master are automatically deployed to production by [Riff-Raff](https://github.com/guardian/riff-raff).
