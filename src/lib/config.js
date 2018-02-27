@@ -68,7 +68,7 @@ function fetchConfigForStage (stage: Stage): Promise<Config> {
   console.log('Fetching configuration file from S3.')
   return new Promise((resolve, reject) => {
     const key = 'fulfilment.private.json'
-    const bucket = `fulfilment-private/${stage}`
+    const bucket = `gu-reader-revenue-private/membership/fulfilment-lambdas/${stage}`
     console.log(`loading ${stage} configuration from ${bucket}/${key}`)
 
     s3.getObject(
