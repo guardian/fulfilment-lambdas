@@ -116,6 +116,12 @@ Resources:
                             - logs:PutLogEvents
                             - lambda:InvokeFunction
                             Resource: "*"
+                - PolicyName: UnEncryptedPrivateBucket
+                  PolicyDocument:
+                      Statement:
+                          - Effect: Allow
+                            Action: s3:GetObject
+                            Resource: !Sub arn:aws:s3:::fulfilment-private/${Stage}/*
                 - PolicyName: PrivateBucket
                   PolicyDocument:
                       Statement:
