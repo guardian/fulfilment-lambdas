@@ -52,3 +52,10 @@ This will transpile any ES6/7 into javascript which will run on the Node 6.10 en
 We use TeamCity for CI on this project.
 
 All changes merged to master are automatically deployed to production by [Riff-Raff](https://github.com/guardian/riff-raff).
+
+## Cloudforming
+
+Because of limitations in cloudformation templates we need an additional step to update the stacks :
+1. Make the required changes in [cloudformation/cloudformation.yaml](https://github.com/guardian/fulfilment-lambdas/blob/master/cloudformation/cloudformation.yaml)
+2. Run 'yarn cloudform'. Stage specific versions of the cloudformation template will be generated
+3. Use the generated version for the desired stage to update the stack (it will be in cloudformation/[stage].yaml)
