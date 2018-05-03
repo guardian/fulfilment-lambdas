@@ -214,23 +214,6 @@ Resources:
       Environment:
         Variables:
           'Stage': !Sub ${Stage}
-  ComparatorLambda:
-    Type: "AWS::Lambda::Function"
-    Properties:
-      FunctionName:
-          !Sub zuora_fulfilment_comparator-${Stage}
-      Description: "Fetch salesforce fulfilment files"
-      Handler: "comparator.handler"
-      Role: !GetAtt [ FulfilmentWorkersLambdaRole, Arn ]
-      Code:
-        S3Bucket: fulfilment-lambdas-dist
-        S3Key: !Sub membership/${Stage}/fulfilment-lambdas/fulfilment-lambdas.zip
-      MemorySize: 512
-      Runtime: nodejs6.10
-      Timeout: 300
-      Environment:
-        Variables:
-          'Stage': !Sub ${Stage}
   WeeklyUploaderLambda:
     Type: "AWS::Lambda::Function"
     Properties:
@@ -497,18 +480,7 @@ Resources:
           Id: !Sub salesforceDownloader_[STAGE]
 
     DependsOn: FulfilmentStateMachine_[STAGE]
-  SFComparatorScheduledRule:
-    Type: "AWS::Events::Rule"
-    Properties:
-      Description: "Check the fulfilment files match up."
-      ScheduleExpression: "cron(55 14 ? * mon-fri *)"
-      State: "ENABLED"
-      Targets:
-        -
-          Id: !Sub salesforceComparator_${Stage}
-          Arn: !GetAtt ComparatorLambda.Arn
 
-    DependsOn: FulfilmentStateMachine_[STAGE]
   fulfilmentTriggerRole:
     Type: AWS::IAM::Role
     Properties:
@@ -589,14 +561,6 @@ Resources:
       FunctionName: !GetAtt SalesforceDownloaderLambda.Arn
       Principal: events.amazonaws.com
       SourceArn: !GetAtt SFDownloadScheduledRule.Arn
-
-  comparatorSchedulePermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !GetAtt ComparatorLambda.Arn
-      Principal: events.amazonaws.com
-      SourceArn: !GetAtt SFComparatorScheduledRule.Arn
 
   CheckerAlarm:
     Type: "AWS::CloudWatch::Alarm"

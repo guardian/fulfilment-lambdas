@@ -14,7 +14,6 @@ deployments:
         - zuora_fulfilment_fetcher-
         - zuora_fulfilment_exporter-
         - zuora_fulfilment_salesforce_downloader-
-        - zuora_fulfilment_comparator-
         - salesforce_uploader-
         - zuora_fulfilment_checker-
         - weekly-fulfilmentUploader-
