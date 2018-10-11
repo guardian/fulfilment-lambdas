@@ -49,7 +49,7 @@ async function queryZuora (deliveryDate, config: Config) {
         RatePlan.Name != 'Guardian Weekly 6 Issues' AND
         RatePlan.Name != 'Guardian Weekly 12 Issues' AND
         RatePlan.Name != 'GW Oct 18 - First 6 issues - ROW' AND
-        RatePlan.Name != 'GW Oct 18 - First 6 issues - Domestic' 
+        RatePlan.Name != 'GW Oct 18 - First 6 issues - Domestic' AND
         (
           RatePlan.AmendmentType IS NULL OR
           (
@@ -105,7 +105,7 @@ async function queryZuora (deliveryDate, config: Config) {
       WHERE 
        (Subscription.Status = 'Active' OR Subscription.Status = 'Cancelled') AND
          Product.ProductType__c = 'Guardian Weekly' AND
-        ( RatePlan.Name = 'Guardian Weekly 6 Issues' OR RatePlan.Name = 'Guardian Weekly 12 Issues' OR RatePlan.Name = 'GW Oct 18 - First 6 issues - ROW' OR RatePlan.Name = 'GW Oct 18 - First 6 issues - Domestic') AND
+        ( RatePlan.Name = 'Guardian Weekly 6 Issues' OR RatePlan.Name = 'Guardian Weekly 12 Issues' OR RatePlan.Name = 'GW Oct 18 - First 6 issues - ROW' OR RatePlan.Name = 'GW Oct 18 - First 6 issues - Domestic' ) AND
         ( RatePlan.AmendmentType IS NULL OR RatePlan.AmendmentType != 'RemoveProduct' ) AND
         RatePlanCharge.EffectiveStartDate <= '${formattedDeliveryDate}' AND
         RatePlanCharge.EffectiveEndDate > '${formattedDeliveryDate}' 
