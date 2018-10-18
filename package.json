@@ -55,7 +55,7 @@
     "lodash-es": "^4.17.4",
     "moment": "^2.18.1",
     "multistream": "^2.1.0",
-    "request": "^2.81.0",
+    "request": "^2.88.0",
     "request-promise-native": "^1.0.4"
   },
   "standard": {
