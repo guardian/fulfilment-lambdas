@@ -38,8 +38,8 @@ _Note: A specific build is referenced in package.json as there is a bug in lambd
 
 To install dependencies for running locally:
 ```bash
-yarn dist
 yarn install 
+yarn dist
 ```
 And to transpile the lambdas:
 ```bash
