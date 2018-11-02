@@ -38,14 +38,28 @@ _Note: A specific build is referenced in package.json as there is a bug in lambd
 
 To install dependencies for running locally:
 ```bash
-yarn dist
 yarn install 
+yarn dist
 ```
 And to transpile the lambdas:
 ```bash
 yarn compile
 ```
 This will transpile any ES6/7 into javascript which will run on the Node 6.10 environment of AWS.
+
+## Testing in CODE
+1. Deploy your branch to CODE using riffraff
+1. Go to the step functions section in AWS
+1. Copy the input from one of the existing e.g.
+```
+{
+  "deliveryDateDaysFromNow": 5,
+  "type": "homedelivery"
+}
+```
+1. create a new execution and call it what you like, and pass in the json
+1. wait for it to finish
+1. check that the fulfilment files appeared in S3 fulfilment-export-code/fulfilment_output
 
 ## Build and Deployment
 
