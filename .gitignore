@@ -6,3 +6,4 @@ cloudformation/prod.yaml
 cloudformation/code.yaml
 jsconfig.json
 .vscode/
+*.csv
