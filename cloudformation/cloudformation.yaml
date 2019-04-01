@@ -303,7 +303,7 @@ Resources:
                     {
                      "ErrorEquals": ["States.ALL"],
                      "IntervalSeconds": 60,
-                     "MaxAttempts": 10,
+                     "MaxAttempts": 20,
                      "BackoffRate": 1.0
                    }]
                },
