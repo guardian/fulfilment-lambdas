@@ -156,7 +156,7 @@ Resources:
         S3Bucket: fulfilment-lambdas-dist
         S3Key: !Sub membership/${Stage}/fulfilment-lambdas/fulfilment-lambdas.zip
       MemorySize: 512
-      Runtime: nodejs6.10
+      Runtime: nodejs8.10
       Timeout: 300
       Environment:
         Variables:
@@ -175,7 +175,7 @@ Resources:
         S3Bucket: fulfilment-lambdas-dist
         S3Key: !Sub membership/${Stage}/fulfilment-lambdas/fulfilment-lambdas.zip
       MemorySize: 512
-      Runtime: nodejs6.10
+      Runtime: nodejs8.10
       Timeout: 300
       Environment:
         Variables:
@@ -192,7 +192,7 @@ Resources:
         S3Bucket: fulfilment-lambdas-dist
         S3Key: !Sub membership/${Stage}/fulfilment-lambdas/fulfilment-lambdas.zip
       MemorySize: 512
-      Runtime: nodejs6.10
+      Runtime: nodejs8.10
       Timeout: 300
       Environment:
         Variables:
@@ -209,7 +209,7 @@ Resources:
         S3Bucket: fulfilment-lambdas-dist
         S3Key: !Sub membership/${Stage}/fulfilment-lambdas/fulfilment-lambdas.zip
       MemorySize: 512
-      Runtime: nodejs6.10
+      Runtime: nodejs8.10
       Timeout: 300
       Environment:
         Variables:
@@ -226,7 +226,7 @@ Resources:
         S3Bucket: fulfilment-lambdas-dist
         S3Key: !Sub membership/${Stage}/fulfilment-lambdas/fulfilment-lambdas.zip
       MemorySize: 512
-      Runtime: nodejs6.10
+      Runtime: nodejs8.10
       Timeout: 300
       Environment:
         Variables:
@@ -243,7 +243,7 @@ Resources:
           S3Bucket: fulfilment-lambdas-dist
           S3Key: !Sub membership/${Stage}/fulfilment-lambdas/fulfilment-lambdas.zip
         MemorySize: 512
-        Runtime: nodejs6.10
+        Runtime: nodejs8.10
         Timeout: 300
         Environment:
           Variables:
@@ -514,7 +514,7 @@ Resources:
         S3Bucket: fulfilment-lambdas-dist
         S3Key: !Sub membership/${Stage}/fulfilment-lambdas/fulfilment-lambdas.zip
       MemorySize: 128
-      Runtime: nodejs6.10
+      Runtime: nodejs8.10
       Timeout: 300
       Environment:
         Variables:
