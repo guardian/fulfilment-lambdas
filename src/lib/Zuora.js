@@ -64,6 +64,7 @@ export class Zuora {
           console.log(`zuora error! code: ${body.errorCode} : ${body.message}`)
           reject(new NamedError('api_call_error', `zuora error! code: ${body.errorCode} : ${body.message}`))
         } else {
+          console.log('jobId: ', body.id)
           resolve(body.id)
         }
       })
