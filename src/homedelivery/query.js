@@ -95,5 +95,6 @@ export async function homedeliveryQuery (input: input) {
   let deliveryDate = getDeliveryDate(input)
   let config = await fetchConfig()
   console.log('Config fetched succesfully.')
+  console.log('Input: ', input)
   return queryZuora(deliveryDate, config)
 }
