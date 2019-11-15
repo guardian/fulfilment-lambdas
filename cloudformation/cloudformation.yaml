@@ -292,7 +292,7 @@ Resources:
                },
                "WaitSomeTime": {
                  "Type": "Wait",
-                 "Seconds": 180,
+                 "Seconds": 360,
                  "Next": "FetchResults"
                },
                "FetchResults": {
