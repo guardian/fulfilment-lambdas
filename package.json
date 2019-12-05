@@ -19,7 +19,7 @@
     "eslint-plugin-import": "^2.2.0",
     "flow-bin": "0.53.1",
     "jest": "^20.0.4",
-    "lambda-local": "ashiina/lambda-local#316f6c743f6305385655b00db7d8349dac174c1c",
+    "lambda-local": "^1.6.3",
     "mockdate": "^2.0.1",
     "node-riffraff-artefact": "^2.0.1",
     "replace-x": "^1.1.1",
