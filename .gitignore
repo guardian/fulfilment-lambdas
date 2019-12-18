@@ -7,3 +7,5 @@ cloudformation/code.yaml
 jsconfig.json
 .vscode/
 *.csv
+.DS_Store
+yarn-error.log

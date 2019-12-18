@@ -45,7 +45,7 @@ And to transpile the lambdas:
 ```bash
 yarn compile
 ```
-This will transpile any ES6/7 into javascript which will run on the Node 6.10 environment of AWS.
+This will transpile any ES6/7 into javascript which will run on the Node environment of AWS.
 
 ## Testing in CODE
 1. Deploy your branch to CODE using riffraff
