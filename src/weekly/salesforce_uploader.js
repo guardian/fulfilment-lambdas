@@ -27,22 +27,22 @@ function getUploadInfo (upDown: uploadDownload, destFileName: string, sourceFile
 }
 
 async function asyncHandler (input: WeeklyInput) {
-  let config = await fetchConfig()
+  const config = await fetchConfig()
   console.log('Config fetched successfully.')
-  let salesforce = await authenticate(config)
-  let deliveryDate = getDeliveryDate(input)
+  const salesforce = await authenticate(config)
+  const deliveryDate = getDeliveryDate(input)
   console.log(`delivery date is ${deliveryDate.format('DD_MM_YYYY')}`)
 
-  let sfFormattedDeliveryDate = deliveryDate.format('DD_MM_YYYY')
-  let uploadTimeStamp = moment().format('DDMMYYYY_HH')
+  const sfFormattedDeliveryDate = deliveryDate.format('DD_MM_YYYY')
+  const uploadTimeStamp = moment().format('DDMMYYYY_HH')
 
   function sfWeeklyFileName (prefix: string) {
     return `${prefix}_${sfFormattedDeliveryDate}_${uploadTimeStamp}.csv`
   }
 
-  let sourceFileName = `${deliveryDate.format('YYYY-MM-DD')}_WEEKLY.csv`
+  const sourceFileName = `${deliveryDate.format('YYYY-MM-DD')}_WEEKLY.csv`
 
-  let filesToUpload = [
+  const filesToUpload = [
     getUploadInfo(config.fulfilments.weekly.NZ, sfWeeklyFileName('GWNZ'), sourceFileName),
     getUploadInfo(config.fulfilments.weekly.FR, sfWeeklyFileName('GWFR'), sourceFileName),
     getUploadInfo(config.fulfilments.weekly.AU, sfWeeklyFileName('GWAU'), sourceFileName),

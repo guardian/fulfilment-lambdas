@@ -4,9 +4,9 @@ import moment from 'moment'
 import { formatPostCode } from './../lib/formatters'
 import { upload, createReadStream } from './../lib/storage'
 import { ReadStream } from 'fs'
-import {getStage, fetchConfig} from './../lib/config'
-import {generateFilename} from './../lib/Filename'
-import type {result, input} from '../exporter'
+import { getStage, fetchConfig } from './../lib/config'
+import { generateFilename } from './../lib/Filename'
+import type { result, Input } from '../exporter'
 
 // input headers
 const ADDRESS_1 = 'SoldToContact.Address1'
@@ -43,7 +43,7 @@ function getDownloadStream (results: Array<result>, stage: string, queryName: st
       return result.queryName === queryName
     }
 
-    let filtered = results.filter(isTargetQuery)
+    const filtered = results.filter(isTargetQuery)
 
     if (filtered.length !== 1) {
       return null // not sure if there are options in js
@@ -54,25 +54,25 @@ function getDownloadStream (results: Array<result>, stage: string, queryName: st
 
   return new Promise((resolve, reject) => {
     console.log(`getting results file for query: ${queryName}`)
-    let fileName = getFileName(queryName)
+    const fileName = getFileName(queryName)
     if (!fileName) {
       reject(new Error(`Invalid input cannot find unique query called ${queryName}`))
       return
     }
-    let path = `zuoraExport/${fileName}`
+    const path = `zuoraExport/${fileName}`
     resolve(createReadStream(path))
   })
 }
 
 function getHolidaySuspensions (downloadStream: ReadStream): Promise<Set<string>> {
   return new Promise((resolve, reject) => {
-    let suspendedSubs = new Set()
+    const suspendedSubs = new Set()
 
-    let csvStream = csv.parse({
+    const csvStream = csv.parse({
       headers: true
     })
       .on('data', function (data) {
-        let subName = data['Subscription.Name']
+        const subName = data['Subscription.Name']
         suspendedSubs.add(subName)
       })
       .on('end', function () {
@@ -95,62 +95,62 @@ function getFullName (zFirstName: string, zLastName: string) {
 }
 
 async function processSubs (downloadStream: ReadStream, deliveryDate: moment, stage: string, holidaySuspensions: Set<string>): Promise<string> {
-  let sentDate = moment().format('DD/MM/YYYY')
-  let chargeDay = deliveryDate.format('dddd')
-  let formattedDeliveryDate = deliveryDate.format('DD/MM/YYYY')
-  let config = await fetchConfig()
-  let folder = config.fulfilments.homedelivery.uploadFolder
+  const sentDate = moment().format('DD/MM/YYYY')
+  const chargeDay = deliveryDate.format('dddd')
+  const formattedDeliveryDate = deliveryDate.format('DD/MM/YYYY')
+  const config = await fetchConfig()
+  const folder = config.fulfilments.homedelivery.uploadFolder
 
   console.log('loaded ' + holidaySuspensions.size + ' holiday suspensions')
-  let writeCSVStream = csv.createWriteStream({
+  const writeCSVStream = csv.createWriteStream({
     headers: outputHeaders,
     quoteColumns: true
   })
 
-  let csvStream = csv.parse({
+  const csvStream = csv.parse({
     headers: true
   })
-      .on('data-invalid', function (data) {
-        // TODO CAN WE LOG PII?
-        console.log('ignoring invalid data: ' + data)
-      })
-      .on('data', function (data) {
-        let subscriptionName = data[SUBSCRIPTION_NAME]
-        if (!holidaySuspensions.has(subscriptionName)) {
-          let outputCsvRow = {}
-          outputCsvRow[CUSTOMER_REFERENCE] = subscriptionName
-          outputCsvRow[CUSTOMER_TOWN] = data[CITY]
-          outputCsvRow[CUSTOMER_POSTCODE] = formatPostCode(data[POSTAL_CODE])
-          outputCsvRow[CUSTOMER_ADDRESS_LINE_1] = data[ADDRESS_1]
-          outputCsvRow[CUSTOMER_ADDRESS_LINE_2] = data[ADDRESS_2]
-          outputCsvRow[CUSTOMER_FULL_NAME] = getFullName(data[FIRST_NAME], data[LAST_NAME])
-          outputCsvRow[DELIVERY_QUANTITY] = data[QUANTITY]
-          outputCsvRow[SENT_DATE] = sentDate
-          outputCsvRow[DELIVERY_DATE] = formattedDeliveryDate
-          outputCsvRow[CHARGE_DAY] = chargeDay
-          outputCsvRow[CUSTOMER_PHONE] = data[WORK_PHONE]
-          outputCsvRow[ADDITIONAL_INFORMATION] = data[DELIVERY_INSTRUCTIONS]
-          writeCSVStream.write(outputCsvRow)
-        }
-      })
-      .on('end', function () {
-        writeCSVStream.end()
-      })
+    .on('data-invalid', function (data) {
+      // TODO CAN WE LOG PII?
+      console.log('ignoring invalid data: ' + data)
+    })
+    .on('data', function (data) {
+      const subscriptionName = data[SUBSCRIPTION_NAME]
+      if (!holidaySuspensions.has(subscriptionName)) {
+        const outputCsvRow = {}
+        outputCsvRow[CUSTOMER_REFERENCE] = subscriptionName
+        outputCsvRow[CUSTOMER_TOWN] = data[CITY]
+        outputCsvRow[CUSTOMER_POSTCODE] = formatPostCode(data[POSTAL_CODE])
+        outputCsvRow[CUSTOMER_ADDRESS_LINE_1] = data[ADDRESS_1]
+        outputCsvRow[CUSTOMER_ADDRESS_LINE_2] = data[ADDRESS_2]
+        outputCsvRow[CUSTOMER_FULL_NAME] = getFullName(data[FIRST_NAME], data[LAST_NAME])
+        outputCsvRow[DELIVERY_QUANTITY] = data[QUANTITY]
+        outputCsvRow[SENT_DATE] = sentDate
+        outputCsvRow[DELIVERY_DATE] = formattedDeliveryDate
+        outputCsvRow[CHARGE_DAY] = chargeDay
+        outputCsvRow[CUSTOMER_PHONE] = data[WORK_PHONE]
+        outputCsvRow[ADDITIONAL_INFORMATION] = data[DELIVERY_INSTRUCTIONS]
+        writeCSVStream.write(outputCsvRow)
+      }
+    })
+    .on('end', function () {
+      writeCSVStream.end()
+    })
 
   downloadStream.on('error', function (err) {
     throw new Error(`error reading holidaySuspensions: ${err}`)
   })
-      .pipe(csvStream)
+    .pipe(csvStream)
 
-  let outputFileName = generateFilename(deliveryDate, 'HOME_DELIVERY')
+  const outputFileName = generateFilename(deliveryDate, 'HOME_DELIVERY')
 
   await upload(writeCSVStream, outputFileName, folder)
   return outputFileName.filename
 }
 
-function getDeliveryDate (input: input): Promise<moment> {
+function getDeliveryDate (input: Input): Promise<moment> {
   return new Promise((resolve, reject) => {
-    let deliveryDate = moment(input.deliveryDate, 'YYYY-MM-DD')
+    const deliveryDate = moment(input.deliveryDate, 'YYYY-MM-DD')
     if (deliveryDate.isValid()) {
       resolve(deliveryDate)
     } else {
@@ -159,12 +159,12 @@ function getDeliveryDate (input: input): Promise<moment> {
   })
 }
 
-export async function homedeliveryExport (input: input) {
-  let stage = await getStage()
-  let deliveryDate = await getDeliveryDate(input)
-  let holidaySuspensionsStream = await getDownloadStream(input.results, stage, HOLIDAYS_QUERY_NAME)
-  let holidaySuspensions = await getHolidaySuspensions(holidaySuspensionsStream)
-  let subscriptionsStream = await getDownloadStream(input.results, stage, SUBSCRIPTIONS_QUERY_NAME)
-  let outputFileName = await processSubs(subscriptionsStream, deliveryDate, stage, holidaySuspensions)
+export async function homedeliveryExport (input: Input) {
+  const stage = await getStage()
+  const deliveryDate = await getDeliveryDate(input)
+  const holidaySuspensionsStream = await getDownloadStream(input.results, stage, HOLIDAYS_QUERY_NAME)
+  const holidaySuspensions = await getHolidaySuspensions(holidaySuspensionsStream)
+  const subscriptionsStream = await getDownloadStream(input.results, stage, SUBSCRIPTIONS_QUERY_NAME)
+  const outputFileName = await processSubs(subscriptionsStream, deliveryDate, stage, holidaySuspensions)
   return outputFileName
 }

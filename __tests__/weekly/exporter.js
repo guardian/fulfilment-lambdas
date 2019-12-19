@@ -8,7 +8,7 @@ let mockOutput = {}
 MockDate.set('7/5/2017')
 
 function getTestFile (fileName, callback) {
-  let filePath = `./__tests__/resources/expected/${fileName}`
+  const filePath = `./__tests__/resources/expected/${fileName}`
   readFile(filePath, 'utf8', function (err, data) {
     if (err) {
       callback(err)
@@ -19,17 +19,17 @@ function getTestFile (fileName, callback) {
 }
 
 jest.mock('../../src/lib/storage', () => {
-  let fs = require('fs')
+  const fs = require('fs')
   const streamToString = require('stream-to-string')
 
   return {
     upload: async (stream, outputLocation, folder) => {
-      let outputPath = folder.prefix + outputLocation.filename
+      const outputPath = folder.prefix + outputLocation.filename
       mockOutput[outputPath] = await streamToString(stream)
       return outputLocation
     },
     createReadStream: async (filePath) => {
-      let testFilePath = `./__tests__/resources/${filePath}`
+      const testFilePath = `./__tests__/resources/${filePath}`
       console.log(`loading test file ${testFilePath} ...`)
       return fs.createReadStream(testFilePath)
     }
@@ -197,7 +197,7 @@ function verify (done, expectedError, expectedResponse, expectedFileNames) {
       }
 
       if (expectedResponse) {
-        let responseAsJson = JSON.parse(JSON.stringify(res))
+        const responseAsJson = JSON.parse(JSON.stringify(res))
         expect(responseAsJson).toEqual(expectedResponse)
       }
       if (expectedFileNames) {
@@ -225,7 +225,7 @@ beforeEach(() => {
 })
 
 test('should return error on missing query subscriptions query result for weekly', done => {
-  let input = {
+  const input = {
     type: 'weekly',
     deliveryDate: '2017-07-06',
     results: [
@@ -239,12 +239,12 @@ test('should return error on missing query subscriptions query result for weekly
       }
     ]
   }
-  let expectedError = new Error('Invalid input cannot find unique query called WeeklySubscriptions')
+  const expectedError = new Error('Invalid input cannot find unique query called WeeklySubscriptions')
   handler(input, {}, verify(done, expectedError, null, null))
 })
 
 test('should return error on invalid deliveryDate for weekly', done => {
-  let input = {
+  const input = {
     type: 'weekly',
     deliveryDate: '2017-14-06',
     results: [{
@@ -261,12 +261,12 @@ test('should return error on invalid deliveryDate for weekly', done => {
     }
     ]
   }
-  let expectedError = new Error('invalid deliverydate expected format YYYY-MM-DD')
+  const expectedError = new Error('invalid deliverydate expected format YYYY-MM-DD')
   handler(input, {}, verify(done, expectedError, null, null))
 })
 
 test('should generate correct fulfilment file for weekly', done => {
-  let input = {
+  const input = {
     type: 'weekly',
     deliveryDate: '2017-07-06',
     results: [
@@ -285,8 +285,8 @@ test('should generate correct fulfilment file for weekly', done => {
     ]
   }
 
-  let expectedResponse = {...input, 'fulfilmentFile': '2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv'}
-  let expectedFileNames = [
+  const expectedResponse = { ...input, fulfilmentFile: '2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv' }
+  const expectedFileNames = [
     'TEST/fulfilments/Weekly_UK/2017-07-06_WEEKLY.csv',
     'TEST/fulfilments/Weekly_CA/2017-07-06_WEEKLY.csv',
     'TEST/fulfilments/Weekly_CA_HAND/2017-07-06_WEEKLY.csv',

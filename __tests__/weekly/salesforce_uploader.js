@@ -5,11 +5,11 @@ var MockDate = require('mockdate')
 // mock current date
 MockDate.set('11/07/2017 02:31')
 
-jest.mock('../../src/lib/salesforceAuthenticator', () => ({authenticate: jest.fn()}))
+jest.mock('../../src/lib/salesforceAuthenticator', () => ({ authenticate: jest.fn() }))
 
 jest.mock('../../src/lib/S3ToSalesforceUploader')
 
-let mockedUpload = require('../../src/lib/S3ToSalesforceUploader')
+const mockedUpload = require('../../src/lib/S3ToSalesforceUploader')
 
 jest.mock('../../src/lib/config', () => ({
   getStage: () => 'CODE',
@@ -189,7 +189,7 @@ function expectedParamsFor (region: string) {
   if (filePrefix === 'VU') {
     filePrefix = 'VA'
   }
-  let filename = `GW${filePrefix}_06_07_2017_07112017_02.csv`
+  const filename = `GW${filePrefix}_06_07_2017_07112017_02.csv`
   return {
     destination: {
       fileName: filename,
@@ -207,13 +207,13 @@ function expectedParamsFor (region: string) {
 }
 
 function verifyParamsFor (region: string) {
-  let firstParamFirstCall = mockedUpload.uploadFiles.mock.calls[0][0]
+  const firstParamFirstCall = mockedUpload.uploadFiles.mock.calls[0][0]
   // just a roundabout way of checking that the param for the call contains a value
   expect(firstParamFirstCall).toEqual(expect.arrayContaining([expectedParamsFor(region)]))
 }
 
 test('should construct correct source and destination file paths for upload', done => {
-  let input = {
+  const input = {
     deliveryDate: '2017-07-06'
   }
   handler(input, {}, (err, res) => {

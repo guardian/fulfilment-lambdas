@@ -7,13 +7,13 @@ export type result = {
   queryName: string,
   fileName: string
 }
-export type input = {
+export type Input = {
   deliveryDate: string,
   results: Array<result>,
   type: fulfilmentType
 }
 
-async function asyncHandler (input: input) {
+async function asyncHandler (input: Input) {
   if (input.type === 'homedelivery') {
     return homedeliveryExport(input)
   }
@@ -23,13 +23,13 @@ async function asyncHandler (input: input) {
   throw new Error('No valid fulfilment type was found in input')
 }
 
-export function handler (input: input, context: ?any, callback: Function) {
+export function handler (input: Input, context: ?any, callback: Function) {
   if (input == null) {
     callback(new NamedError('inputerror', 'Input to fetcher was invalid'))
     return null
   }
   asyncHandler(input)
-    .then(outputFileName => callback(null, {...input, fulfilmentFile: outputFileName}))
+    .then(outputFileName => callback(null, { ...input, fulfilmentFile: outputFileName }))
     .catch(e => {
       console.log(e)
       callback(e)

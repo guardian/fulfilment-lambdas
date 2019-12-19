@@ -7,17 +7,17 @@ export function handler (input: ?any, context: ?any, callback: Function) {
   checkFile()
     .then(checkPassed => {
       logCheckResult(checkPassed)
-      let resultString = checkPassed ? 'passed' : 'failed'
-      callback(null, {result: resultString})
+      const resultString = checkPassed ? 'passed' : 'failed'
+      callback(null, { result: resultString })
     })
     .catch(e => {
       console.log(e)
       logCheckResult(false)
-      callback(null, {result: 'failed'})
+      callback(null, { result: 'failed' })
     })
 }
 
-let maxAgeFor = {
+const maxAgeFor = {
   Mon: 2,
   Tue: 0,
   Wed: 0,
@@ -36,17 +36,17 @@ function logCheckResult (checkPassed: boolean) {
 }
 
 async function checkFile (): Promise<boolean> {
-  let config = await fetchConfig()
-  let today = moment()
-  let tomorrow = moment().add(1, 'day')
-  let filePath = `${config.fulfilments.homedelivery.uploadFolder.prefix}${tomorrow.format('YYYY-MM-DD')}_HOME_DELIVERY.csv`
-  let metadata = await getFileInfo(filePath)
-  let lastModified = moment(metadata.LastModified)
+  const config = await fetchConfig()
+  const today = moment()
+  const tomorrow = moment().add(1, 'day')
+  const filePath = `${config.fulfilments.homedelivery.uploadFolder.prefix}${tomorrow.format('YYYY-MM-DD')}_HOME_DELIVERY.csv`
+  const metadata = await getFileInfo(filePath)
+  const lastModified = moment(metadata.LastModified)
   console.log(`Last modified date ${lastModified.format('YYYY-MM-DD')}`)
-  let fileAge = today.diff(lastModified, 'days')
+  const fileAge = today.diff(lastModified, 'days')
   console.log(`File is ${fileAge} day(s) old`)
-  let tomorrowDayOfTheWeek = tomorrow.format('ddd')
-  let maxAllowedAge = maxAgeFor[tomorrowDayOfTheWeek]
+  const tomorrowDayOfTheWeek = tomorrow.format('ddd')
+  const maxAllowedAge = maxAgeFor[tomorrowDayOfTheWeek]
   console.log(`Max allowed age for ${tomorrowDayOfTheWeek} files is ${maxAllowedAge}`)
   return fileAge <= maxAllowedAge
 }

@@ -1,11 +1,11 @@
 // @flow
-import type { Salesforce, folder } from './salesforceAuthenticator'
+import type { Salesforce, Folder } from './salesforceAuthenticator'
 import type { S3Folder } from './storage'
 import { getObject } from './storage'
 
 export type sfDestination = {
   sfDescription: string,
-  sfFolder: folder,
+  sfFolder: Folder,
   fileName: string
 }
 
@@ -19,25 +19,25 @@ export type UploadInfo = {
 }
 
 export async function uploadFiles (filesToUpload: UploadInfo[], salesforce: Salesforce) {
-  let filePromises = filesToUpload.map(async fileToUpload => {
-    let fileData = await getFileData(fileToUpload.source)
+  const filePromises = filesToUpload.map(async fileToUpload => {
+    const fileData = await getFileData(fileToUpload.source)
     return {
       destination: fileToUpload.destination,
       fileData: fileData
     }
   })
 
-  let allFileResponse = await Promise.all(filePromises)
-  let successfulFileResponses = allFileResponse.filter(f => f.fileData.file != null)
-  let uploadResults = successfulFileResponses.map(f => { return uploadFile(f, salesforce) })
+  const allFileResponse = await Promise.all(filePromises)
+  const successfulFileResponses = allFileResponse.filter(f => f.fileData.file != null)
+  const uploadResults = successfulFileResponses.map(f => { return uploadFile(f, salesforce) })
   return Promise.all(uploadResults)
 }
 
 async function uploadFile (fUp: FileUpload, salesforce: Salesforce) {
-  let folderName = fUp.destination.sfFolder.name
-  let sfFileName = fUp.destination.fileName
+  const folderName = fUp.destination.sfFolder.name
+  const sfFileName = fUp.destination.fileName
   console.log(`uploading ${sfFileName} to ${folderName}`)
-  let uploadResult = await salesforce.uploadDocument(sfFileName, fUp.destination.sfFolder, fUp.destination.sfDescription, fUp.fileData.file.Body)
+  const uploadResult = await salesforce.uploadDocument(sfFileName, fUp.destination.sfFolder, fUp.destination.sfDescription, fUp.fileData.file.Body)
   return Promise.resolve({
     name: sfFileName,
     id: uploadResult.id
@@ -45,9 +45,9 @@ async function uploadFile (fUp: FileUpload, salesforce: Salesforce) {
 }
 
 async function getFileData (source: S3Folder) {
-  let s3Path = source.prefix
+  const s3Path = source.prefix
   try {
-    let file = await getObject(s3Path)
+    const file = await getObject(s3Path)
     return Promise.resolve({
       s3Path: s3Path,
       file: file

@@ -18,8 +18,8 @@ function getTestInput (id: string) {
   }
 }
 
-let mockSalesForce = {
-  uploadDocument: jest.fn(() => Promise.resolve({id: 'documentId'}))
+const mockSalesForce = {
+  uploadDocument: jest.fn(() => Promise.resolve({ id: 'documentId' }))
 }
 
 jest.mock('../../src/lib/config')
@@ -30,7 +30,7 @@ beforeEach(() => {
 })
 
 test('should upload files', done => {
-  let mockedStorage = require('../../src/lib/storage')
+  const mockedStorage = require('../../src/lib/storage')
   mockedStorage.getObject = jest.fn().mockImplementation(path => {
     return Promise.resolve({
       file: {
@@ -39,7 +39,7 @@ test('should upload files', done => {
     })
   })
 
-  let testInput = [getTestInput(1), getTestInput(2), getTestInput(3)]
+  const testInput = [getTestInput(1), getTestInput(2), getTestInput(3)]
 
   sfUpload.uploadFiles(testInput, mockSalesForce).then(res => {
     try {
@@ -52,14 +52,14 @@ test('should upload files', done => {
       // uploads to sf
       expect(mockSalesForce.uploadDocument.mock.calls.length).toBe(3)
 
-      expect(mockSalesForce.uploadDocument).toHaveBeenCalledWith('sfFilename_1', {folderId: 'sfFolderId_1', name: 'sfFolderName1'}, 'sfDescription_1', undefined)
-      expect(mockSalesForce.uploadDocument).toHaveBeenCalledWith('sfFilename_2', {folderId: 'sfFolderId_2', name: 'sfFolderName2'}, 'sfDescription_2', undefined)
-      expect(mockSalesForce.uploadDocument).toHaveBeenCalledWith('sfFilename_3', {folderId: 'sfFolderId_3', name: 'sfFolderName3'}, 'sfDescription_3', undefined)
+      expect(mockSalesForce.uploadDocument).toHaveBeenCalledWith('sfFilename_1', { folderId: 'sfFolderId_1', name: 'sfFolderName1' }, 'sfDescription_1', undefined)
+      expect(mockSalesForce.uploadDocument).toHaveBeenCalledWith('sfFilename_2', { folderId: 'sfFolderId_2', name: 'sfFolderName2' }, 'sfDescription_2', undefined)
+      expect(mockSalesForce.uploadDocument).toHaveBeenCalledWith('sfFilename_3', { folderId: 'sfFolderId_3', name: 'sfFolderName3' }, 'sfDescription_3', undefined)
 
-      let expectedResponse = [
-        {id: 'documentId', name: 'sfFilename_1'},
-        {id: 'documentId', name: 'sfFilename_2'},
-        {id: 'documentId', name: 'sfFilename_3'}
+      const expectedResponse = [
+        { id: 'documentId', name: 'sfFilename_1' },
+        { id: 'documentId', name: 'sfFilename_2' },
+        { id: 'documentId', name: 'sfFilename_3' }
       ]
 
       expect(res).toEqual(expectedResponse)
@@ -71,7 +71,7 @@ test('should upload files', done => {
 })
 
 test('should ignore missing files', done => {
-  let mockedStorage = require('../../src/lib/storage')
+  const mockedStorage = require('../../src/lib/storage')
   mockedStorage.getObject = jest.fn().mockImplementation(path => {
     if (path !== 'source_path/file_2') {
       return Promise.resolve({
@@ -82,7 +82,7 @@ test('should ignore missing files', done => {
     }
     return Promise.reject(new Error('file not found'))
   })
-  let testInput = [getTestInput(1), getTestInput(2), getTestInput(3)]
+  const testInput = [getTestInput(1), getTestInput(2), getTestInput(3)]
   sfUpload.uploadFiles(testInput, mockSalesForce).then(res => {
     try {
       // downloads from s3
@@ -94,12 +94,12 @@ test('should ignore missing files', done => {
       // uploads to sf
       expect(mockSalesForce.uploadDocument.mock.calls.length).toBe(2)
 
-      expect(mockSalesForce.uploadDocument).toHaveBeenCalledWith('sfFilename_1', {folderId: 'sfFolderId_1', name: 'sfFolderName1'}, 'sfDescription_1', undefined)
-      expect(mockSalesForce.uploadDocument).toHaveBeenCalledWith('sfFilename_3', {folderId: 'sfFolderId_3', name: 'sfFolderName3'}, 'sfDescription_3', undefined)
+      expect(mockSalesForce.uploadDocument).toHaveBeenCalledWith('sfFilename_1', { folderId: 'sfFolderId_1', name: 'sfFolderName1' }, 'sfDescription_1', undefined)
+      expect(mockSalesForce.uploadDocument).toHaveBeenCalledWith('sfFilename_3', { folderId: 'sfFolderId_3', name: 'sfFolderName3' }, 'sfDescription_3', undefined)
 
-      let expectedResponse = [
-        {id: 'documentId', name: 'sfFilename_1'},
-        {id: 'documentId', name: 'sfFilename_3'}
+      const expectedResponse = [
+        { id: 'documentId', name: 'sfFilename_1' },
+        { id: 'documentId', name: 'sfFilename_3' }
       ]
 
       expect(res).toEqual(expectedResponse)

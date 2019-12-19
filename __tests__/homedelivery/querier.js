@@ -6,12 +6,12 @@ var MockDate = require('mockdate')
 // mock current date
 MockDate.set('7/5/2017')
 jest.mock('../../src/lib/config', () => {
-  let fakeResponse = {
-    'zuora': {
-      'api': {
-        'url': 'http://fake-zuora-utl.com',
-        'username': 'fakeUser',
-        'password': 'fakePass'
+  const fakeResponse = {
+    zuora: {
+      api: {
+        url: 'http://fake-zuora-utl.com',
+        username: 'fakeUser',
+        password: 'fakePass'
       }
     },
     stage: 'CODE'
@@ -23,13 +23,13 @@ jest.mock('../../src/lib/config', () => {
 
 jest.mock('request', () => {
   return function (options, callback) {
-    let response = {
+    const response = {
       statusCode: 200
     }
-    let body = {
+    const body = {
       id: 'someId'
     }
-// TODO SEE IF WE CAN VERIFY SOMETHING ABOUT THE QUERIES HERE!
+    // TODO SEE IF WE CAN VERIFY SOMETHING ABOUT THE QUERIES HERE!
     callback(null, response, body)
   }
 })
@@ -44,7 +44,7 @@ function verify (done, expectedError, expectedResponse) {
       }
 
       if (expectedResponse) {
-        let responseAsJson = JSON.parse(JSON.stringify(res))
+        const responseAsJson = JSON.parse(JSON.stringify(res))
         expect(responseAsJson).toEqual(expectedResponse)
       }
       done()
@@ -55,33 +55,33 @@ function verify (done, expectedError, expectedResponse) {
 }
 
 test('should return error if missing delivery date and deliveryDateDaysFromNow ', done => {
-  let input = {type: 'homedelivery'}
-  let expectedError = new Error('deliveryDate or deliveryDateDaysFromNow input param must be provided')
+  const input = { type: 'homedelivery' }
+  const expectedError = new Error('deliveryDate or deliveryDateDaysFromNow input param must be provided')
 
   handler(input, {}, verify(done, expectedError, null))
 })
 
 test('should return error if delivery date is in the wrong format', done => {
-  let input = {
+  const input = {
     deliveryDate: 'wrong format', type: 'homedelivery'
   }
-  let expectedError = Error('deliveryDate must be in the format "YYYY-MM-DD"')
+  const expectedError = Error('deliveryDate must be in the format "YYYY-MM-DD"')
 
   handler(input, {}, verify(done, expectedError, null))
 })
 
 test('should query zuora for specific date', done => {
-  let input = {
+  const input = {
     deliveryDate: '2017-07-06', type: 'homedelivery'
   }
-  let expectedResponse = {...input, 'jobId': 'someId'}
+  const expectedResponse = { ...input, jobId: 'someId' }
   handler(input, {}, verify(done, null, expectedResponse))
 })
 
 test('should query zuora for daysFromNow', done => {
-  let input = {
+  const input = {
     deliveryDateDaysFromNow: 5, type: 'homedelivery'
   }
-  let expectedResponse = {...input, 'deliveryDate': '2017-07-10', 'jobId': 'someId'}
+  const expectedResponse = { ...input, deliveryDate: '2017-07-10', jobId: 'someId' }
   handler(input, {}, verify(done, null, expectedResponse))
 })

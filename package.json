@@ -8,25 +8,25 @@
   "buildDir": "dist",
   "cloudformation": false,
   "devDependencies": {
-    "babel-cli": "^6.24.1",
-    "babel-core": "^6.24.1",
+    "@babel/cli": "^7.7.7",
+    "@babel/core": "^7.7.7",
+    "@babel/plugin-proposal-object-rest-spread": "^7.7.7",
+    "@babel/preset-env": "7.7.7",
+    "@babel/preset-flow": "^7.7.4",
     "babel-eslint": "^10.0.3",
-    "babel-jest": "^23.0.1",
-    "babel-plugin-transform-object-rest-spread": "^6.23.0",
-    "babel-preset-env": "1.5.2",
-    "babel-preset-flow": "^6.23.0",
+    "babel-jest": "^24.9.0",
     "eslint": "^6.7.2",
     "eslint-plugin-flowtype": "^4.5.2",
     "eslint-plugin-import": "^2.19.1",
-    "flow-bin": "0.53.1",
-    "jest": "^23.0.1",
+    "flow-bin": "0.114.0",
+    "jest": "^24.9.0",
     "lambda-local": "^1.6.3",
-    "mockdate": "^2.0.1",
+    "mockdate": "^2.0.5",
     "node-riffraff-artefact": "^2.0.1",
-    "replace-x": "^1.1.1",
-    "snazzy": "^7.0.0",
-    "standard": "^10.0.2",
-    "stream-to-string": "^1.1.0"
+    "replace-x": "^1.7.2",
+    "snazzy": "^8.0.0",
+    "standard": "^14.3.1",
+    "stream-to-string": "^1.2.0"
   },
   "scripts": {
     "riffraff-artefact": "./node_modules/.bin/riffraff-artefact",
@@ -57,7 +57,8 @@
     "moment": "^2.19.3",
     "multistream": "^2.1.0",
     "request": "^2.88.0",
-    "request-promise-native": "^1.0.7"
+    "request-promise-native": "^1.0.7",
+    "safe-buffer": "^5.2.0"
   },
   "standard": {
     "plugins": [

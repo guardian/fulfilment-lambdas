@@ -4,11 +4,11 @@ import moment from 'moment'
 import MultiStream from 'multistream'
 import { upload, createReadStream } from './../lib/storage'
 import { ReadStream } from 'fs'
-import {getStage, fetchConfig} from './../lib/config'
-import {generateFilename} from './../lib/Filename'
-import type {Filename} from './../lib/Filename'
-import {WeeklyExporter, CaExporter, CaHandDeliveryExporter, USExporter, UpperCaseAddressExporter} from './WeeklyExporter'
-import type {result, input} from '../exporter'
+import { getStage, fetchConfig } from './../lib/config'
+import { generateFilename } from './../lib/Filename'
+import type { Filename } from './../lib/Filename'
+import { WeeklyExporter, CaExporter, CaHandDeliveryExporter, USExporter, UpperCaseAddressExporter } from './WeeklyExporter'
+import type { result, Input } from '../exporter'
 
 const SUBSCRIPTION_NAME = 'Subscription.Name'
 const HOLIDAYS_QUERY_NAME = 'WeeklyHolidaySuspensions'
@@ -21,7 +21,7 @@ function getDownloadStream (results: Array<result>, stage: string, queryName: st
       return result.queryName === queryName
     }
 
-    let filtered = results.filter(isTargetQuery)
+    const filtered = results.filter(isTargetQuery)
     console.log(results, '!')
 
     if (filtered.length !== 1) {
@@ -33,25 +33,25 @@ function getDownloadStream (results: Array<result>, stage: string, queryName: st
 
   return new Promise((resolve, reject) => {
     console.log(`getting results file for query: ${queryName}`)
-    let fileName = getFileName(queryName)
+    const fileName = getFileName(queryName)
     if (!fileName) {
       reject(new Error(`Invalid input cannot find unique query called ${queryName}`))
       return
     }
-    let path = `zuoraExport/${fileName}`
+    const path = `zuoraExport/${fileName}`
     resolve(createReadStream(path))
   })
 }
 
 function getHolidaySuspensions (downloadStream: ReadStream): Promise<Set<string>> {
   return new Promise((resolve, reject) => {
-    let suspendedSubs = new Set()
+    const suspendedSubs = new Set()
 
-    let csvStream = csv.parse({
+    const csvStream = csv.parse({
       headers: true
     })
       .on('data', function (data) {
-        let subName = data['Subscription.Name']
+        const subName = data['Subscription.Name']
         suspendedSubs.add(subName)
       })
       .on('end', function () {
@@ -65,11 +65,11 @@ function getHolidaySuspensions (downloadStream: ReadStream): Promise<Set<string>
   })
 }
 async function processSubs (downloadStream: ReadStream, deliveryDate: moment, stage: string, holidaySuspensions: Set<string>): Promise<Array<Filename>> {
-  let config = await fetchConfig()
+  const config = await fetchConfig()
   console.log('loaded ' + holidaySuspensions.size + ' holiday suspensions')
-  let rowExporter = new WeeklyExporter('Rest of the world', deliveryDate, config.fulfilments.weekly.ROW.uploadFolder)
+  const rowExporter = new WeeklyExporter('Rest of the world', deliveryDate, config.fulfilments.weekly.ROW.uploadFolder)
 
-  let exporters = [
+  const exporters = [
     new WeeklyExporter('United Kingdom', deliveryDate, config.fulfilments.weekly.UK.uploadFolder),
     new CaExporter('Canada', deliveryDate, config.fulfilments.weekly.CA.uploadFolder),
     new CaHandDeliveryExporter('Canada', deliveryDate, config.fulfilments.weekly.CAHAND.uploadFolder),
@@ -82,7 +82,7 @@ async function processSubs (downloadStream: ReadStream, deliveryDate: moment, st
     rowExporter
   ]
 
-  let csvStream = csv.parse({
+  const csvStream = csv.parse({
     headers: true
   })
     .on('data-invalid', function (data) {
@@ -90,9 +90,9 @@ async function processSubs (downloadStream: ReadStream, deliveryDate: moment, st
       console.log('ignoring invalid data: ' + data)
     })
     .on('data', (data) => {
-      let subscriptionName = data[SUBSCRIPTION_NAME]
+      const subscriptionName = data[SUBSCRIPTION_NAME]
       if (holidaySuspensions.has(subscriptionName)) return
-      let selectedExporter = exporters.find(exporter => exporter.useForRow(data)) || rowExporter
+      const selectedExporter = exporters.find(exporter => exporter.useForRow(data)) || rowExporter
       selectedExporter.processRow(data)
     })
     .on('error', function (data) {
@@ -109,8 +109,8 @@ async function processSubs (downloadStream: ReadStream, deliveryDate: moment, st
   downloadStream.on('error', function (err) {
     throw new Error(`error reading holidaySuspensions: ${err}`)
   }).pipe(csvStream)
-  let uploads = exporters.map(async (exporter) => {
-    let outputFileName = generateFilename(deliveryDate, 'WEEKLY')
+  const uploads = exporters.map(async (exporter) => {
+    const outputFileName = generateFilename(deliveryDate, 'WEEKLY')
 
     await upload(exporter.writeCSVStream, outputFileName, exporter.folder)
     return outputFileName
@@ -118,9 +118,9 @@ async function processSubs (downloadStream: ReadStream, deliveryDate: moment, st
   return Promise.all(uploads)
 }
 
-function getDeliveryDate (input: input): Promise<moment> {
+function getDeliveryDate (input: Input): Promise<moment> {
   return new Promise((resolve, reject) => {
-    let deliveryDate = moment(input.deliveryDate, 'YYYY-MM-DD')
+    const deliveryDate = moment(input.deliveryDate, 'YYYY-MM-DD')
     if (deliveryDate.isValid()) {
       resolve(deliveryDate)
     } else {
@@ -129,14 +129,14 @@ function getDeliveryDate (input: input): Promise<moment> {
   })
 }
 
-export async function weeklyExport (input: input) {
-  let stage = await getStage()
-  let deliveryDate = await getDeliveryDate(input)
-  let holidaySuspensionsStream = await getDownloadStream(input.results, stage, HOLIDAYS_QUERY_NAME)
-  let holidaySuspensions = await getHolidaySuspensions(holidaySuspensionsStream)
-  let introductoryPeriodStream = await getDownloadStream(input.results, stage, INTRODUCTORY_QUERY_NAME)
-  let NonIntroductorySubsStream = await getDownloadStream(input.results, stage, SUBSCRIPTIONS_QUERY_NAME)
-  let subscriptionsStream = MultiStream([introductoryPeriodStream, NonIntroductorySubsStream])
-  let outputFileNames = await processSubs(subscriptionsStream, deliveryDate, stage, holidaySuspensions)
+export async function weeklyExport (input: Input) {
+  const stage = await getStage()
+  const deliveryDate = await getDeliveryDate(input)
+  const holidaySuspensionsStream = await getDownloadStream(input.results, stage, HOLIDAYS_QUERY_NAME)
+  const holidaySuspensions = await getHolidaySuspensions(holidaySuspensionsStream)
+  const introductoryPeriodStream = await getDownloadStream(input.results, stage, INTRODUCTORY_QUERY_NAME)
+  const NonIntroductorySubsStream = await getDownloadStream(input.results, stage, SUBSCRIPTIONS_QUERY_NAME)
+  const subscriptionsStream = MultiStream([introductoryPeriodStream, NonIntroductorySubsStream])
+  const outputFileNames = await processSubs(subscriptionsStream, deliveryDate, stage, holidaySuspensions)
   return outputFileNames.map(f => f.filename).join()
 }

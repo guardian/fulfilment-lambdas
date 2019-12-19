@@ -1,18 +1,18 @@
 // @flow
 import AWS from 'aws-sdk'
 import NamedError from './NamedError'
-import type { folder } from './salesforceAuthenticator'
+import type { Folder } from './salesforceAuthenticator'
 import type { S3Folder } from './storage'
 
-let s3 = new AWS.S3()
+const s3 = new AWS.S3()
 
 export type Stage = 'CODE' | 'PROD'
 const stages: Array<Stage> = ['CODE', 'PROD']
 export type fulfilmentType = "homedelivery" | "weekly"
 
 export type uploadDownload = {
-  uploadFolder: folder & S3Folder,
-  downloadFolder: folder & S3Folder
+  uploadFolder: Folder & S3Folder,
+  downloadFolder: Folder & S3Folder
 }
 export type Config = {
   stage: Stage,
@@ -55,7 +55,7 @@ export type Config = {
 
 export function getStage (): Promise<Stage> {
   return new Promise((resolve, reject) => {
-    let stage = stages.find((stage) => { return stage === process.env.Stage })
+    const stage = stages.find((stage) => { return stage === process.env.Stage })
     if (stage) {
       resolve(stage)
     } else {
@@ -78,7 +78,7 @@ function fetchConfigForStage (stage: Stage): Promise<Config> {
           console.log(`Error fetching config for S3 : ${err}`)
           reject(new NamedError('config_error', `Error fetching config for S3 : ${err}`))
         } else {
-          let json = JSON.parse(Buffer.from(data.Body))
+          const json = JSON.parse(Buffer.from(data.Body).toString())
           console.log('Config succesfully downloaded and parsed.')
           resolve({
             stage: stage,

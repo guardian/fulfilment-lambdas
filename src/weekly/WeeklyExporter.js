@@ -93,10 +93,10 @@ export class WeeklyExporter {
     if (row[SUBSCRIPTION_NAME] === 'Subscription.Name') {
       return
     }
-    let outputCsvRow = {}
-    let addressLine1 = [row[ADDRESS_1], row[ADDRESS_2]].filter(x => x).join(', ')
+    const outputCsvRow = {}
+    const addressLine1 = [row[ADDRESS_1], row[ADDRESS_2]].filter(x => x).join(', ')
 
-    let fullName = this.getFullName(row[TITLE], row[FIRST_NAME], row[LAST_NAME])
+    const fullName = this.getFullName(row[TITLE], row[FIRST_NAME], row[LAST_NAME])
 
     outputCsvRow[CUSTOMER_REFERENCE] = row[SUBSCRIPTION_NAME]
     outputCsvRow[CUSTOMER_FULL_NAME] = this.formatAddress(fullName)
