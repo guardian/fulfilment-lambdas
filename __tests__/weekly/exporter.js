@@ -7,17 +7,6 @@ let mockOutput = {}
 // mock current date
 MockDate.set('7/5/2017')
 
-function getTestFile (fileName, callback) {
-  const filePath = `./__tests__/resources/expected/${fileName}`
-  readFile(filePath, 'utf8', function (err, data) {
-    if (err) {
-      callback(err)
-      return
-    }
-    callback(null, data)
-  })
-}
-
 jest.mock('../../src/lib/storage', () => {
   const fs = require('fs')
   const streamToString = require('stream-to-string')
@@ -187,44 +176,12 @@ jest.mock('../../src/lib/config', () => ({
     })
 }))
 
-function verify (done, expectedError, expectedResponse, expectedFileNames) {
-  return function (err, res) {
-    try {
-      expect(err).toEqual(expectedError)
-      if (err) {
-        done()
-        return
-      }
-
-      if (expectedResponse) {
-        const responseAsJson = JSON.parse(JSON.stringify(res))
-        expect(responseAsJson).toEqual(expectedResponse)
-      }
-      if (expectedFileNames) {
-        expectedFileNames.map((expectedFileName) => {
-          getTestFile(expectedFileName, function (err, expectedContents) {
-            if (err) {
-              done.fail(err)
-              return
-            }
-            expect(mockOutput[expectedFileName]).toEqual(expectedContents)
-          })
-          done()
-        })
-      }
-      done()
-    } catch (error) {
-      done.fail(error)
-    }
-  }
-}
-
 beforeEach(() => {
   process.env.Stage = 'CODE'
   mockOutput = {}
 })
 
-test('should return error on missing query subscriptions query result for weekly', done => {
+it('should return error on missing query subscriptions query result for weekly', async () => {
   const input = {
     type: 'weekly',
     deliveryDate: '2017-07-06',
@@ -240,10 +197,11 @@ test('should return error on missing query subscriptions query result for weekly
     ]
   }
   const expectedError = new Error('Invalid input cannot find unique query called WeeklySubscriptions')
-  handler(input, {}, verify(done, expectedError, null, null))
+  expect.assertions(1)
+  await expect(handler(input, {})).rejects.toEqual(expectedError)
 })
 
-test('should return error on invalid deliveryDate for weekly', done => {
+it('should return error on invalid deliveryDate for weekly', async () => {
   const input = {
     type: 'weekly',
     deliveryDate: '2017-14-06',
@@ -262,10 +220,11 @@ test('should return error on invalid deliveryDate for weekly', done => {
     ]
   }
   const expectedError = new Error('invalid deliverydate expected format YYYY-MM-DD')
-  handler(input, {}, verify(done, expectedError, null, null))
+  expect.assertions(1)
+  await expect(handler(input, {})).rejects.toEqual(expectedError)
 })
 
-test('should generate correct fulfilment file for weekly', done => {
+it('should generate correct fulfilment file for weekly', async () => {
   const input = {
     type: 'weekly',
     deliveryDate: '2017-07-06',
@@ -286,16 +245,6 @@ test('should generate correct fulfilment file for weekly', done => {
   }
 
   const expectedResponse = { ...input, fulfilmentFile: '2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv' }
-  const expectedFileNames = [
-    'TEST/fulfilments/Weekly_UK/2017-07-06_WEEKLY.csv',
-    'TEST/fulfilments/Weekly_CA/2017-07-06_WEEKLY.csv',
-    'TEST/fulfilments/Weekly_CA_HAND/2017-07-06_WEEKLY.csv',
-    'TEST/fulfilments/Weekly_US/2017-07-06_WEEKLY.csv',
-    'TEST/fulfilments/Weekly_AU/2017-07-06_WEEKLY.csv',
-    'TEST/fulfilments/Weekly_FR/2017-07-06_WEEKLY.csv',
-    'TEST/fulfilments/Weekly_ROW/2017-07-06_WEEKLY.csv',
-    'TEST/fulfilments/Weekly_HK/2017-07-06_WEEKLY.csv',
-    'TEST/fulfilments/Weekly_VU/2017-07-06_WEEKLY.csv',
-    'TEST/fulfilments/Weekly_NZ/2017-07-06_WEEKLY.csv']
-  handler(input, {}, verify(done, null, expectedResponse, expectedFileNames))
+  expect.assertions(1)
+  await expect(handler(input, {})).resolves.toEqual(expectedResponse)
 })
