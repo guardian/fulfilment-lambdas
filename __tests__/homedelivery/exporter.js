@@ -1,9 +1,9 @@
 /* eslint-env jest */
 import { handler } from '../../src/exporter'
-import { readFile } from 'fs'
 var MockDate = require('mockdate')
 
-let mockOutput = null
+// eslint-disable-next-line no-unused-vars
+let mockOutput = {}
 // mock current date
 MockDate.set('7/5/2017')
 
@@ -31,7 +31,7 @@ jest.mock('../../src/lib/config', () => ({
 
 beforeEach(() => {
   process.env.Stage = 'CODE'
-  mockOutput = null
+  mockOutput = {}
 })
 
 it('should return error on missing query subscriptions query result', async () => {

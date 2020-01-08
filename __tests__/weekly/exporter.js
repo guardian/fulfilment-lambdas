@@ -1,6 +1,5 @@
 /* eslint-env jest */
 import { handler } from '../../src/exporter'
-import { readFile } from 'fs'
 var MockDate = require('mockdate')
 
 let mockOutput = {}

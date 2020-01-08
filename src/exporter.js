@@ -16,15 +16,17 @@ export type Input = {
 export async function handler (input: Input, context: ?any) {
   console.log('woohoo handler input =', input)
   console.log('woohoo handler context =', context)
-
-  let outputFileName = null
-  if (input.type === 'homedelivery') { outputFileName = await homedeliveryExport(input) }
-  else if (input.type === 'weekly') { outputFileName = await weeklyExport(input) }
-  else throw Error('No valid fulfilment type was found in input')
-
-  if (outputFileName == null) {
-    throw Error('Failed to upload fulfilement files')
-  } else {
+  const generateFulfilmentFiles = async (type) => {
+    if (type === 'homedelivery') {
+      return homedeliveryExport(input)
+    } else if (type === 'weekly') {
+      return weeklyExport(input)
+    } else throw Error('No valid fulfilment type was found in input')
+  }
+  const outputFileName = await generateFulfilmentFiles(input.type)
+  if (outputFileName) {
     return { ...input, fulfilmentFile: outputFileName }
+  } else {
+    throw Error('Failed to upload fulfilement files')
   }
 }
