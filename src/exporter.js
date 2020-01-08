@@ -2,7 +2,7 @@
 import type { fulfilmentType } from './lib/config'
 import { weeklyExport } from './weekly/export'
 import { homedeliveryExport } from './homedelivery/export'
-import { NamedError } from './lib/NamedError'
+
 export type result = {
   queryName: string,
   fileName: string
@@ -13,25 +13,18 @@ export type Input = {
   type: fulfilmentType
 }
 
-async function asyncHandler (input: Input) {
-  if (input.type === 'homedelivery') {
-    return homedeliveryExport(input)
-  }
-  if (input.type === 'weekly') {
-    return weeklyExport(input)
-  }
-  throw new Error('No valid fulfilment type was found in input')
-}
+export async function handler (input: Input, context: ?any) {
+  console.log('woohoo handler input =', input)
+  console.log('woohoo handler context =', context)
 
-export function handler (input: Input, context: ?any, callback: Function) {
-  if (input == null) {
-    callback(new NamedError('inputerror', 'Input to fetcher was invalid'))
-    return null
+  let outputFileName = null
+  if (input.type === 'homedelivery') { outputFileName = await homedeliveryExport(input) }
+  else if (input.type === 'weekly') { outputFileName = await weeklyExport(input) }
+  else throw Error('No valid fulfilment type was found in input')
+
+  if (outputFileName == null) {
+    throw Error('Failed to upload fulfilement files')
+  } else {
+    return { ...input, fulfilmentFile: outputFileName }
   }
-  asyncHandler(input)
-    .then(outputFileName => callback(null, { ...input, fulfilmentFile: outputFileName }))
-    .catch(e => {
-      console.log(e)
-      callback(e)
-    })
 }

@@ -1,5 +1,5 @@
 // @flow
-import csv from 'fast-csv'
+import * as csv from 'fast-csv'
 import moment from 'moment'
 import { formatPostCode } from './../lib/formatters'
 import { upload, createReadStream } from './../lib/storage'
@@ -67,22 +67,17 @@ function getDownloadStream (results: Array<result>, stage: string, queryName: st
 function getHolidaySuspensions (downloadStream: ReadStream): Promise<Set<string>> {
   return new Promise((resolve, reject) => {
     const suspendedSubs = new Set()
-
-    const csvStream = csv.parse({
-      headers: true
-    })
-      .on('data', function (data) {
-        const subName = data['Subscription.Name']
+    downloadStream
+      .pipe(csv.parse({ headers: true }))
+      .on('error', error => reject(Error(`Failed to read HolidaySuspensions raw CSV: ${error}`)))
+      .on('data', row => {
+        const subName = row['Subscription.Name']
         suspendedSubs.add(subName)
       })
-      .on('end', function () {
+      .on('end', rowCount => {
+        console.log(`Successfully read ${rowCount} rows of HolidaySuspensions`)
         resolve(suspendedSubs)
       })
-
-    downloadStream.on('error', function (err) {
-      reject(new Error(`error reading holidaySuspensions: ${err}`))
-    })
-      .pipe(csvStream)
   })
 }
 
@@ -94,6 +89,16 @@ function getFullName (zFirstName: string, zLastName: string) {
   return [firstName, zLastName].join(' ').trim()
 }
 
+/**
+ *  Transforms raw CSV from Zuora to expected CSV format, and uploads it to S3 under fulfilment_outputs folder.
+ *  FIXME: Rename fulfilment_outputs to something meaningful such as home_delivery!
+ *
+ * @param downloadStream raw Home Delivery CSV exported from Zuora
+ * @param deliveryDate
+ * @param stage
+ * @param holidaySuspensions subscriptions to filter out from CSV
+ * @returns {Promise<string>} the filename of result CSV in new format
+ */
 async function processSubs (downloadStream: ReadStream, deliveryDate: moment, stage: string, holidaySuspensions: Set<string>): Promise<string> {
   const sentDate = moment().format('DD/MM/YYYY')
   const chargeDay = deliveryDate.format('dddd')
@@ -102,49 +107,47 @@ async function processSubs (downloadStream: ReadStream, deliveryDate: moment, st
   const folder = config.fulfilments.homedelivery.uploadFolder
 
   console.log('loaded ' + holidaySuspensions.size + ' holiday suspensions')
-  const writeCSVStream = csv.createWriteStream({
-    headers: outputHeaders,
-    quoteColumns: true
-  })
+  const csvFormatterStream = csv.format({ headers: outputHeaders, quoteColumns: true })
 
-  const csvStream = csv.parse({
-    headers: true
-  })
-    .on('data-invalid', function (data) {
-      // TODO CAN WE LOG PII?
-      console.log('ignoring invalid data: ' + data)
-    })
-    .on('data', function (data) {
-      const subscriptionName = data[SUBSCRIPTION_NAME]
-      if (!holidaySuspensions.has(subscriptionName)) {
-        const outputCsvRow = {}
-        outputCsvRow[CUSTOMER_REFERENCE] = subscriptionName
-        outputCsvRow[CUSTOMER_TOWN] = data[CITY]
-        outputCsvRow[CUSTOMER_POSTCODE] = formatPostCode(data[POSTAL_CODE])
-        outputCsvRow[CUSTOMER_ADDRESS_LINE_1] = data[ADDRESS_1]
-        outputCsvRow[CUSTOMER_ADDRESS_LINE_2] = data[ADDRESS_2]
-        outputCsvRow[CUSTOMER_FULL_NAME] = getFullName(data[FIRST_NAME], data[LAST_NAME])
-        outputCsvRow[DELIVERY_QUANTITY] = data[QUANTITY]
-        outputCsvRow[SENT_DATE] = sentDate
-        outputCsvRow[DELIVERY_DATE] = formattedDeliveryDate
-        outputCsvRow[CHARGE_DAY] = chargeDay
-        outputCsvRow[CUSTOMER_PHONE] = data[WORK_PHONE]
-        outputCsvRow[ADDITIONAL_INFORMATION] = data[DELIVERY_INSTRUCTIONS]
-        writeCSVStream.write(outputCsvRow)
-      }
-    })
-    .on('end', function () {
-      writeCSVStream.end()
-    })
+  const writeRowToCsvStream = (row, csvStream) => {
+    const subscriptionName = row[SUBSCRIPTION_NAME]
+    if (!holidaySuspensions.has(subscriptionName)) {
+      const outputCsvRow = {}
+      outputCsvRow[CUSTOMER_REFERENCE] = subscriptionName
+      outputCsvRow[CUSTOMER_TOWN] = row[CITY]
+      outputCsvRow[CUSTOMER_POSTCODE] = formatPostCode(row[POSTAL_CODE])
+      outputCsvRow[CUSTOMER_ADDRESS_LINE_1] = row[ADDRESS_1]
+      outputCsvRow[CUSTOMER_ADDRESS_LINE_2] = row[ADDRESS_2]
+      outputCsvRow[CUSTOMER_FULL_NAME] = getFullName(row[FIRST_NAME], row[LAST_NAME])
+      outputCsvRow[DELIVERY_QUANTITY] = row[QUANTITY]
+      outputCsvRow[SENT_DATE] = sentDate
+      outputCsvRow[DELIVERY_DATE] = formattedDeliveryDate
+      outputCsvRow[CHARGE_DAY] = chargeDay
+      outputCsvRow[CUSTOMER_PHONE] = row[WORK_PHONE]
+      outputCsvRow[ADDITIONAL_INFORMATION] = row[DELIVERY_INSTRUCTIONS]
+      csvStream.write(outputCsvRow)
+    }
+  }
 
-  downloadStream.on('error', function (err) {
-    throw new Error(`error reading holidaySuspensions: ${err}`)
-  })
-    .pipe(csvStream)
+  const writableCsvPromise =
+    new Promise((resolve, reject) => {
+      downloadStream
+        .pipe(csv.parse({ headers: true }))
+        .on('error', error => {
+          console.log('Failed to write HomeDelivery CSV: ', error)
+          reject(Error(error))
+        })
+        .on('data', row => writeRowToCsvStream(row, csvFormatterStream))
+        .on('end', rowCount => {
+          console.log(`Successfully written ${rowCount} rows`)
+          csvFormatterStream.end()
+          resolve()
+        })
+    })
 
   const outputFileName = generateFilename(deliveryDate, 'HOME_DELIVERY')
-
-  await upload(writeCSVStream, outputFileName, folder)
+  await writableCsvPromise
+  await upload(csvFormatterStream, outputFileName, folder)
   return outputFileName.filename
 }
 

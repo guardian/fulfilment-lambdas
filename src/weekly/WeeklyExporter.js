@@ -1,5 +1,5 @@
 // @flow
-import csv from 'fast-csv'
+import * as csv from 'fast-csv'
 import moment from 'moment'
 import type { S3Folder } from './../lib/storage'
 import { getCanadianState, getUSState } from './../lib/states'
@@ -51,10 +51,7 @@ export class WeeklyExporter {
 
   constructor (country: string, deliveryDate: moment, folder: S3Folder) {
     this.country = country
-    this.writeCSVStream = csv.createWriteStream({
-      headers: outputHeaders,
-      quoteColumns: true
-    })
+    this.writeCSVStream = csv.format({ headers: outputHeaders, quoteColumns: true })
 
     this.sentDate = moment().format('DD/MM/YYYY')
     this.chargeDay = deliveryDate.format('dddd')

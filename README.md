@@ -61,6 +61,30 @@ This will transpile any ES6/7 into javascript which will run on the Node environ
 1. wait for it to finish
 1. check that the fulfilment files appeared in S3 fulfilment-export-code/fulfilment_output
 
+## Skipping TeamCity for quicker development feedback loop in CODE
+
+1. Set `"uploadArtefact": false,` at the root of `package.json` which disables automatic upload of the zipped artefact
+1. Simulate TC build by creating yarn script which
+    ```
+    "mario": "yarn install && yarn check && yarn flow && yarn compile && yarn dist && yarn riffraff"
+    ```
+1. Execute with `yarn mario`
+1. Artefact is created under `fulfilment-lambdas/target/riffraff/fulfilment-lambdas/fulfilment-lambdas.zip`
+1. Manually upload lambda function code to CODE via AWS Console
+1. Run step function
+1. Check S3 bucket
+
+## Map of names
+
+|AWS name                        |Meaning             |
+|--------------------------------|--------------------|
+|QueryZuora step                 |querier.js          |
+|FetchResults step               |fetcher.js          |
+|GenerateFulfilmentFiles step    |exporter.js         |
+|zuoraExport S3                  |raw zuora CSV export|
+|fulfilments S3                  |Guardian Weekly     |
+|fulfilment_output S3            |Home Delivery       |
+
 ## Build and Deployment
 
 We use TeamCity for CI on this project.

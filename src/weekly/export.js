@@ -1,5 +1,5 @@
 // @flow
-import csv from 'fast-csv'
+import * as csv from 'fast-csv'
 import moment from 'moment'
 import MultiStream from 'multistream'
 import { upload, createReadStream } from './../lib/storage'
@@ -46,24 +46,33 @@ function getDownloadStream (results: Array<result>, stage: string, queryName: st
 function getHolidaySuspensions (downloadStream: ReadStream): Promise<Set<string>> {
   return new Promise((resolve, reject) => {
     const suspendedSubs = new Set()
-
-    const csvStream = csv.parse({
-      headers: true
-    })
-      .on('data', function (data) {
-        const subName = data['Subscription.Name']
+    downloadStream
+      .pipe(csv.parse({ headers: true }))
+      .on('error', error => {
+        console.log('Failed to get HolidaySuspensions CSV: ', error)
+        reject(Error(error))
+      })
+      .on('data', row => {
+        const subName = row['Subscription.Name']
         suspendedSubs.add(subName)
       })
-      .on('end', function () {
+      .on('end', rowCount => {
+        console.log(`Successfully write ${rowCount} rows`)
         resolve(suspendedSubs)
       })
-
-    downloadStream.on('error', function (err) {
-      reject(new Error(`error reading holidaySuspensions: ${err}`))
-    })
-      .pipe(csvStream)
   })
 }
+
+/**
+ * Transfroms raw CSV from Zuora to expected CSV format, splits it per regions, and uploads it to S3 fulfilments folder.
+ * FIXME: Rename fulfilments to something meaningful such as guardian_weekly!
+ *
+ * @param downloadStream raw Guardian Weekly CSV exported from Zuora
+ * @param deliveryDate
+ * @param stage
+ * @param holidaySuspensions subscriptions to filter out from CSV
+ * @returns {Promise<Filename[]>}
+ */
 async function processSubs (downloadStream: ReadStream, deliveryDate: moment, stage: string, holidaySuspensions: Set<string>): Promise<Array<Filename>> {
   const config = await fetchConfig()
   console.log('loaded ' + holidaySuspensions.size + ' holiday suspensions')
@@ -82,36 +91,32 @@ async function processSubs (downloadStream: ReadStream, deliveryDate: moment, st
     rowExporter
   ]
 
-  const csvStream = csv.parse({
-    headers: true
-  })
-    .on('data-invalid', function (data) {
-      // TODO CAN WE LOG PII?
-      console.log('ignoring invalid data: ' + data)
-    })
-    .on('data', (data) => {
-      const subscriptionName = data[SUBSCRIPTION_NAME]
-      if (holidaySuspensions.has(subscriptionName)) return
-      const selectedExporter = exporters.find(exporter => exporter.useForRow(data)) || rowExporter
-      selectedExporter.processRow(data)
-    })
-    .on('error', function (data) {
-      console.log('Error processing csv:')
-      console.log(data)
-      return false
-    })
-    .on('end', function () {
-      exporters.map(exporter => {
-        exporter.end()
-      })
+  const writableCsvPromise =
+    new Promise((resolve, reject) => {
+      downloadStream
+        .pipe(csv.parse({ headers: true }))
+        .on('error', error => {
+          console.log('ignoring invalid data: ', error)
+          reject(Error(error))
+        })
+        .on('data', row => {
+          const subscriptionName = row[SUBSCRIPTION_NAME]
+          if (holidaySuspensions.has(subscriptionName)) return
+          const selectedExporter = exporters.find(exporter => exporter.useForRow(row)) || rowExporter
+          selectedExporter.processRow(row)
+        })
+        .on('end', rowCount => {
+          console.log(`Successfully written ${rowCount} rows`)
+          exporters.map(exporter => {
+            exporter.end()
+          })
+          resolve()
+        })
     })
 
-  downloadStream.on('error', function (err) {
-    throw new Error(`error reading holidaySuspensions: ${err}`)
-  }).pipe(csvStream)
+  await writableCsvPromise
   const uploads = exporters.map(async (exporter) => {
     const outputFileName = generateFilename(deliveryDate, 'WEEKLY')
-
     await upload(exporter.writeCSVStream, outputFileName, exporter.folder)
     return outputFileName
   })
