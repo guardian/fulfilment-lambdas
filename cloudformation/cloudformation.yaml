@@ -18,6 +18,10 @@ Mappings:
     PROD:
       "logs": "fulfilment-s3-logs-prod"
       "export": "fulfilment-export-prod"
+  Constants:
+    Alarm:
+      Process: Follow the process in https://docs.google.com/document/d/1_3El3cly9d7u_jPgTcRjLxmdG2e919zCLvmcFCLOYAk/edit
+      Urgent: URGENT 9-5 -
 Resources:
   FulfilmentAccessLogBucket:
     Type: "AWS::S3::Bucket"
@@ -576,14 +580,20 @@ Resources:
       ComparisonOperator: LessThanThreshold
     DependsOn: fulfilmentCheckerMetricFilter
 
-  ExecutionFailureAlarm:
+  FulfilmentStateMachineAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: CreateProdResources
     Properties:
       AlarmActions:
       - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:fulfilment-dev
-      AlarmName: !Sub State Machine Failure in ${Stage} (Fulfilment state machine)
-      AlarmDescription: The fulfilment state machine failed during execution - please investigate.
+      AlarmName: !Join
+        - ' '
+        - - !FindInMap [ Constants, Alarm, Urgent ]
+          - !Ref 'Stage'
+          - 'Failed to generate GW and HD fulfilment files'
+      AlarmDescription: !Join
+        - ' '
+        - - 'Impact - Guardian Weekly and Home Delivery subscribes will not get their paper. Fix FulfilmentStateMachine ASAP!'
+          - !FindInMap [ Constants, Alarm, Process ]
       MetricName: ExecutionsFailed
       Namespace: AWS/States
       Dimensions:
