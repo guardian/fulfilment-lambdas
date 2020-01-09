@@ -74,16 +74,20 @@ This will transpile any ES6/7 into javascript which will run on the Node environ
 1. Run step function
 1. Check S3 bucket
 
-## Map of names
+## Glossary
 
-|AWS name                        |Meaning             |
-|--------------------------------|--------------------|
-|QueryZuora step                 |querier.js          |
-|FetchResults step               |fetcher.js          |
-|GenerateFulfilmentFiles step    |exporter.js         |
-|zuoraExport S3                  |raw zuora CSV export|
-|fulfilments S3                  |Guardian Weekly     |
-|fulfilment_output S3            |Home Delivery       |
+|System           |Name                             |Description                                                                           |
+|-----------------|---------------------------------|--------------------------------------------------------------------------------------|
+|AWS Step         |QueryZuora                       |`querier.js`                                                                          |
+|AWS Step         |FetchResults                     |`fetcher.js`                                                                          |
+|AWS Step         |GenerateFulfilmentFiles          |`exporter.js`                                                                         |
+|AWS S3           |zuoraExport                      |raw zuora CSV export                                                                  |
+|AWS S3           |fulfilments                      |Guardian Weekly                                                                       |
+|AWS S3           |fulfilment_output                |Home Delivery                                                                         |
+|AWS S3           |uploaded                         |Home Delivery manually uploaded files to SF                                           |
+|AWS API          |fulfilment-api                   |API hit by SF to manually trigger upload of Home Delivery via `salesforce_uploader.js`|
+|SF Document      |Home Delivery Pipeline Fulfilment|Document where Home Delivery CSV is uploaded via 'Home Delivery Reports' page         |
+|SF Page          |Home Delivery Reports            |Page where CSR can manually trigger upload of Home Delivery CSV                       |
 
 ## Build and Deployment
 
