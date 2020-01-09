@@ -76,18 +76,20 @@ This will transpile any ES6/7 into javascript which will run on the Node environ
 
 ## Glossary
 
-|System           |Name                             |Description                                                                           |
-|-----------------|---------------------------------|--------------------------------------------------------------------------------------|
-|AWS Step         |QueryZuora                       |`querier.js`                                                                          |
-|AWS Step         |FetchResults                     |`fetcher.js`                                                                          |
-|AWS Step         |GenerateFulfilmentFiles          |`exporter.js`                                                                         |
-|AWS S3           |zuoraExport                      |raw zuora CSV export                                                                  |
-|AWS S3           |fulfilments                      |Guardian Weekly                                                                       |
-|AWS S3           |fulfilment_output                |Home Delivery                                                                         |
-|AWS S3           |uploaded                         |Home Delivery manually uploaded files to SF                                           |
-|AWS API          |fulfilment-api                   |API hit by SF to manually trigger upload of Home Delivery via `salesforce_uploader.js`|
-|SF Document      |Home Delivery Pipeline Fulfilment|Document where Home Delivery CSV is uploaded via 'Home Delivery Reports' page         |
-|SF Page          |Home Delivery Reports            |Page where CSR can manually trigger upload of Home Delivery CSV                       |
+|System           |Name                             |Description                                                                                |
+|-----------------|---------------------------------|------------------------------------------------------------------------------------------ |
+|AWS Step         |QueryZuora                       |`querier.js`                                                                               |
+|AWS Step         |FetchResults                     |`fetcher.js`                                                                               |
+|AWS Step         |GenerateFulfilmentFiles          |`exporter.js`                                                                              |
+|AWS S3           |zuoraExport                      |raw zuora CSV export                                                                       |
+|AWS S3           |fulfilments                      |Guardian Weekly                                                                            |
+|AWS S3           |fulfilment_output                |Home Delivery                                                                              |
+|AWS S3           |uploaded                         |Home Delivery manually uploaded files to SF                                                |
+|AWS API          |fulfilment-api                   |API hit by SF to manually trigger upload of Home Delivery via `salesforce_uploader.js`     |
+|SF Document      |Home_Delivery_Pipeline_Fulfilment|Document where Home Delivery CSV is manually uploaded via 'Home Delivery Reports' page     |
+|SF Document      |weekly_sample_files              |Document where Guardian weekly CSV is automatically uploaded on a schedule                 |
+|SF Page          |Home Delivery Reports            |Page where CSR can manually trigger upload of Home Delivery CSV                            |
+|SF User          |Fulfilment User API              |Credentials for upload to SF are in gu-reader-revenue-private/membership/fulfilment-lambdas|
 
 ## Build and Deployment
 

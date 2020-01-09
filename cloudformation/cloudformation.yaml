@@ -149,7 +149,7 @@ Resources:
     Properties:
       FunctionName:
           !Sub salesforce_uploader-${Stage}
-      Description: "upload fulfilment files to salesforce"
+      Description: "Upload Home Delivery fulfilment files to Salesforce document Home_Delivery_Pipeline_Fulfilment"
       Handler: "salesforce_uploader.handler"
       Role: !GetAtt [ FulfilmentWorkersLambdaRole, Arn ]
       Code:
@@ -338,7 +338,7 @@ Resources:
   FulfilmentAPI:
       Type: "AWS::ApiGateway::RestApi"
       Properties:
-          Description: upload fulfilment files to salesforce
+          Description: Upload Home Delivery fulfilment files to Salesforce document Home_Delivery_Pipeline_Fulfilment
           Name: !Sub fulfilment-api-${Stage}
 
   FulfilmentProxyResource:
@@ -478,7 +478,6 @@ Resources:
         - 
           Arn: !GetAtt SalesforceDownloaderLambda.Arn
           Id: !Sub salesforceDownloader_[STAGE]
-
     DependsOn: FulfilmentStateMachine_[STAGE]
 
   fulfilmentTriggerRole:
