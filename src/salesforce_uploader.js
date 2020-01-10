@@ -49,6 +49,14 @@ async function copyToUploadedFolder (stage, s3Path, sfFileName) {
   }
 }
 
+/**
+ *  Example input:
+ *    Header: apiToken:*********
+ *    Body: { "date":"2020-01-10",  "amount":1}
+ *
+ *  The apiToken is specified in fulfilment.private.json under expectedToken.
+ *  FIXME: Why not just use API Gateway provided API Keys?
+ */
 export function handler (input: apiGatewayLambdaInput, context: any, callback: (error: any, apiResponse: ApiResponse) => void) {
   function validationError (message) {
     console.log(message)
