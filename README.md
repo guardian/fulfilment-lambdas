@@ -81,6 +81,8 @@ This will transpile any ES6/7 into javascript which will run on the Node environ
 |AWS Step         |QueryZuora                       |`querier.js`                                                                               |
 |AWS Step         |FetchResults                     |`fetcher.js`                                                                               |
 |AWS Step         |GenerateFulfilmentFiles          |`exporter.js`                                                                              |
+|AWS Lambda       |salesforce_uploader              |`salesforce_uploader.js` uploads Home Delivery; behind fulfilment-api                      |
+|AWS Lambda       |weekly-fulfilmentUploader        |`/weekly/salesforce_uploader.js` uploads Guardian Weekly; triggered on a schedule          |
 |AWS S3           |zuoraExport                      |raw zuora CSV export                                                                       |
 |AWS S3           |fulfilments                      |Guardian Weekly                                                                            |
 |AWS S3           |fulfilment_output                |Home Delivery                                                                              |

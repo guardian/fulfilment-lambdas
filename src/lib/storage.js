@@ -77,7 +77,7 @@ export async function createReadStream (path: string) {
 export async function getObject (path: string) {
   const bucket = await getBucket()
   const options = { Bucket: bucket, Key: path }
-  console.log(`Retrieving file ${options.Key} from S3 bucket ${options.Bucket}.`)
+  console.log(`Retrieving from S3 ${options.Bucket}/${options.Key}`)
   return s3.getObject(options).promise()
 }
 

@@ -54,7 +54,7 @@
     "clean": "rm -rf dist && rm -rf target && rm -f cloudformation/prod.yaml && rm -f  cloudformation/code.yaml",
     "lint": "standard | snazzy",
     "test": "jest --runInBand",
-    "mario": "yarn install && yarn check && yarn flow && yarn compile && yarn test && yarn dist && yarn riffraff"
+    "mario": "yarn install && yarn check && yarn flow && yarn compile && yarn dist && yarn riffraff"
   },
   "dependencies": {
     "fast-csv": "4.0.2",

@@ -2,6 +2,7 @@
 import type { Salesforce, Folder } from './salesforceAuthenticator'
 import type { S3Folder } from './storage'
 import { getObject } from './storage'
+import util from 'util'
 
 export type sfDestination = {
   sfDescription: string,
@@ -19,45 +20,32 @@ export type UploadInfo = {
 }
 
 export async function uploadFiles (filesToUpload: UploadInfo[], salesforce: Salesforce) {
-  const filePromises = filesToUpload.map(async fileToUpload => {
-    const fileData = await getFileData(fileToUpload.source)
+  const filesFromS3 = filesToUpload.map(async fileToUpload => {
+    const fileData = await getFromS3(fileToUpload.source)
     return {
       destination: fileToUpload.destination,
       fileData: fileData
     }
   })
-
-  const allFileResponse = await Promise.all(filePromises)
-  const successfulFileResponses = allFileResponse.filter(f => f.fileData.file != null)
-  const uploadResults = successfulFileResponses.map(f => { return uploadFile(f, salesforce) })
+  const s3files = await Promise.all(filesFromS3)
+  const uploadResults = s3files.map(s3File => uploadToSalesforce(s3File, salesforce))
   return Promise.all(uploadResults)
 }
 
-async function uploadFile (fUp: FileUpload, salesforce: Salesforce) {
+async function uploadToSalesforce (fUp: FileUpload, salesforce: Salesforce) {
   const folderName = fUp.destination.sfFolder.name
   const sfFileName = fUp.destination.fileName
-  console.log(`uploading ${sfFileName} to ${folderName}`)
+  console.log(`Uploading to Salesforce ${folderName}/${sfFileName}`)
   const uploadResult = await salesforce.uploadDocument(sfFileName, fUp.destination.sfFolder, fUp.destination.sfDescription, fUp.fileData.file.Body)
-  return Promise.resolve({
-    name: sfFileName,
-    id: uploadResult.id
-  })
+  return { name: sfFileName, id: uploadResult.id }
 }
 
-async function getFileData (source: S3Folder) {
-  const s3Path = source.prefix
+async function getFromS3 (source: S3Folder) {
   try {
+    const s3Path = source.prefix
     const file = await getObject(s3Path)
-    return Promise.resolve({
-      s3Path: s3Path,
-      file: file
-    })
+    return { s3Path: s3Path, file: file }
   } catch (err) {
-    console.log(`could not download ${source.prefix}, error from S3:`)
-    console.log(err)
-    return Promise.resolve({
-      s3Path: s3Path,
-      file: null
-    })
+    throw new Error(`Failed to download ${source.prefix} from S3 ${util.inspect(err)}`)
   }
 }

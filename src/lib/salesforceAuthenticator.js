@@ -58,9 +58,6 @@ export class Salesforce {
       Name: path,
       Type: 'csv'
     }
-    console.log('Building SF upload.')
-
-    const url = '/services/data/v23.0/sobjects/Document/' // NOT FOR UPDATING
 
     // don't try to make the form with a stream from s3 or by appending form sections
     const form = {
@@ -73,6 +70,7 @@ export class Salesforce {
       Body: { value: body, options: { contentType: 'text/csv', filename: path } }
     }
 
+    const url = '/services/data/v23.0/sobjects/Document/' // NOT FOR UPDATING
     const uploadResult = await this.post(url, form)
     const parsed = JSON.parse(uploadResult)
 
