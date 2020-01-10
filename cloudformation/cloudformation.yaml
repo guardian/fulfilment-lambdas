@@ -607,33 +607,6 @@ Resources:
       TreatMissingData: notBreaching
     DependsOn: FulfilmentStateMachine_[STAGE]
 
-  HomeDeliveryUploadToSalesforceLambdaAlarm:
-    Type: AWS::CloudWatch::Alarm
-    Properties:
-      AlarmActions:
-        - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:fulfilment-dev
-      AlarmName: !Join
-        - ' '
-        - - !FindInMap [ Constants, Alarm, Urgent ]
-          - !Ref 'Stage'
-          - 'Failed to upload Home Delivery fulfilment files to Salesforce - lambda'
-      AlarmDescription: !Join
-        - ' '
-        - - 'Impact - Home Delivery subscribers will not get their paper. Investigate SalesforceUploaderLambda ASAP! '
-          - !FindInMap [ Constants, Alarm, Process ]
-      MetricName: Errors
-      Namespace: AWS/Lambda
-      Dimensions:
-        - Name: FunctionName
-          Value: !Ref SalesforceUploaderLambda
-      ComparisonOperator: GreaterThanOrEqualToThreshold
-      Threshold: 1
-      Period: 60
-      EvaluationPeriods: 1
-      Statistic: Sum
-      TreatMissingData: notBreaching
-    DependsOn: SalesforceUploaderLambda
-
   HomeDeliveryUploadToSalesforceApiAlarm:
     Type: AWS::CloudWatch::Alarm
     Properties:
@@ -643,7 +616,7 @@ Resources:
         - ' '
         - - !FindInMap [ Constants, Alarm, Urgent ]
           - !Ref 'Stage'
-          - 'Failed to upload Home Delivery fulfilment files to Salesforce - API'
+          - 'Failed to upload Home Delivery fulfilment files to Salesforce'
       AlarmDescription: !Join
         - ' '
         - - 'Impact - Home Delivery subscribers will not get their paper. Investigate fulfilment-api Gateway ASAP! '
