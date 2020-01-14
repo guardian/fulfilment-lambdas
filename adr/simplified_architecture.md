@@ -28,6 +28,7 @@ TODO
 
 * Less moving parts
     * single lambda, no need for streaming, no need for S3, direct upload to Salesforce, no need for API, no need for Step Function
+    * file generation is completing within 15 minutes so single lambda is viable
 * Alerting and fallback mechanisms would still be in place
 * Rewriting it in Scala would fit with the rest of [`support-service-lambdas`](https://github.com/guardian/support-service-lambdas)
 * This is a critical path for SX, and we could re-design around alarming from the get-go.
