@@ -51,10 +51,18 @@ This will transpile any ES6/7 into javascript which will run on the Node environ
 1. Deploy your branch to CODE using riffraff
 1. Go to the step functions section in AWS
 1. Copy the input from one of the existing e.g.
-```
+```json
 {
   "deliveryDateDaysFromNow": 5,
   "type": "homedelivery"
+}
+```
+or
+```json
+{
+  "type": "weekly",
+  "deliveryDayOfWeek": "friday",
+  "minDaysInAdvance": 8
 }
 ```
 1. create a new execution and call it what you like, and pass in the json

@@ -7,6 +7,7 @@ import type { Config } from './lib/config'
 import { ls, upload } from './lib/storage'
 
 import stream from 'stream'
+import getStream from 'get-stream'
 
 export function handler (input:?any, context:?any, callback:Function) {
   downloader().then((r) => {
@@ -44,13 +45,14 @@ async function download (config: Config, salesforce: Salesforce, folder: Folder 
     return !keys.includes(d.Name)
   })
 
-  const uploads = filtered.map(doc => {
+  const uploads = filtered.map(async (doc) => {
     console.log('Starting download of ', doc.Name)
     const dl = salesforce.getStream(`${doc.attributes.url}/Body`)
     const st = new stream.PassThrough()
     dl.pipe(st)
     console.log('Starting upload to S3 ')
-    return upload(st, doc.Name, folder)
+    const streamAsString = await getStream(stream)
+    return upload(streamAsString, doc.Name, folder)
   })
   console.log('Performing upload/downloads.')
   const status = await Promise.all(uploads)

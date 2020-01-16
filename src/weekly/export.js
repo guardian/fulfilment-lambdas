@@ -9,6 +9,7 @@ import { generateFilename } from './../lib/Filename'
 import type { Filename } from './../lib/Filename'
 import { WeeklyExporter, CaExporter, CaHandDeliveryExporter, USExporter, UpperCaseAddressExporter } from './WeeklyExporter'
 import type { result, Input } from '../exporter'
+import getStream from 'get-stream'
 
 const SUBSCRIPTION_NAME = 'Subscription.Name'
 const HOLIDAYS_QUERY_NAME = 'WeeklyHolidaySuspensions'
@@ -117,7 +118,13 @@ async function processSubs (downloadStream: ReadStream, deliveryDate: moment, st
   await writableCsvPromise
   const uploads = exporters.map(async (exporter) => {
     const outputFileName = generateFilename(deliveryDate, 'WEEKLY')
-    await upload(exporter.writeCSVStream, outputFileName, exporter.folder)
+    /**
+     * WARNING: Although AWS S3.upload docs seem to indicate we can upload a stream object directly via
+     * 'Body: stream' params field, it does not seem to work with the stream provided by csv-parser,
+     * thus we had to convert the stream to string using get-stream package.
+     */
+    const streamAsString = await getStream(exporter.writeCSVStream)
+    await upload(streamAsString, outputFileName, exporter.folder)
     return outputFileName
   })
   return Promise.all(uploads)

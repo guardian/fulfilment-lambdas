@@ -8,7 +8,7 @@ export type input = {jobId: string, deliveryDate: string}
 
 async function uploadFile (fileData, config):Promise<result> {
   const savePath = `zuoraExport/${fileData.fileName}`
-  const result = await upload(fileData.data, savePath)
+  const result = await upload(fileData.data.toString(), savePath)
   return {
     queryName: fileData.batchName,
     fileName: fileData.fileName,

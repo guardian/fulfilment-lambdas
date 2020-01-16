@@ -1,6 +1,7 @@
 /* eslint-env jest */
 
 import { handler } from '../../src/querier'
+
 var MockDate = require('mockdate')
 
 // mock current date
@@ -34,54 +35,30 @@ jest.mock('request', () => {
   }
 })
 
-function verify (done, expectedError, expectedResponse) {
-  return function (err, res) {
-    try {
-      expect(err).toEqual(expectedError)
-      if (err) {
-        done()
-        return
-      }
-
-      if (expectedResponse) {
-        const responseAsJson = JSON.parse(JSON.stringify(res))
-        expect(responseAsJson).toEqual(expectedResponse)
-      }
-      done()
-    } catch (error) {
-      done.fail(error)
-    }
-  }
-}
-
-test('should return error if missing delivery date and deliveryDateDaysFromNow ', done => {
-  const input = { type: 'homedelivery' }
-  const expectedError = new Error('deliveryDate or deliveryDateDaysFromNow input param must be provided')
-
-  handler(input, {}, verify(done, expectedError, null))
+test('should return error if missing delivery date and deliveryDateDaysFromNow ', async () => {
+  await expect(handler({ type: 'homedelivery' }, {})).rejects.toThrow()
 })
 
-test('should return error if delivery date is in the wrong format', done => {
+test('should return error if delivery date is in the wrong format', async () => {
   const input = {
     deliveryDate: 'wrong format', type: 'homedelivery'
   }
-  const expectedError = Error('deliveryDate must be in the format "YYYY-MM-DD"')
 
-  handler(input, {}, verify(done, expectedError, null))
+  await expect(handler(input, {})).rejects.toThrow()
 })
 
-test('should query zuora for specific date', done => {
+it('should query zuora for specific date', async () => {
   const input = {
     deliveryDate: '2017-07-06', type: 'homedelivery'
   }
   const expectedResponse = { ...input, jobId: 'someId' }
-  handler(input, {}, verify(done, null, expectedResponse))
+  await expect(handler(input, {})).resolves.toEqual(expectedResponse)
 })
 
-test('should query zuora for daysFromNow', done => {
+it('should query zuora for daysFromNow', async () => {
   const input = {
     deliveryDateDaysFromNow: 5, type: 'homedelivery'
   }
   const expectedResponse = { ...input, deliveryDate: '2017-07-10', jobId: 'someId' }
-  handler(input, {}, verify(done, null, expectedResponse))
+  await expect(handler(input, {})).resolves.toEqual(expectedResponse)
 })

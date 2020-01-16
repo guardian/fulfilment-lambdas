@@ -2,20 +2,13 @@
 import { handler } from '../../src/exporter'
 var MockDate = require('mockdate')
 
-// eslint-disable-next-line no-unused-vars
-let mockOutput = {}
 // mock current date
 MockDate.set('7/5/2017')
 
 jest.mock('../../src/lib/storage', () => {
   const fs = require('fs')
-  const streamToString = require('stream-to-string')
-
   return {
-    upload: async (stream, outputLocation) => {
-      mockOutput = await streamToString(stream)
-      return outputLocation
-    },
+    upload: async (stringSource, outputLocation) => outputLocation,
     createReadStream: async (filePath) => {
       const testFilePath = `./__tests__/resources/${filePath}`
       console.log(`loading test file ${testFilePath} ...`)
@@ -31,7 +24,6 @@ jest.mock('../../src/lib/config', () => ({
 
 beforeEach(() => {
   process.env.Stage = 'CODE'
-  mockOutput = {}
 })
 
 it('should return error on missing query subscriptions query result', async () => {
@@ -45,9 +37,7 @@ it('should return error on missing query subscriptions query result', async () =
       }
     ]
   }
-  const expectedError = new Error('Invalid input cannot find unique query called Subscriptions')
-  expect.assertions(1)
-  await expect(handler(input, {})).rejects.toEqual(expectedError)
+  await expect(handler(input, {})).rejects.toThrow()
 })
 
 it('should return error on invalid deliveryDate', async () => {
@@ -61,9 +51,7 @@ it('should return error on invalid deliveryDate', async () => {
       }
     ]
   }
-  const expectedError = new Error('invalid deliverydate expected format YYYY-MM-DD')
-  expect.assertions(1)
-  await expect(handler(input, {})).rejects.toEqual(expectedError)
+  await expect(handler(input, {})).rejects.toThrow()
 })
 
 it('should generate correct fulfilment file', async () => {
@@ -83,6 +71,5 @@ it('should generate correct fulfilment file', async () => {
   }
   const expectedFileName = '2017-07-06_HOME_DELIVERY.csv'
   const expectedResponse = { ...input, fulfilmentFile: expectedFileName }
-  expect.assertions(1)
   await expect(handler(input, {})).resolves.toEqual(expectedResponse)
 })

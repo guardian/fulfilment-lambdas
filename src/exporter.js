@@ -2,6 +2,7 @@
 import type { fulfilmentType } from './lib/config'
 import { weeklyExport } from './weekly/export'
 import { homedeliveryExport } from './homedelivery/export'
+import util from 'util'
 
 export type result = {
   queryName: string,
@@ -14,19 +15,18 @@ export type Input = {
 }
 
 export async function handler (input: Input, context: ?any) {
-  console.log('woohoo handler input =', input)
-  console.log('woohoo handler context =', context)
   const generateFulfilmentFiles = async (type) => {
     if (type === 'homedelivery') {
       return homedeliveryExport(input)
     } else if (type === 'weekly') {
       return weeklyExport(input)
-    } else throw Error('No valid fulfilment type was found in input')
+    } else throw Error(`Invalid type field ${util.inspect(input)}`)
   }
-  const outputFileName = await generateFulfilmentFiles(input.type)
-  if (outputFileName) {
+
+  try {
+    const outputFileName = await generateFulfilmentFiles(input.type)
     return { ...input, fulfilmentFile: outputFileName }
-  } else {
-    throw Error('Failed to upload fulfilement files')
+  } catch (err) {
+    throw new Error(`Failed to generate fulfilment files in S3: ${util.inspect(err)}`)
   }
 }

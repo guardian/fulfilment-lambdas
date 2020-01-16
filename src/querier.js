@@ -1,10 +1,9 @@
 // @flow
-
-import { NamedError } from './lib/NamedError'
 import { homedeliveryQuery } from './homedelivery/query'
 import { weeklyQuery } from './weekly/query'
 import type { fulfilmentType } from './lib/config'
-import type { input as output } from './fetcher'
+import util from 'util'
+
 export type Input = {
   type: fulfilmentType,
   deliveryDate: ?string,
@@ -12,20 +11,18 @@ export type Input = {
   deliveryDayOfWeek: ?string,
   minDaysInAdvance: ?number
 }
-export function handler (input: ?Input, context:?any, callback:Function) {
-  if (input == null) {
-    callback(new NamedError('inputerror', 'Input to fetcher was invalid'))
-    return null
+export async function handler (input: Input, context:?any) {
+  const startZuoraBatchJobs = async () => {
+    if (input.type === 'homedelivery') {
+      return homedeliveryQuery(input)
+    } else if (input.type === 'weekly') {
+      return weeklyQuery(input)
+    } else throw Error(`Invalid type field ${util.inspect(input)}`)
   }
-  asyncHandler(input).then(res => callback(null, { ...input, jobId: res.jobId, deliveryDate: res.deliveryDate }))
-    .catch(error => callback(error))
-}
-async function asyncHandler (input: Input): Promise<output> {
-  if (input.type === 'homedelivery') {
-    return homedeliveryQuery(input)
+  try {
+    const res = await startZuoraBatchJobs()
+    return { ...input, jobId: res.jobId, deliveryDate: res.deliveryDate }
+  } catch (err) {
+    throw new Error(`Failed to start Zuora export batch jobs ${util.inspect(err)}`)
   }
-  if (input.type === 'weekly') {
-    return weeklyQuery(input)
-  }
-  throw NamedError('notype', 'No valid fulfilment type was found in input')
 }

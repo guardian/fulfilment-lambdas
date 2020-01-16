@@ -30,7 +30,7 @@
     "replace": "^1.1.1",
     "snazzy": "^8.0.0",
     "standard": "^14.3.1",
-    "stream-to-string": "^1.2.0"
+    "string-width": "^4.2.0"
   },
   "scripts": {
     "riffraff-artefact": "./node_modules/.bin/riffraff-artefact",
@@ -54,11 +54,13 @@
     "clean": "rm -rf dist && rm -rf target && rm -f cloudformation/prod.yaml && rm -f  cloudformation/code.yaml",
     "lint": "standard | snazzy",
     "test": "jest --runInBand",
-    "mario": "yarn install && yarn check && yarn flow && yarn compile && yarn dist && yarn riffraff"
+    "tc": "yarn install && yarn check && yarn flow && yarn compile && yarn dist && yarn riffraff",
+    "testOnly": "jest -t 'should generate correct fulfilment file'"
   },
   "dependencies": {
     "fast-csv": "4.0.2",
     "get-stream": "^5.1.0",
+    "http-signature": "^1.3.1",
     "lodash-es": "^4.17.4",
     "moment": "^2.19.3",
     "multistream": "^2.1.0",

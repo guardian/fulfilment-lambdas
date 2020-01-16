@@ -6,6 +6,7 @@ import { upload, createReadStream } from './../lib/storage'
 import { ReadStream } from 'fs'
 import { getStage, fetchConfig } from './../lib/config'
 import { generateFilename } from './../lib/Filename'
+import getStream from 'get-stream'
 import type { result, Input } from '../exporter'
 
 // input headers
@@ -141,13 +142,19 @@ async function processSubs (downloadStream: ReadStream, deliveryDate: moment, st
         .on('end', rowCount => {
           console.log(`Successfully written ${rowCount} rows`)
           csvFormatterStream.end()
-          resolve()
+          resolve(csvFormatterStream)
         })
     })
 
   const outputFileName = generateFilename(deliveryDate, 'HOME_DELIVERY')
-  await writableCsvPromise
-  await upload(csvFormatterStream, outputFileName, folder)
+  const stream = await writableCsvPromise
+  /**
+   * WARNING: Although AWS S3.upload docs seem to indicate we can upload a stream object directly via
+   * 'Body: stream' params field, it does not seem to work with the stream provided by csv-parser,
+   * thus we had to convert the stream to string using get-stream package.
+   */
+  const streamAsString = await getStream(stream)
+  await upload(streamAsString, outputFileName, folder)
   return outputFileName.filename
 }
 

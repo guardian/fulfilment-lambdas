@@ -2,20 +2,14 @@
 import { handler } from '../../src/exporter'
 var MockDate = require('mockdate')
 
-let mockOutput = {}
 // mock current date
 MockDate.set('7/5/2017')
 
 jest.mock('../../src/lib/storage', () => {
   const fs = require('fs')
-  const streamToString = require('stream-to-string')
 
   return {
-    upload: async (stream, outputLocation, folder) => {
-      const outputPath = folder.prefix + outputLocation.filename
-      mockOutput[outputPath] = await streamToString(stream)
-      return outputLocation
-    },
+    upload: async (stringSource, outputLocation) => outputLocation,
     createReadStream: async (filePath) => {
       const testFilePath = `./__tests__/resources/${filePath}`
       console.log(`loading test file ${testFilePath} ...`)
@@ -177,7 +171,6 @@ jest.mock('../../src/lib/config', () => ({
 
 beforeEach(() => {
   process.env.Stage = 'CODE'
-  mockOutput = {}
 })
 
 it('should return error on missing query subscriptions query result for weekly', async () => {
@@ -195,9 +188,7 @@ it('should return error on missing query subscriptions query result for weekly',
       }
     ]
   }
-  const expectedError = new Error('Invalid input cannot find unique query called WeeklySubscriptions')
-  expect.assertions(1)
-  await expect(handler(input, {})).rejects.toEqual(expectedError)
+  await expect(handler(input, {})).rejects.toThrow()
 })
 
 it('should return error on invalid deliveryDate for weekly', async () => {
@@ -218,9 +209,7 @@ it('should return error on invalid deliveryDate for weekly', async () => {
     }
     ]
   }
-  const expectedError = new Error('invalid deliverydate expected format YYYY-MM-DD')
-  expect.assertions(1)
-  await expect(handler(input, {})).rejects.toEqual(expectedError)
+  await expect(handler(input, {})).rejects.toThrow()
 })
 
 it('should generate correct fulfilment file for weekly', async () => {
@@ -244,6 +233,5 @@ it('should generate correct fulfilment file for weekly', async () => {
   }
 
   const expectedResponse = { ...input, fulfilmentFile: '2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv' }
-  expect.assertions(1)
   await expect(handler(input, {})).resolves.toEqual(expectedResponse)
 })
