@@ -82,20 +82,12 @@ export function handler (input: apiGatewayLambdaInput, context: any, callback: (
   async function getFileData (stage, date) {
     const s3FileName = date.format(DATE_FORMAT) + '_HOME_DELIVERY.csv'
     const s3Path = `fulfilment_output/${s3FileName}`
-    try {
-      const file = await getObject(s3Path)
-      return Promise.resolve({
-        s3Path: s3Path,
-        file: file,
-        date: date
-      })
-    } catch (err) {
-      console.log('error from  S3:')
-      console.log(err)
-      if (err.code === 'NoSuchKey') {
-        throw badRequest('requested files not found')
-      } else throw err
-    }
+    const file = await getObject(s3Path)
+    return Promise.resolve({
+      s3Path: s3Path,
+      file: file,
+      date: date
+    })
   }
 
   async function asyncHandler (startDate, amount, providedToken) {

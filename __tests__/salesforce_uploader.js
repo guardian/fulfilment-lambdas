@@ -19,7 +19,7 @@ jest.mock('../src/lib/storage', () => {
       if (validPaths.includes(path)) {
         return Promise.resolve({ Body: 'csv would be here', LastModified: new Date('12/30/2016') })
       } else {
-        return Promise.reject({ code: 'NoSuchKey' })// eslint-disable-line prefer-promise-reject-errors
+        return Promise.reject(new Error('NoSuchKey'))
       }
     }
   }
@@ -136,7 +136,7 @@ test('should return 400 error if too many days in request', done => {
 test('should return error if files not found in bucket', done => {
   const input = getFakeInput('testToken', '2017-06-14', 4)
   const expectedFulfilments = []
-  const expectedResponse = errorResponse(400, 'requested files not found')
+  const expectedResponse = errorResponse(500, 'Unexpected server error')
   handler(input, {}, verify(done, expectedResponse, expectedFulfilments))
 })
 
