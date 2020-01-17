@@ -128,16 +128,20 @@ the next three days in advance.
 1. Deploy branch to PROD
 1. Cloudform if necessary
 1. Run GW step function
-{
-  "type": "weekly",
-  "deliveryDayOfWeek": "friday",
-  "minDaysInAdvance": 8
-}
+    ```json
+    {
+      "type": "weekly",
+      "deliveryDayOfWeek": "friday",
+      "minDaysInAdvance": 8
+    }
+    ```
 1. Run HD step funcion
-{
-  "deliveryDateDaysFromNow": 1,
-  "type": "homedelivery"
-}
+    ```json
+    {
+      "deliveryDateDaysFromNow": 1,
+      "type": "homedelivery"
+    }
+    ```
 1. Download a GW fulfilment file for next wek after step function completed
 1. Download HD file for next day after step function completed
 1. Diff the files with corresponding ones from backup
