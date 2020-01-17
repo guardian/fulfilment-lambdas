@@ -142,7 +142,7 @@ the next three days in advance.
       "type": "homedelivery"
     }
     ```
-1. Download a GW fulfilment file for next wek after step function completed
+1. Download a GW fulfilment file for next week after step function completed
 1. Download HD file for next day after step function completed
 1. Diff the files with corresponding ones from backup
 1. Merge to PROD
