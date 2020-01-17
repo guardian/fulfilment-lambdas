@@ -43,7 +43,9 @@ export async function upload (source: string, filename: string | Filename, folde
   const bucket = await getBucket()
   const key = folder ? `${folder.prefix}${outputLocation}` : outputLocation
   console.log(`uploading to ${bucket}/${key}`)
-  if (!source && key.includes('HOME_DELIVERY')) throw new Error(`${key} should not be empty!`)
+  if (!source && key.includes('HOME_DELIVERY')) {
+    throw new Error(`${key} should not be empty!`)
+  }
   const params = {
     Bucket: bucket,
     Key: key,
