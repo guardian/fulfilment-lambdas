@@ -1,7 +1,7 @@
 #!/bin/bash
 
-#Installing node 6.10
-NODE_VERSION="6.10"
+#Installing node 10.16.3
+NODE_VERSION="10.16.3"
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm
 nvm install ${NODE_VERSION}

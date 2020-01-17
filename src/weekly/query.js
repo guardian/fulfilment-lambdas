@@ -7,8 +7,8 @@ import moment from 'moment'
 import { getDeliveryDate } from './WeeklyInput'
 import type { WeeklyInput } from './WeeklyInput'
 function getCutOffDate (deliveryDate: moment) {
-  let today = moment().startOf('day')
-  let daysUntilDelivery = deliveryDate.diff(today)
+  const today = moment().startOf('day')
+  const daysUntilDelivery = deliveryDate.diff(today)
   if (daysUntilDelivery <= 0) {
     return deliveryDate
   }
@@ -27,8 +27,8 @@ async function queryZuora (deliveryDate, config: Config) {
 
   const subsQuery: Query =
     {
-      'name': 'WeeklySubscriptions',
-      'query': `
+      name: 'WeeklySubscriptions',
+      query: `
       SELECT
       Subscription.Name,
       SoldToContact.Address1,
@@ -85,8 +85,8 @@ async function queryZuora (deliveryDate, config: Config) {
     }
   const introductoryPeriodQuery: Query =
     {
-      'name': 'WeeklyIntroductoryPeriods',
-      'query': `
+      name: 'WeeklyIntroductoryPeriods',
+      query: `
       SELECT
       Subscription.Name,
       SoldToContact.Address1,
@@ -113,8 +113,8 @@ async function queryZuora (deliveryDate, config: Config) {
     }
   const holidaySuspensionQuery: Query =
     {
-      'name': 'WeeklyHolidaySuspensions',
-      'query': `
+      name: 'WeeklyHolidaySuspensions',
+      query: `
       SELECT
         Subscription.Name
       FROM
@@ -127,13 +127,13 @@ async function queryZuora (deliveryDate, config: Config) {
        RatePlanCharge.HolidayEnd__c >= '${formattedDeliveryDate}' AND
        RatePlan.AmendmentType != 'RemoveProduct'`
     }
-  let jobId = await zuora.query('Fulfilment-Queries', subsQuery, holidaySuspensionQuery, introductoryPeriodQuery)
-  return {deliveryDate: formattedDeliveryDate, jobId: jobId}
+  const jobId = await zuora.query('Fulfilment-Queries', subsQuery, holidaySuspensionQuery, introductoryPeriodQuery)
+  return { deliveryDate: formattedDeliveryDate, jobId: jobId }
 }
 
 export async function weeklyQuery (input: WeeklyInput) {
-  let deliveryDate = getDeliveryDate(input)
-  let config = await fetchConfig()
+  const deliveryDate = getDeliveryDate(input)
+  const config = await fetchConfig()
   console.log('Config fetched succesfully.')
   return queryZuora(deliveryDate, config)
 }

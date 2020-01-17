@@ -7,7 +7,7 @@ export type WeeklyInput = {
   minDaysInAdvance: ?number
 }
 
-let weekDays:Map<string, number> = new Map([
+const weekDays:Map<string, number> = new Map([
   ['SUNDAY', 0],
   ['MONDAY', 1],
   ['TUESDAY', 2],
@@ -26,21 +26,21 @@ let weekDays:Map<string, number> = new Map([
 
 export function getDeliveryDate (input: WeeklyInput) {
   if (input.deliveryDate) {
-    let deliveryDate = moment(input.deliveryDate, 'YYYY-MM-DD')
+    const deliveryDate = moment(input.deliveryDate, 'YYYY-MM-DD')
     if (!deliveryDate.isValid()) {
       throw new Error('deliveryDate must be in the format "YYYY-MM-DD"')
     }
     return deliveryDate
   }
   if (input.deliveryDayOfWeek && typeof input.minDaysInAdvance === 'number') {
-    let dayOfWeek = input.deliveryDayOfWeek
-    let minDaysInAdvance = input.minDaysInAdvance
-    let dayOfWeekNum = weekDays.get(dayOfWeek.toUpperCase().trim())
+    const dayOfWeek = input.deliveryDayOfWeek
+    const minDaysInAdvance = input.minDaysInAdvance
+    const dayOfWeekNum = weekDays.get(dayOfWeek.toUpperCase().trim())
     if (dayOfWeekNum === undefined || dayOfWeekNum == null) {
       throw new Error(`${dayOfWeek} is not a valid day of the week`)
     }
-    let minDate = moment().startOf('day').add(minDaysInAdvance, 'days')
-    let dayInWeek = minDate.clone().weekday(dayOfWeekNum)
+    const minDate = moment().startOf('day').add(minDaysInAdvance, 'days')
+    const dayInWeek = minDate.clone().weekday(dayOfWeekNum)
 
     if (dayInWeek.isBefore(minDate)) {
       return dayInWeek.add(7, 'days')

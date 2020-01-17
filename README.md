@@ -45,21 +45,61 @@ And to transpile the lambdas:
 ```bash
 yarn compile
 ```
-This will transpile any ES6/7 into javascript which will run on the Node 6.10 environment of AWS.
+This will transpile any ES6/7 into javascript which will run on the Node environment of AWS.
 
 ## Testing in CODE
 1. Deploy your branch to CODE using riffraff
 1. Go to the step functions section in AWS
 1. Copy the input from one of the existing e.g.
-```
+```json
 {
   "deliveryDateDaysFromNow": 5,
   "type": "homedelivery"
 }
 ```
+or
+```json
+{
+  "type": "weekly",
+  "deliveryDayOfWeek": "friday",
+  "minDaysInAdvance": 8
+}
+```
 1. create a new execution and call it what you like, and pass in the json
 1. wait for it to finish
 1. check that the fulfilment files appeared in S3 fulfilment-export-code/fulfilment_output
+
+## Skipping TeamCity for quicker development feedback loop in CODE
+
+1. Set `"uploadArtefact": false,` at the root of `package.json` which disables automatic upload of the zipped artefact
+1. Simulate TC build by creating yarn script which
+    ```
+    "mario": "yarn install && yarn check && yarn flow && yarn compile && yarn dist && yarn riffraff"
+    ```
+1. Execute with `yarn mario`
+1. Artefact is created under `fulfilment-lambdas/target/riffraff/fulfilment-lambdas/fulfilment-lambdas.zip`
+1. Manually upload lambda function code to CODE via AWS Console
+1. Run step function
+1. Check S3 bucket
+
+## Glossary
+
+|System           |Name                             |Description                                                                                |
+|-----------------|---------------------------------|------------------------------------------------------------------------------------------ |
+|AWS Step         |QueryZuora                       |`querier.js`                                                                               |
+|AWS Step         |FetchResults                     |`fetcher.js`                                                                               |
+|AWS Step         |GenerateFulfilmentFiles          |`exporter.js`                                                                              |
+|AWS Lambda       |salesforce_uploader              |`salesforce_uploader.js` uploads Home Delivery; behind fulfilment-api                      |
+|AWS Lambda       |weekly-fulfilmentUploader        |`/weekly/salesforce_uploader.js` uploads Guardian Weekly; triggered on a schedule          |
+|AWS S3           |zuoraExport                      |raw zuora CSV export                                                                       |
+|AWS S3           |fulfilments                      |Guardian Weekly                                                                            |
+|AWS S3           |fulfilment_output                |Home Delivery                                                                              |
+|AWS S3           |uploaded                         |Home Delivery manually uploaded files to SF                                                |
+|AWS API          |fulfilment-api                   |API hit by SF to manually trigger upload of Home Delivery via `salesforce_uploader.js`     |
+|SF Document      |Home_Delivery_Pipeline_Fulfilment|Document where Home Delivery CSV is manually uploaded via 'Home Delivery Reports' page     |
+|SF Document      |weekly_sample_files              |Document where Guardian weekly CSV is automatically uploaded on a schedule                 |
+|SF Page          |Home Delivery Reports            |Page where CSR can manually trigger upload of Home Delivery CSV                            |
+|SF User          |Fulfilment User API              |Credentials for upload to SF are in gu-reader-revenue-private/membership/fulfilment-lambdas|
 
 ## Build and Deployment
 

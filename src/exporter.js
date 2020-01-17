@@ -2,36 +2,31 @@
 import type { fulfilmentType } from './lib/config'
 import { weeklyExport } from './weekly/export'
 import { homedeliveryExport } from './homedelivery/export'
-import { NamedError } from './lib/NamedError'
+import util from 'util'
+
 export type result = {
   queryName: string,
   fileName: string
 }
-export type input = {
+export type Input = {
   deliveryDate: string,
   results: Array<result>,
   type: fulfilmentType
 }
 
-async function asyncHandler (input: input) {
-  if (input.type === 'homedelivery') {
-    return homedeliveryExport(input)
+export async function handler (input: Input, context: ?any) {
+  const generateFulfilmentFiles = async (type) => {
+    if (type === 'homedelivery') {
+      return homedeliveryExport(input)
+    } else if (type === 'weekly') {
+      return weeklyExport(input)
+    } else throw Error(`Invalid type field ${util.inspect(input)}`)
   }
-  if (input.type === 'weekly') {
-    return weeklyExport(input)
-  }
-  throw new Error('No valid fulfilment type was found in input')
-}
 
-export function handler (input: input, context: ?any, callback: Function) {
-  if (input == null) {
-    callback(new NamedError('inputerror', 'Input to fetcher was invalid'))
-    return null
+  try {
+    const outputFileName = await generateFulfilmentFiles(input.type)
+    return { ...input, fulfilmentFile: outputFileName }
+  } catch (err) {
+    throw new Error(`Failed to generate fulfilment files in S3: ${util.inspect(err)}`)
   }
-  asyncHandler(input)
-    .then(outputFileName => callback(null, {...input, fulfilmentFile: outputFileName}))
-    .catch(e => {
-      console.log(e)
-      callback(e)
-    })
 }

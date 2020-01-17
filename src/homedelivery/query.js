@@ -1,10 +1,10 @@
 // @flow
 import { fetchConfig } from './../lib/config'
-import type {Config} from './../lib/config'
-import {Zuora} from './../lib/Zuora'
-import type {Query} from './../lib/Zuora'
+import type { Config } from './../lib/config'
+import { Zuora } from './../lib/Zuora'
+import type { Query } from './../lib/Zuora'
 import moment from 'moment'
-import type { input } from '../querier'
+import type { Input } from '../querier'
 
 async function queryZuora (deliveryDate, config: Config) {
   const formattedDate = deliveryDate.format('YYYY-MM-DD')
@@ -13,8 +13,8 @@ async function queryZuora (deliveryDate, config: Config) {
   const currentDate = moment().format('YYYY-MM-DD')
   const subsQuery: Query =
     {
-      'name': 'Subscriptions',
-      'query': `
+      name: 'Subscriptions',
+      query: `
       SELECT
       RateplanCharge.quantity,
       Subscription.Name,
@@ -54,8 +54,8 @@ async function queryZuora (deliveryDate, config: Config) {
     } // NB to avoid case where subscription gets auto renewed after fulfilment time
   const holidaySuspensionQuery: Query =
     {
-      'name': 'HolidaySuspensions',
-      'query': `
+      name: 'HolidaySuspensions',
+      query: `
       SELECT
       Subscription.Name
     FROM
@@ -68,13 +68,13 @@ async function queryZuora (deliveryDate, config: Config) {
      RatePlanCharge.HolidayEnd__c >= '${formattedDate}' AND
      RatePlan.AmendmentType != 'RemoveProduct'`
     }
-  let jobId = await zuora.query('Fulfilment-Queries', subsQuery, holidaySuspensionQuery)
-  return {deliveryDate: formattedDate, jobId: jobId}
+  const jobId = await zuora.query('Fulfilment-Queries', subsQuery, holidaySuspensionQuery)
+  return { deliveryDate: formattedDate, jobId: jobId }
 }
 
-function getDeliveryDate (input: input) {
+function getDeliveryDate (input: Input) {
   if (input.deliveryDate) {
-    let deliveryDate = moment(input.deliveryDate, 'YYYY-MM-DD')
+    const deliveryDate = moment(input.deliveryDate, 'YYYY-MM-DD')
     if (!deliveryDate.isValid()) {
       throw new Error('deliveryDate must be in the format "YYYY-MM-DD"')
     } else {
@@ -85,15 +85,15 @@ function getDeliveryDate (input: input) {
   }
 
   if (input.deliveryDateDaysFromNow || typeof input.deliveryDateDaysFromNow === 'number') {
-    let deliveryDateDaysFromNow = input.deliveryDateDaysFromNow
+    const deliveryDateDaysFromNow = input.deliveryDateDaysFromNow
     return moment().add(deliveryDateDaysFromNow, 'days')
   }
   throw new Error('deliveryDate or deliveryDateDaysFromNow input param must be provided')
 }
 
-export async function homedeliveryQuery (input: input) {
-  let deliveryDate = getDeliveryDate(input)
-  let config = await fetchConfig()
+export async function homedeliveryQuery (input: Input) {
+  const deliveryDate = getDeliveryDate(input)
+  const config = await fetchConfig()
   console.log('Config fetched succesfully.')
   console.log('Input: ', input)
   return queryZuora(deliveryDate, config)

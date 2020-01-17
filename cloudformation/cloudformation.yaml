@@ -18,6 +18,10 @@ Mappings:
     PROD:
       "logs": "fulfilment-s3-logs-prod"
       "export": "fulfilment-export-prod"
+  Constants:
+    Alarm:
+      Process: Follow the process in https://docs.google.com/document/d/1_3El3cly9d7u_jPgTcRjLxmdG2e919zCLvmcFCLOYAk/edit
+      Urgent: URGENT 9-5 -
 Resources:
   FulfilmentAccessLogBucket:
     Type: "AWS::S3::Bucket"
@@ -149,14 +153,14 @@ Resources:
     Properties:
       FunctionName:
           !Sub salesforce_uploader-${Stage}
-      Description: "upload fulfilment files to salesforce"
+      Description: "Upload Home Delivery fulfilment files to Salesforce document Home_Delivery_Pipeline_Fulfilment"
       Handler: "salesforce_uploader.handler"
       Role: !GetAtt [ FulfilmentWorkersLambdaRole, Arn ]
       Code:
         S3Bucket: fulfilment-lambdas-dist
         S3Key: !Sub membership/${Stage}/fulfilment-lambdas/fulfilment-lambdas.zip
       MemorySize: 512
-      Runtime: nodejs8.10
+      Runtime: nodejs10.x
       Timeout: 300
       Environment:
         Variables:
@@ -175,7 +179,7 @@ Resources:
         S3Bucket: fulfilment-lambdas-dist
         S3Key: !Sub membership/${Stage}/fulfilment-lambdas/fulfilment-lambdas.zip
       MemorySize: 512
-      Runtime: nodejs8.10
+      Runtime: nodejs10.x
       Timeout: 300
       Environment:
         Variables:
@@ -192,7 +196,7 @@ Resources:
         S3Bucket: fulfilment-lambdas-dist
         S3Key: !Sub membership/${Stage}/fulfilment-lambdas/fulfilment-lambdas.zip
       MemorySize: 512
-      Runtime: nodejs8.10
+      Runtime: nodejs10.x
       Timeout: 300
       Environment:
         Variables:
@@ -209,7 +213,7 @@ Resources:
         S3Bucket: fulfilment-lambdas-dist
         S3Key: !Sub membership/${Stage}/fulfilment-lambdas/fulfilment-lambdas.zip
       MemorySize: 512
-      Runtime: nodejs8.10
+      Runtime: nodejs10.x
       Timeout: 300
       Environment:
         Variables:
@@ -226,7 +230,7 @@ Resources:
         S3Bucket: fulfilment-lambdas-dist
         S3Key: !Sub membership/${Stage}/fulfilment-lambdas/fulfilment-lambdas.zip
       MemorySize: 512
-      Runtime: nodejs8.10
+      Runtime: nodejs10.x
       Timeout: 300
       Environment:
         Variables:
@@ -243,7 +247,7 @@ Resources:
           S3Bucket: fulfilment-lambdas-dist
           S3Key: !Sub membership/${Stage}/fulfilment-lambdas/fulfilment-lambdas.zip
         MemorySize: 512
-        Runtime: nodejs8.10
+        Runtime: nodejs10.x
         Timeout: 300
         Environment:
           Variables:
@@ -338,7 +342,7 @@ Resources:
   FulfilmentAPI:
       Type: "AWS::ApiGateway::RestApi"
       Properties:
-          Description: upload fulfilment files to salesforce
+          Description: Upload Home Delivery fulfilment files to Salesforce document Home_Delivery_Pipeline_Fulfilment
           Name: !Sub fulfilment-api-${Stage}
 
   FulfilmentProxyResource:
@@ -478,7 +482,6 @@ Resources:
         - 
           Arn: !GetAtt SalesforceDownloaderLambda.Arn
           Id: !Sub salesforceDownloader_[STAGE]
-
     DependsOn: FulfilmentStateMachine_[STAGE]
 
   fulfilmentTriggerRole:
@@ -514,7 +517,7 @@ Resources:
         S3Bucket: fulfilment-lambdas-dist
         S3Key: !Sub membership/${Stage}/fulfilment-lambdas/fulfilment-lambdas.zip
       MemorySize: 128
-      Runtime: nodejs8.10
+      Runtime: nodejs10.x
       Timeout: 300
       Environment:
         Variables:
@@ -577,14 +580,20 @@ Resources:
       ComparisonOperator: LessThanThreshold
     DependsOn: fulfilmentCheckerMetricFilter
 
-  ExecutionFailureAlarm:
+  FulfilmentStateMachineAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: CreateProdResources
     Properties:
       AlarmActions:
       - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:fulfilment-dev
-      AlarmName: !Sub State Machine Failure in ${Stage} (Fulfilment state machine)
-      AlarmDescription: The fulfilment state machine failed during execution - please investigate.
+      AlarmName: !Join
+        - ' '
+        - - !FindInMap [ Constants, Alarm, Urgent ]
+          - !Ref 'Stage'
+          - 'Failed to generate GW and HD fulfilment files'
+      AlarmDescription: !Join
+        - ' '
+        - - 'Impact - Guardian Weekly and Home Delivery subscribes will not get their paper. Fix FulfilmentStateMachine ASAP!'
+          - !FindInMap [ Constants, Alarm, Process ]
       MetricName: ExecutionsFailed
       Namespace: AWS/States
       Dimensions:
@@ -595,4 +604,61 @@ Resources:
       Period: 60
       EvaluationPeriods: 1
       Statistic: Sum
+      TreatMissingData: notBreaching
     DependsOn: FulfilmentStateMachine_[STAGE]
+
+  HomeDeliveryUploadToSalesforceApiAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions:
+        - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:fulfilment-dev
+      AlarmName: !Join
+        - ' '
+        - - !FindInMap [ Constants, Alarm, Urgent ]
+          - !Ref 'Stage'
+          - 'Failed to upload Home Delivery fulfilment files to Salesforce'
+      AlarmDescription: !Join
+        - ' '
+        - - 'Impact - Home Delivery subscribers will not get their paper. Investigate fulfilment-api Gateway ASAP! '
+          - !FindInMap [ Constants, Alarm, Process ]
+      MetricName: 5XXError
+      Namespace: AWS/ApiGateway
+      Dimensions:
+        - Name: ApiName
+          Value: !Sub fulfilment-api-${Stage}
+        - Name: Stage
+          Value: !Sub ${Stage}
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 1
+      Period: 60
+      EvaluationPeriods: 1
+      Statistic: Sum
+      TreatMissingData: notBreaching
+    DependsOn: FulfilmentAPI
+
+  GuardianWeeklyUploadToSalesforceLambdaAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions:
+        - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:fulfilment-dev
+      AlarmName: !Join
+        - ' '
+        - - !FindInMap [ Constants, Alarm, Urgent ]
+          - !Ref 'Stage'
+          - 'Failed to upload Guardian Weekly fulfilment files to Salesforce'
+      AlarmDescription: !Join
+        - ' '
+        - - 'Impact - Guardian Weekly subscribers will not get their paper. Investigate weekly-fulfilmentUploader ASAP! '
+          - !FindInMap [ Constants, Alarm, Process ]
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref WeeklyUploaderLambda
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 1
+      Period: 60
+      EvaluationPeriods: 1
+      Statistic: Sum
+      TreatMissingData: notBreaching
+    DependsOn: WeeklyUploaderLambda

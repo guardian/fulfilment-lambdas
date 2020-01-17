@@ -1,5 +1,5 @@
 // @flow
-import type {Config} from './config'
+import type { Config } from './config'
 import request from 'request'
 import NamedError from './NamedError'
 
@@ -24,31 +24,32 @@ export class Zuora {
   authorization :{Authorization:string}
   config: Config
   constructor (config:Config) {
-    this.authorization = {'Authorization': 'Basic ' + Buffer.from(`${config.zuora.api.username}:${config.zuora.api.password}`).toString('base64')}
+    this.authorization = { Authorization: 'Basic ' + Buffer.from(`${config.zuora.api.username}:${config.zuora.api.password}`).toString('base64') }
     this.config = config
   }
+
   async query (name:string, ...queries:Array<Query>) {
-    const exportQueries = queries.map((q) => { return {...q, 'type': 'zoqlexport'} })
+    const exportQueries = queries.map((q) => { return { ...q, type: 'zoqlexport' } })
     const options = {
       method: 'POST',
 
       uri: `${this.config.zuora.api.url}/apps/api/batch-query/`,
       json: true,
       body: {
-        'format': 'csv',
-        'version': '1.0',
-        'name': 'Fulfilment-Queries',
-        'encrypted': 'none',
-        'useQueryLabels': 'true',
-        'dateTimeUtc': 'true',
-        'queries': exportQueries
+        format: 'csv',
+        version: '1.0',
+        name: 'Fulfilment-Queries',
+        encrypted: 'none',
+        useQueryLabels: 'true',
+        dateTimeUtc: 'true',
+        queries: exportQueries
       },
       headers: {
         ...this.authorization,
         'Content-Type': 'application/json'
       }
     }
-    let promise = new Promise((resolve, reject) => {
+    const promise = new Promise((resolve, reject) => {
       request(options, function (error, response, body) {
         if (error) {
           reject(error)
@@ -71,6 +72,7 @@ export class Zuora {
     })
     return promise
   }
+
   fetchFile (batch: Batch, deliveryDate: string): Promise<FileData> {
     return new Promise((resolve, reject) => {
       console.log(`fetching file from zuora with id ${batch.fileId}`)
@@ -92,7 +94,7 @@ export class Zuora {
           reject(new NamedError('api_call_error', `error response status ${response.statusCode} when getting batch ${batch.name}`))
         } else {
         // TODO SEE HOW TO DETECT FAILURES OR ANY OTHER SPECIAL CASE HERE
-          let fileData = {
+          const fileData = {
             batchName: batch.name,
             fileName: `${batch.name}_${deliveryDate}_${batch.fileId}.csv`,
             data: body
@@ -102,6 +104,7 @@ export class Zuora {
       })
     })
   }
+
   getJobResult (jobId: string) : Promise<Array<Batch>> {
     return new Promise((resolve, reject) => {
       console.log(`getting job results for jobId=${jobId}`)
@@ -131,7 +134,7 @@ export class Zuora {
           }
         } else {
         // TODO SEE HOW TO DETECT FAILURES OR ANY OTHER SPECIAL CASE HERE
-          let notCompleted = body.batches.filter(batch => batch.status !== 'completed').map(batch => `${batch.name} is in status: ${batch.status}`)
+          const notCompleted = body.batches.filter(batch => batch.status !== 'completed').map(batch => `${batch.name} is in status: ${batch.status}`)
           if (notCompleted.length > 1) {
             reject(new NamedError('batch_not_completed', notCompleted.join()))
           }

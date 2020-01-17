@@ -11,7 +11,7 @@ const DATE_FORMAT = 'YYYY-MM-DD'
 const MAX_DAYS = 5
 
 function range (amount: number) {
-  let resArray = []
+  const resArray = []
   for (var i = 0; i < amount; i++) {
     resArray.push(i)
   }
@@ -40,15 +40,23 @@ type apiGatewayLambdaInput = {
 
 async function copyToUploadedFolder (stage, s3Path, sfFileName) {
   try {
-    let uploadedPath = `uploaded/${sfFileName}`
+    const uploadedPath = `uploaded/${sfFileName}`
     await
-      copyObject(s3Path, uploadedPath)
+    copyObject(s3Path, uploadedPath)
   } catch (err) {
     console.error('error copying fulfilment file to uploaded directory')
     console.log(err)
   }
 }
 
+/**
+ *  Example input:
+ *    Header: apiToken:*********
+ *    Body: { "date":"2020-01-10",  "amount":1}
+ *
+ *  The apiToken is specified in fulfilment.private.json under expectedToken.
+ *  FIXME: Why not just use API Gateway provided API Keys?
+ */
 export function handler (input: apiGatewayLambdaInput, context: any, callback: (error: any, apiResponse: ApiResponse) => void) {
   function validationError (message) {
     console.log(message)
@@ -56,13 +64,13 @@ export function handler (input: apiGatewayLambdaInput, context: any, callback: (
   }
 
   async function salesforceUpload (fileData, stage, salesforce, sfFolder) {
-    let dayOfTheWeek = fileData.date.format('dddd')
-    let dateSuffix = fileData.date.format('DD_MM_YYYY')
-    let outputFileName = `HOME_DELIVERY_${dayOfTheWeek}_${dateSuffix}.csv`
+    const dayOfTheWeek = fileData.date.format('dddd')
+    const dateSuffix = fileData.date.format('DD_MM_YYYY')
+    const outputFileName = `HOME_DELIVERY_${dayOfTheWeek}_${dateSuffix}.csv`
     console.log(`uploading ${outputFileName} to ${sfFolder.name}`)
-    let sfFileDescription = `Home Delivery fulfilment file ${outputFileName}`
-    let uploadResult = await salesforce.uploadDocument(outputFileName, sfFolder, sfFileDescription, fileData.file.Body)
-    let lastModified = moment(fileData.file.LastModified).format('YYYY-MM-DD')
+    const sfFileDescription = `Home Delivery fulfilment file ${outputFileName}`
+    const uploadResult = await salesforce.uploadDocument(outputFileName, sfFolder, sfFileDescription, fileData.file.Body)
+    const lastModified = moment(fileData.file.LastModified).format('YYYY-MM-DD')
     await copyToUploadedFolder(stage, fileData.s3Path, outputFileName)
     return Promise.resolve({
       name: outputFileName,
@@ -72,26 +80,18 @@ export function handler (input: apiGatewayLambdaInput, context: any, callback: (
   }
 
   async function getFileData (stage, date) {
-    let s3FileName = date.format(DATE_FORMAT) + '_HOME_DELIVERY.csv'
-    let s3Path = `fulfilment_output/${s3FileName}`
-    try {
-      let file = await getObject(s3Path)
-      return Promise.resolve({
-        s3Path: s3Path,
-        file: file,
-        date: date
-      })
-    } catch (err) {
-      console.log('error from  S3:')
-      console.log(err)
-      if (err.code === 'NoSuchKey') {
-        throw badRequest('requested files not found')
-      } else throw err
-    }
+    const s3FileName = date.format(DATE_FORMAT) + '_HOME_DELIVERY.csv'
+    const s3Path = `fulfilment_output/${s3FileName}`
+    const file = await getObject(s3Path)
+    return Promise.resolve({
+      s3Path: s3Path,
+      file: file,
+      date: date
+    })
   }
 
   async function asyncHandler (startDate, amount, providedToken) {
-    let config = await fetchConfig()
+    const config = await fetchConfig()
     console.log('Config fetched successfully.')
     await validateToken(config.api.expectedToken, providedToken)
     console.log('token validated successfully')
@@ -100,21 +100,21 @@ export function handler (input: apiGatewayLambdaInput, context: any, callback: (
     const folder = config.fulfilments.homedelivery.uploadFolder
     console.log(folder)
 
-    let filePromises = range(amount).map(offset => {
-      let date = moment(startDate, DATE_FORMAT).add(offset, 'days')
+    const filePromises = range(amount).map(offset => {
+      const date = moment(startDate, DATE_FORMAT).add(offset, 'days')
       return getFileData(config.stage, date)
     })
 
-    let files = await Promise.all(filePromises)
+    const files = await Promise.all(filePromises)
 
-    let results = files.map(fileData => {
+    const results = files.map(fileData => {
       return salesforceUpload(fileData, config.stage, salesforce, folder)
     })
 
     return Promise.all(results)
   }
 
-  let body = JSON.parse(input.body)
+  const body = JSON.parse(input.body)
   if (!body.amount || !body.date) {
     validationError('missing amount or date')
     return
@@ -123,7 +123,7 @@ export function handler (input: apiGatewayLambdaInput, context: any, callback: (
     validationError(`amount should be a number between 1 and ${MAX_DAYS}`)
     return
   }
-  let providedToken = input.headers.apiToken
+  const providedToken = input.headers.apiToken
   if (!providedToken) {
     validationError('ApiToken header missing')
     return

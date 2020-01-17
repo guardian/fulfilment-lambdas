@@ -1,10 +1,9 @@
 // @flow
 import AWS from 'aws-sdk'
-import {Readable} from 'stream'
-import {getStage} from './config'
-import NamedError from './NamedError'
-import {Filename} from './Filename'
-let s3 = new AWS.S3({signatureVersion: 'v4'})
+import util from 'util'
+import { getStage } from './config'
+import { Filename } from './Filename'
+const s3 = new AWS.S3({ signatureVersion: 'v4' })
 
 const STAGE = getStage()
 
@@ -29,55 +28,54 @@ export type S3Folder = {
 }
 
 export async function ls (folder: S3Folder) {
-  let resp = await s3.listObjectsV2({
+  const resp = await s3.listObjectsV2({
     Bucket: folder.bucket,
     Prefix: folder.prefix
   }).promise()
   return resp.Contents
 }
 
-export async function upload (source: Buffer | string | Readable, filename: string | Filename, folder: ?S3Folder): Promise<S3UploadResponse> {
-  let outputLocation = getFilename(filename)
-  let bucket = await getBucket()
-  let key = folder ? `${folder.prefix}${outputLocation}` : outputLocation
+/**
+ * Upload files to S3 bucket
+ */
+export async function upload (source: string, filename: string | Filename, folder: ?S3Folder): Promise<S3UploadResponse> {
+  const outputLocation = getFilename(filename)
+  const bucket = await getBucket()
+  const key = folder ? `${folder.prefix}${outputLocation}` : outputLocation
   console.log(`uploading to ${bucket}/${key}`)
-
-  let params = {
+  if (!source && key.includes('HOME_DELIVERY')) {
+    throw new Error(`${key} should not be empty!`)
+  }
+  const params = {
     Bucket: bucket,
     Key: key,
     Body: source,
     ServerSideEncryption: 'aws:kms'
   }
-  let upload = s3.upload(params)
-  if (upload == null) {
-    throw new NamedError('S3 error', 's3.upload returned null, this should never happen')
+  const uploadResponse = await s3.upload(params).promise()
+  if (!uploadResponse.Location.includes(key)) {
+    throw new Error(`${key} should be uploaded to S3. Response: ${util.inspect(uploadResponse)}`)
   }
-  let result = await upload.promise()
-  if (result.Location == null || result.ETag == null || result.Bucket == null || result.Key == null) {
-    console.log(result)
-    throw new NamedError('S3 error', 's3.upload.promise has missing fields, this should never happen')
-  }
-  return result
+  return uploadResponse
 }
 
 export async function createReadStream (path: string) {
-  let bucket = await getBucket()
+  const bucket = await getBucket()
   console.log(`reading file from ${bucket}/${path}`)
-  let options = {Bucket: bucket, Key: path}
-
+  const options = { Bucket: bucket, Key: path }
   return s3.getObject(options).createReadStream()
 }
 
 export async function getObject (path: string) {
-  let bucket = await getBucket()
-  let options = {Bucket: bucket, Key: path}
-  console.log(`Retrieving file ${options.Key} from S3 bucket ${options.Bucket}.`)
+  const bucket = await getBucket()
+  const options = { Bucket: bucket, Key: path }
+  console.log(`Retrieving from S3 ${options.Bucket}/${options.Key}`)
   return s3.getObject(options).promise()
 }
 
 export async function copyObject (sourcePath: string, destPath: string) {
-  let bucket = await getBucket()
-  let options = {
+  const bucket = await getBucket()
+  const options = {
     Bucket: bucket,
     CopySource: `${bucket}/${sourcePath}`,
     Key: destPath,
@@ -88,9 +86,9 @@ export async function copyObject (sourcePath: string, destPath: string) {
 }
 
 export async function getFileInfo (path: string) {
-  let bucket = await getBucket()
+  const bucket = await getBucket()
 
-  let options = {Bucket: bucket, Key: path}
+  const options = { Bucket: bucket, Key: path }
   console.log(`Retrieving information for file ${options.Key} from S3 bucket ${options.Bucket}.`)
   return s3.headObject(options).promise()
 }
