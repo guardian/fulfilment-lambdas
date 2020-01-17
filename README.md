@@ -1,7 +1,7 @@
 # fulfilment-lambdas
 
 **Fulfilment** refers to the process of delivering physical paper to subscribers. Fulfilment files are CSVs with the 
-following format
+following columns
 
 **Guardian Weekly**
 
