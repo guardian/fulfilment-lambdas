@@ -149,7 +149,7 @@ the next three days in advance.
 
 Revert
 1. Cloudform old if necessary
-1. Deploly current master
+1. Deploy current master
 1. Re-run stepfunctions
 1. Check files against backup
 
