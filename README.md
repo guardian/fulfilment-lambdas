@@ -148,7 +148,7 @@ the next three days in advance.
 1. Merge to PROD
 
 Revert
-1. Cloudform old if necessary
+1. Rollback to old template if necessary
 1. Deploy current master
 1. Re-run stepfunctions
 1. Check files against backup
