@@ -5,7 +5,7 @@
   "isAwsLambda": true,
   "projectName": "MemSub::Fulfilment::Lambdas",
   "riffraffFile": "riff-raff.yaml",
-  "uploadArtefact": false,
+  "uploadArtefact": true,
   "buildDir": "dist",
   "cloudformation": false,
   "devDependencies": {
