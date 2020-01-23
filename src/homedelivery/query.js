@@ -52,21 +52,33 @@ async function queryZuora (deliveryDate, config: Config) {
      AND
      (RatePlanCharge.MRR != 0 OR ProductRatePlan.FrontendId__c != 'EchoLegacy')`
     } // NB to avoid case where subscription gets auto renewed after fulfilment time
+
+  /* FIXME: After migration remove the second OR disjunct in the where clause */
   const holidaySuspensionQuery: Query =
     {
       name: 'HolidaySuspensions',
       query: `
       SELECT
       Subscription.Name
-    FROM
-      rateplancharge
-    WHERE
-     (Subscription.Status = 'Active' OR Subscription.Status = 'Cancelled') AND
-     ProductRatePlanCharge.ProductType__c = 'Adjustment' AND
-     RateplanCharge.Name = 'Holiday Credit' AND
-     RatePlanCharge.EffectiveStartDate <= '${formattedDate}' AND
-     RatePlanCharge.HolidayEnd__c >= '${formattedDate}' AND
-     RatePlan.AmendmentType != 'RemoveProduct'`
+      FROM
+        rateplancharge
+      WHERE
+       ((Subscription.Status = 'Active' OR Subscription.Status = 'Cancelled') AND
+       ProductRatePlanCharge.ProductType__c = 'Adjustment' AND
+       RateplanCharge.Name = 'Holiday Credit' AND
+       RatePlanCharge.HolidayStart__c <= '${formattedDate}' AND
+       RatePlanCharge.HolidayEnd__c >= '${formattedDate}' AND
+       RatePlan.AmendmentType != 'RemoveProduct')
+       
+       OR
+
+       ((Subscription.Status = 'Active' OR Subscription.Status = 'Cancelled') AND
+       ProductRatePlanCharge.ProductType__c = 'Adjustment' AND
+       RateplanCharge.Name = 'Holiday Credit' AND
+       RatePlanCharge.EffectiveStartDate <= '${formattedDate}' AND
+       RatePlanCharge.HolidayEnd__c >= '${formattedDate}' AND
+       RatePlan.AmendmentType != 'RemoveProduct')
+     `
     }
   const jobId = await zuora.query('Fulfilment-Queries', subsQuery, holidaySuspensionQuery)
   return { deliveryDate: formattedDate, jobId: jobId }
