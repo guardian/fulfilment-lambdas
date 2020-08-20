@@ -71,7 +71,7 @@ is uploaded.
 Home Delivery files will be generated Monday to Friday at 7:30 GMT (see [cloudwatch rule](https://eu-west-1.console.aws.amazon.com/cloudwatch/home?region=eu-west-1#rules:name=fulfilment-lambdas-PROD-ScheduledRule-CBXIT5CNIZ8C))
 Each time 5 files will be generated for 1, 2, 3, 4 and 5 days into the future.
 
-Upload to salesforce is triggered manually by calling our [fulfilment api](https://github.com/guardian/fulfilment-lambdas/blob/master/cloudformation/cloudformation.yaml#L355) from a salesforce UI that allows to download one or multiple files.
+Upload to salesforce is triggered manually by calling our [fulfilment api](https://github.com/guardian/fulfilment-lambdas/blob/main/cloudformation/cloudformation.yaml#L355) from a salesforce UI that allows to download one or multiple files.
  In most cases a file is uploaded to salesforce the day before delivery. Exceptions to this are fridays when files are uploaded for the next 3 days, and bank holidays.
 
 ### Guardian Weekly Schedule
@@ -149,7 +149,7 @@ the next three days in advance.
 
 Revert
 1. Rollback to old template if necessary
-1. Deploy current master
+1. Deploy current main branch
 1. Re-run stepfunctions
 1. Check files against backup
 
@@ -183,7 +183,7 @@ Revert
 FIXME: Is this still necessary?
 
 Because of limitations in cloudformation templates we need an additional step to update the stacks :
-1. Make the required changes in [cloudformation/cloudformation.yaml](https://github.com/guardian/fulfilment-lambdas/blob/master/cloudformation/cloudformation.yaml)
+1. Make the required changes in [cloudformation/cloudformation.yaml](https://github.com/guardian/fulfilment-lambdas/blob/main/cloudformation/cloudformation.yaml)
 2. Run 'yarn cloudform'. Stage specific versions of the cloudformation template will be generated
 3. Use the generated version for the desired stage to update the stack (it will be in cloudformation/[stage].yaml)
 
@@ -192,7 +192,7 @@ Because of limitations in cloudformation templates we need an additional step to
 FIXME: Is this still working?
 
 Each lambda can be run locally using the appropriate `yarn run:` command. This uses [lambda-local](https://github.com/ashiina/lambda-local) to emulate the AWS environment. 
-_Note: A specific build is referenced in package.json as there is a bug in lambda-local regarding aws credentials that hasn't been fixed in master_
+_Note: A specific build is referenced in package.json as there is a bug in lambda-local regarding aws credentials that hasn't been fixed in the main branch_
 
 To install dependencies for running locally:
 ```bash
