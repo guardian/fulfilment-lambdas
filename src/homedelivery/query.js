@@ -69,7 +69,7 @@ async function queryZuora (deliveryDate, config: Config) {
        RatePlanCharge.HolidayStart__c <= '${formattedDate}' AND
        RatePlanCharge.HolidayEnd__c >= '${formattedDate}' AND
        RatePlan.AmendmentType != 'RemoveProduct' AND
-       RatePlan.Name = 'DO NOT USE MANUALLY: Holiday Credit - automated')
+       RatePlan.Name LIKE 'DO NOT USE MANUALLY: Holiday Credit - automated%')
        OR
        ((Subscription.Status = 'Active' OR Subscription.Status = 'Cancelled') AND
        ProductRatePlanCharge.ProductType__c = 'Adjustment' AND
