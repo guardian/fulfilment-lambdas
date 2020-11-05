@@ -1,5 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: "fulfilment step functions."
+
 Parameters:
     Stage:
         Description: Stage name
@@ -8,9 +9,12 @@ Parameters:
             - PROD
             - CODE
         Default: CODE
+
 Conditions:
   CreateProdResources: !Equals [!Ref "Stage", "PROD"]
+
 Mappings:
+
   EnvironmentBucketMap:
     CODE:
       "logs": "fulfilment-s3-logs-code"
@@ -18,11 +22,14 @@ Mappings:
     PROD:
       "logs": "fulfilment-s3-logs-prod"
       "export": "fulfilment-export-prod"
+
   Constants:
     Alarm:
       Process: Follow the process in https://docs.google.com/document/d/1_3El3cly9d7u_jPgTcRjLxmdG2e919zCLvmcFCLOYAk/edit
       Urgent: URGENT 9-5 -
+
 Resources:
+
   FulfilmentAccessLogBucket:
     Type: "AWS::S3::Bucket"
     Properties:
@@ -41,6 +48,7 @@ Resources:
         LogFilePrefix: "logs-logs/"
       VersioningConfiguration:
         Status: "Enabled"
+
   FulfilmentBucket:
     Type: "AWS::S3::Bucket"
     Properties:
@@ -69,6 +77,7 @@ Resources:
         LogFilePrefix: "fulfilment-salesforce-backup-_[STAGE]/"
       VersioningConfiguration:
         Status: "Enabled"
+
   EncryptBucketPolicy:
     Type: AWS::S3::BucketPolicy
     DependsOn: FulfilmentBucket
@@ -95,6 +104,7 @@ Resources:
           Condition:
             'Null':
               s3:x-amz-server-side-encryption: 'true'
+
   FulfilmentWorkersLambdaRole:
         Type: AWS::IAM::Role
         DependsOn: FulfilmentBucket
@@ -148,6 +158,7 @@ Resources:
                            Action:
                            - s3:ListBucket
                            Resource: !Sub arn:aws:s3:::${FulfilmentBucket}
+
   SalesforceUploaderLambda:
     Type: "AWS::Lambda::Function"
     Properties:
@@ -167,6 +178,7 @@ Resources:
            'Stage': !Sub ${Stage}
            'StateMachine': !Ref FulfilmentStateMachine_[STAGE]
     DependsOn: FulfilmentStateMachine_[STAGE]
+
   ZuoraQuerierLambda:
     Type: "AWS::Lambda::Function"
     Properties:
@@ -184,6 +196,7 @@ Resources:
       Environment:
         Variables:
           'Stage': !Sub ${Stage}
+
   ResultsFetcherLambda:
     Type: "AWS::Lambda::Function"
     Properties:
@@ -201,6 +214,7 @@ Resources:
       Environment:
         Variables:
           'Stage': !Sub ${Stage}
+
   SalesforceDownloaderLambda:
     Type: "AWS::Lambda::Function"
     Properties:
@@ -218,6 +232,7 @@ Resources:
       Environment:
         Variables:
           'Stage': !Sub ${Stage}
+
   WeeklyUploaderLambda:
     Type: "AWS::Lambda::Function"
     Properties:
@@ -235,6 +250,7 @@ Resources:
       Environment:
         Variables:
           'Stage': !Sub ${Stage}
+
   FulfilmentExporterLambda:
       Type: "AWS::Lambda::Function"
       Properties:
@@ -252,6 +268,7 @@ Resources:
         Environment:
           Variables:
             'Stage': !Sub ${Stage}
+
   StatesExecutionRole:
     Type: "AWS::IAM::Role"
     Properties:
@@ -439,6 +456,7 @@ Resources:
             }
           RoleArn: !GetAtt [ fulfilmentTriggerRole, Arn ]
     DependsOn: FulfilmentStateMachine_[STAGE]
+
   WeeklyScheduledRule:
     Type: "AWS::Events::Rule"
     Properties:
@@ -456,6 +474,7 @@ Resources:
             "minDaysInAdvance" : 8
             }
           RoleArn: !GetAtt [ fulfilmentTriggerRole, Arn ]
+
   WeeklyScheduledUploadRule:
     Type: "AWS::Events::Rule"
     Properties:
@@ -472,6 +491,7 @@ Resources:
             "deliveryDayOfWeek": "friday",
             "minDaysInAdvance" : 8
             }
+
   SFDownloadScheduledRule:
     Type: "AWS::Events::Rule"
     Properties:
@@ -522,6 +542,7 @@ Resources:
       Environment:
         Variables:
           'Stage': !Sub ${Stage}
+
   fulfilmentCheckerMetricFilter:
     Type: AWS::Logs::MetricFilter
     Properties:
@@ -532,6 +553,7 @@ Resources:
           MetricName: "fulfilmentFileUpdated"
           MetricValue: 1
     DependsOn: checkerLambda
+
   CheckerScheduledRule:
     Type: "AWS::Events::Rule"
     Properties:
@@ -550,6 +572,7 @@ Resources:
       FunctionName: !GetAtt checkerLambda.Arn
       Principal: events.amazonaws.com
       SourceArn: !GetAtt CheckerScheduledRule.Arn
+
   weeklyScheduledUploadPermission:
     Type: AWS::Lambda::Permission
     Properties:
@@ -557,6 +580,7 @@ Resources:
       FunctionName: !GetAtt WeeklyUploaderLambda.Arn
       Principal: events.amazonaws.com
       SourceArn: !GetAtt WeeklyScheduledUploadRule.Arn
+
   sfDownloadSchedulePermission:
     Type: AWS::Lambda::Permission
     Properties:
@@ -567,6 +591,7 @@ Resources:
 
   CheckerAlarm:
     Type: "AWS::CloudWatch::Alarm"
+    Condition: CreateProdResources
     Properties:
       AlarmDescription: "alarm when fulfilment file has not been generated"
       AlarmName: !Sub "fulfilment_check_alarm_${Stage}"
@@ -582,6 +607,7 @@ Resources:
 
   FulfilmentStateMachineAlarm:
     Type: AWS::CloudWatch::Alarm
+    Condition: CreateProdResources
     Properties:
       AlarmActions:
       - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:fulfilment-dev
@@ -609,6 +635,7 @@ Resources:
 
   HomeDeliveryUploadToSalesforceApiAlarm:
     Type: AWS::CloudWatch::Alarm
+    Condition: CreateProdResources
     Properties:
       AlarmActions:
         - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:fulfilment-dev
@@ -638,6 +665,7 @@ Resources:
 
   GuardianWeeklyUploadToSalesforceLambdaAlarm:
     Type: AWS::CloudWatch::Alarm
+    Condition: CreateProdResources
     Properties:
       AlarmActions:
         - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:fulfilment-dev
