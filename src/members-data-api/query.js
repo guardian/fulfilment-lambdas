@@ -5,24 +5,25 @@ import { Zuora } from './../lib/Zuora'
 import type { Query } from './../lib/Zuora'
 import moment from 'moment'
 import type { Input } from '../querier'
+import { ZuoraNames, QUERY_NAME } from './names';
 
 async function queryZuora (config: Config) {
   const zuora = new Zuora(config)
   const currentDate = moment().format('YYYY-MM-DD')
   const subsQuery: Query =
     {
-      name: 'Subscriptions',
+      name: QUERY_NAME,
       query: `
       SELECT
-      Account.IdentityId__c,
-      RatePlan.Name,
-      RateplanCharge.Name,
-      Subscription.TermEndDate
+      ${ZuoraNames.identityId},
+      ${ZuoraNames.ratePlanName},
+      ${ZuoraNames.ratePlanChargeName},
+      ${ZuoraNames.termEndDate}
     FROM
       rateplancharge
     WHERE
      Subscription.Status = 'Active' AND
-     Subscription.TermEndDate >= '${currentDate}'
+     ${ZuoraNames.termEndDate} >= '${currentDate}'
      `
     }
 

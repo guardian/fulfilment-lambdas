@@ -7,15 +7,18 @@ import { fetchConfig, getStage } from './../lib/config';
 import { generateFilename } from './../lib/Filename';
 import getStream from 'get-stream';
 import type { Input, result } from '../exporter';
+import {
+  AthenaNames,
+  QUERY_NAME,
+  ZuoraNames,
+} from './names';
 
-// input headers
-const IDENTITY_ID = 'Identity Id'
-const RATEPLAN_NAME = 'RatePlan name'
-const RATEPLAN_CHARGE_NAME = 'RatePlanCharge name'
-const TERM_END_DATE = 'TermEndDate'
-
-const outputHeaders = [IDENTITY_ID, RATEPLAN_NAME, RATEPLAN_CHARGE_NAME, TERM_END_DATE]
-const SUBSCRIPTIONS_QUERY_NAME = 'Subscriptions'
+const outputHeaders = [
+  AthenaNames.identityId,
+  AthenaNames.ratePlanName,
+  AthenaNames.ratePlanChargeName,
+  AthenaNames.termEndDate
+]
 
 function getDownloadStream (results: Array<result>, stage: string, queryName: string): Promise<ReadStream> {
   function getFileName (queryName) {
@@ -60,10 +63,10 @@ async function processSubs (downloadStream: ReadStream, deliveryDate: moment, st
 
   const writeRowToCsvStream = (row, csvStream) => {
     const outputCsvRow = {}
-    outputCsvRow[IDENTITY_ID] = row['Account.IdentityId']
-    outputCsvRow[RATEPLAN_NAME] = row['RatePlan.Name']
-    outputCsvRow[RATEPLAN_CHARGE_NAME] = row['RateplanCharge.Name']
-    outputCsvRow[TERM_END_DATE] = row['Subscription.TermEndDate']
+    outputCsvRow[AthenaNames.identityId] = row[ZuoraNames.identityId]
+    outputCsvRow[AthenaNames.ratePlanName] = row[ZuoraNames.ratePlanName]
+    outputCsvRow[AthenaNames.ratePlanChargeName] = row[ZuoraNames.ratePlanChargeName]
+    outputCsvRow[AthenaNames.termEndDate] = row[ZuoraNames.termEndDate]
     csvStream.write(outputCsvRow)
   }
 
@@ -109,6 +112,6 @@ function getDeliveryDate (input: Input): Promise<moment> {
 export async function membersDataApiExport (input: Input) {
   const stage = await getStage()
   const deliveryDate = await getDeliveryDate(input)
-  const subscriptionsStream = await getDownloadStream(input.results, stage, SUBSCRIPTIONS_QUERY_NAME)
+  const subscriptionsStream = await getDownloadStream(input.results, stage, QUERY_NAME)
   return await processSubs(subscriptionsStream, deliveryDate, stage)
 }
