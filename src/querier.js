@@ -1,9 +1,9 @@
 // @flow
 import { homedeliveryQuery } from './homedelivery/query'
 import { weeklyQuery } from './weekly/query'
+import { membersDataApiQuery } from './members-data-api/query';
 import type { fulfilmentType } from './lib/config'
 import util from 'util'
-import { membersDataApiQuery } from 'src/members-data-api/query';
 
 export type Input = {
   type: fulfilmentType,

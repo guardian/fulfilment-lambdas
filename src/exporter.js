@@ -2,8 +2,9 @@
 import type { fulfilmentType } from './lib/config'
 import { weeklyExport } from './weekly/export'
 import { homedeliveryExport } from './homedelivery/export'
+import { membersDataApiExport } from './members-data-api/export'
 import util from 'util'
-import { membersDataApiExport } from 'src/members-data-api/export';
+
 
 export type result = {
   queryName: string,

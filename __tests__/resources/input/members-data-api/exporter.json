@@ -1,0 +1,22 @@
+{
+        "deliveryDate": "2021-01-11",
+        "type": "members-data-api",
+        "jobId": "2c92c0f976f0972d0176f2ce6c2f41a5",
+        "results": [
+                {
+                        "queryName": "Subscriptions",
+                        "fileName": "Subscriptions_2021-01-11_2c92c08676f091a20176f2ce78455419.csv",
+                        "s3": {
+                                "Expiration": "expiry-date=\"Tue, 26 Jan 2021 00:00:00 GMT\", rule-id=\"DeleteOldFilesZuora\"",
+                                "ETag": "\"0713cd476a17effeb92be84507f51bcc\"",
+                                "ServerSideEncryption": "aws:kms",
+                                "VersionId": "Y2qSjVLqGVifzTd_J6qGKcpaPynrDhHG",
+                                "SSEKMSKeyId": "arn:aws:kms:eu-west-1:865473395570:key/ae6ed11c-7883-4cd5-88f7-87c91006b50e",
+                                "Location": "https://fulfilment-export-code.s3.eu-west-1.amazonaws.com/zuoraExport/Subscriptions_2021-01-11_2c92c08676f091a20176f2ce78455419.csv",
+                                "key": "zuoraExport/Subscriptions_2021-01-11_2c92c08676f091a20176f2ce78455419.csv",
+                                "Key": "zuoraExport/Subscriptions_2021-01-11_2c92c08676f091a20176f2ce78455419.csv",
+                                "Bucket": "fulfilment-export-code"
+                        }
+                }
+        ]
+}

@@ -14,15 +14,15 @@ async function queryZuora (config: Config) {
       name: 'Subscriptions',
       query: `
       SELECT
-      Account.IdentityId
-      RatePlan.Name
+      Account.IdentityId__c,
+      RatePlan.Name,
       RateplanCharge.Name,
       Subscription.TermEndDate
     FROM
       rateplancharge
     WHERE
      Subscription.Status = 'Active' AND
-     Subscription.TermEndDate >= ${currentDate}
+     Subscription.TermEndDate >= '${currentDate}'
      `
     }
 
