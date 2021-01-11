@@ -3,6 +3,7 @@ import { homedeliveryQuery } from './homedelivery/query'
 import { weeklyQuery } from './weekly/query'
 import type { fulfilmentType } from './lib/config'
 import util from 'util'
+import { membersDataApiQuery } from 'src/members-data-api/query';
 
 export type Input = {
   type: fulfilmentType,
@@ -17,6 +18,8 @@ export async function handler (input: Input, context:?any) {
       return homedeliveryQuery(input)
     } else if (input.type === 'weekly') {
       return weeklyQuery(input)
+    } else if (input.type === 'members-data-api') {
+      return membersDataApiQuery(input)
     } else throw Error(`Invalid type field ${util.inspect(input)}`)
   }
   try {

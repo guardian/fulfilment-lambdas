@@ -38,6 +38,7 @@ export type Config = {
   },
   fulfilments: {
     homedelivery: uploadDownload,
+    membersDataApi: S3Folder,
     weekly: {
       NZ: uploadDownload,
       FR: uploadDownload,

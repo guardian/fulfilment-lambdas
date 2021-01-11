@@ -1,0 +1,38 @@
+// @flow
+import { fetchConfig } from './../lib/config'
+import type { Config } from './../lib/config'
+import { Zuora } from './../lib/Zuora'
+import type { Query } from './../lib/Zuora'
+import moment from 'moment'
+import type { Input } from '../querier'
+
+async function queryZuora (config: Config) {
+  const zuora = new Zuora(config)
+  const currentDate = moment().format('YYYY-MM-DD')
+  const subsQuery: Query =
+    {
+      name: 'Subscriptions',
+      query: `
+      SELECT
+      Account.IdentityId
+      RatePlan.Name
+      RateplanCharge.Name,
+      Subscription.TermEndDate
+    FROM
+      rateplancharge
+    WHERE
+     Subscription.Status = 'Active' AND
+     Subscription.TermEndDate >= ${currentDate}
+     `
+    }
+
+  const jobId = await zuora.query('Fulfilment-Queries', subsQuery)
+  return { deliveryDate: currentDate, jobId: jobId }
+}
+
+export async function membersDataApiQuery (input: Input) {
+  const config = await fetchConfig()
+  console.log('Config fetched succesfully.')
+  console.log('Input: ', input)
+  return queryZuora(config)
+}
