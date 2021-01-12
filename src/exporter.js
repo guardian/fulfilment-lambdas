@@ -5,7 +5,6 @@ import { homedeliveryExport } from './homedelivery/export'
 import { membersDataApiExport } from './members-data-api/export'
 import util from 'util'
 
-
 export type result = {
   queryName: string,
   fileName: string

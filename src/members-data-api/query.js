@@ -5,7 +5,7 @@ import { Zuora } from './../lib/Zuora'
 import type { Query } from './../lib/Zuora'
 import moment from 'moment'
 import type { Input } from '../querier'
-import { ZuoraNames, QUERY_NAME } from './names';
+import { ZuoraNames, QUERY_NAME } from './names'
 
 async function queryZuora (config: Config) {
   const zuora = new Zuora(config)

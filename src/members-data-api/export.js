@@ -1,17 +1,17 @@
 // @flow
-import * as csv from 'fast-csv';
-import moment from 'moment';
-import { createReadStream, upload } from './../lib/storage';
-import { ReadStream } from 'fs';
-import { fetchConfig, getStage } from './../lib/config';
-import { generateFilename } from './../lib/Filename';
-import getStream from 'get-stream';
-import type { Input, result } from '../exporter';
+import * as csv from 'fast-csv'
+import moment from 'moment'
+import { createReadStream, upload } from './../lib/storage'
+import { ReadStream } from 'fs'
+import { fetchConfig, getStage } from './../lib/config'
+import { generateFilename } from './../lib/Filename'
+import getStream from 'get-stream'
+import type { Input, result } from '../exporter'
 import {
   AthenaNames,
   QUERY_NAME,
-  ZuoraNames,
-} from './names';
+  ZuoraNames
+} from './names'
 
 const outputHeaders = [
   AthenaNames.identityId,
@@ -113,5 +113,5 @@ export async function membersDataApiExport (input: Input) {
   const stage = await getStage()
   const deliveryDate = await getDeliveryDate(input)
   const subscriptionsStream = await getDownloadStream(input.results, stage, QUERY_NAME)
-  return await processSubs(subscriptionsStream, deliveryDate, stage)
+  return processSubs(subscriptionsStream, deliveryDate, stage)
 }
