@@ -8,7 +8,7 @@ const s3 = new AWS.S3()
 
 export type Stage = 'CODE' | 'PROD'
 const stages: Array<Stage> = ['CODE', 'PROD']
-export type fulfilmentType = "homedelivery" | "weekly"
+export type fulfilmentType = "homedelivery" | "weekly" | 'members-data-api'
 
 export type uploadDownload = {
   uploadFolder: Folder & S3Folder,
