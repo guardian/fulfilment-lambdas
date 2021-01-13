@@ -16,7 +16,6 @@ import {
 const outputHeaders = [
   AthenaNames.identityId,
   AthenaNames.ratePlanName,
-  AthenaNames.ratePlanChargeName,
   AthenaNames.termEndDate
 ]
 
@@ -65,7 +64,6 @@ async function processSubs (downloadStream: ReadStream, deliveryDate: moment, st
     const outputCsvRow = {}
     outputCsvRow[AthenaNames.identityId] = row[ZuoraNames.identityId]
     outputCsvRow[AthenaNames.ratePlanName] = row[ZuoraNames.ratePlanName]
-    outputCsvRow[AthenaNames.ratePlanChargeName] = row[ZuoraNames.ratePlanChargeName]
     outputCsvRow[AthenaNames.termEndDate] = row[ZuoraNames.termEndDate]
     csvStream.write(outputCsvRow)
   }

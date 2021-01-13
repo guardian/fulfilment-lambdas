@@ -17,10 +17,9 @@ async function queryZuora (config: Config) {
       SELECT
       ${ZuoraNames.identityId},
       ${ZuoraNames.ratePlanName},
-      ${ZuoraNames.ratePlanChargeName},
       ${ZuoraNames.termEndDate}
     FROM
-      rateplancharge
+      rateplan
     WHERE
      Subscription.Status = 'Active' AND
      ${ZuoraNames.termEndDate} >= '${currentDate}'
