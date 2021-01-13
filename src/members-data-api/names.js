@@ -6,10 +6,10 @@ export const ZuoraNames = {
 }
 
 export const AthenaNames = {
-  identityId: 'identityId',
-  ratePlanName: 'rateplanName',
-  ratePlanChargeName: 'rateplanChargeName',
-  termEndDate: 'termEndDate'
+  identityId: 'identity_id',
+  ratePlanName: 'rateplan_Name',
+  ratePlanChargeName: 'rateplan_charge_name',
+  termEndDate: 'term_end_date'
 }
 
 export const QUERY_NAME = 'Subscriptions'
