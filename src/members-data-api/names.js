@@ -10,4 +10,4 @@ export const AthenaNames = {
   termEndDate: 'term_end_date'
 }
 
-export const QUERY_NAME = 'Subscriptions'
+export const QUERY_NAME = 'MembersDataApi'
