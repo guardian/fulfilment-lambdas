@@ -1,7 +1,7 @@
 // @flow
 import * as csv from 'fast-csv'
 import moment from 'moment'
-import { formatPostCode } from './../lib/formatters'
+import { formatPostCode, formatDeliveryInstructions } from './../lib/formatters'
 import { upload, createReadStream } from './../lib/storage'
 import { ReadStream } from 'fs'
 import { getStage, fetchConfig } from './../lib/config'
@@ -125,7 +125,7 @@ async function processSubs (downloadStream: ReadStream, deliveryDate: moment, st
       outputCsvRow[DELIVERY_DATE] = formattedDeliveryDate
       outputCsvRow[CHARGE_DAY] = chargeDay
       outputCsvRow[CUSTOMER_PHONE] = row[WORK_PHONE]
-      outputCsvRow[ADDITIONAL_INFORMATION] = row[DELIVERY_INSTRUCTIONS]
+      outputCsvRow[ADDITIONAL_INFORMATION] = formatDeliveryInstructions(row[DELIVERY_INSTRUCTIONS])
       csvStream.write(outputCsvRow)
     }
   }
