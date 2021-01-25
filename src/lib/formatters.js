@@ -1,3 +1,10 @@
+import * as csv from 'fast-csv'
+
+// https://c2fo.github.io/fast-csv/docs/formatting/examples
+export function csvFormatterForSalesforce (headers: [string]) {
+  return csv.format({ headers: headers, quoteColumns: true })
+}
+
 export function formatPostCode (postCode: string) {
   /**
    * Supplier requirements:

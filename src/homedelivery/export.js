@@ -1,7 +1,7 @@
 // @flow
 import * as csv from 'fast-csv'
 import moment from 'moment'
-import { formatPostCode, formatDeliveryInstructions } from './../lib/formatters'
+import { formatPostCode, formatDeliveryInstructions, csvFormatterForSalesforce } from './../lib/formatters'
 import { upload, createReadStream } from './../lib/storage'
 import { ReadStream } from 'fs'
 import { getStage, fetchConfig } from './../lib/config'
@@ -34,7 +34,36 @@ const SENT_DATE = 'Sent Date'
 const DELIVERY_DATE = 'Delivery Date'
 const CHARGE_DAY = 'Charge day'
 const CUSTOMER_PHONE = 'Customer Telephone'
-const outputHeaders = [CUSTOMER_REFERENCE, 'Contract ID', CUSTOMER_FULL_NAME, 'Customer Job Title', 'Customer Company', 'Customer Department', CUSTOMER_ADDRESS_LINE_1, CUSTOMER_ADDRESS_LINE_2, 'Customer Address Line 3', CUSTOMER_TOWN, CUSTOMER_POSTCODE, DELIVERY_QUANTITY, CUSTOMER_PHONE, 'Property type', 'Front Door Access', 'Door Colour', 'House Details', 'Where to Leave', 'Landmarks', ADDITIONAL_INFORMATION, 'Letterbox', 'Source campaign', SENT_DATE, DELIVERY_DATE, 'Returned Date', 'Delivery problem', 'Delivery problem notes', CHARGE_DAY]
+export const outputHeaders = [
+  CUSTOMER_REFERENCE,
+  'Contract ID',
+  CUSTOMER_FULL_NAME,
+  'Customer Job Title',
+  'Customer Company',
+  'Customer Department',
+  CUSTOMER_ADDRESS_LINE_1,
+  CUSTOMER_ADDRESS_LINE_2,
+  'Customer Address Line 3',
+  CUSTOMER_TOWN,
+  CUSTOMER_POSTCODE,
+  DELIVERY_QUANTITY,
+  CUSTOMER_PHONE,
+  'Property type',
+  'Front Door Access',
+  'Door Colour',
+  'House Details',
+  'Where to Leave',
+  'Landmarks',
+  ADDITIONAL_INFORMATION,
+  'Letterbox',
+  'Source campaign',
+  SENT_DATE,
+  DELIVERY_DATE,
+  'Returned Date',
+  'Delivery problem',
+  'Delivery problem notes',
+  CHARGE_DAY
+]
 const HOLIDAYS_QUERY_NAME = 'HolidaySuspensions'
 const SUBSCRIPTIONS_QUERY_NAME = 'Subscriptions'
 
@@ -108,7 +137,7 @@ async function processSubs (downloadStream: ReadStream, deliveryDate: moment, st
   const folder = config.fulfilments.homedelivery.uploadFolder
 
   console.log('loaded ' + holidaySuspensions.size + ' holiday suspensions')
-  const csvFormatterStream = csv.format({ headers: outputHeaders, quoteColumns: true })
+  const csvFormatterStream = csvFormatterForSalesforce(outputHeaders)
 
   const writeRowToCsvStream = (row, csvStream) => {
     const subscriptionName = row[SUBSCRIPTION_NAME]
