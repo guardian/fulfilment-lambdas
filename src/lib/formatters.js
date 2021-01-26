@@ -19,16 +19,20 @@ export function formatPostCode (postCode: string) {
 }
 
 /**
+ * Needed because Salesforce CsvReader bug:
+ *   Clarify with tests current behaviour of CsvReader regarding quotes and commas #333
+ *   https://github.com/guardian/salesforce/pull/333
+ *
  * Replace double quotes " with single quotes ' because Salesforce CSV parser gets confused if it sees
- * double quites followed by a comma "", within the column value itself, for example:
+ * double quotes followed by a comma ", within the column value itself, for example:
  *
  * BEFORE:
- *  "front door is on ""Foo's Drive "",Put though the letterbox, do not leave on door step."
+ *  "front door is on "Foo's Drive ",Put though the letterbox, do not leave on door step."
  *
  * AFTER:
  *  "front door is on 'Foo's Drive ',Put though the letterbox, do not leave on door step."
  *
  */
 export function formatDeliveryInstructions (deliveryInstructions: string) {
-  return deliveryInstructions.replace(/""/g, '\'')
+  return deliveryInstructions.replace(/"/g, '\'')
 }
