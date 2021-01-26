@@ -1,8 +1,8 @@
 // @flow
-import * as csv from 'fast-csv'
 import moment from 'moment'
 import type { S3Folder } from './../lib/storage'
 import { getCanadianState, getUSState } from './../lib/states'
+import { csvFormatterForSalesforce } from '../lib/formatters'
 
 // input headers
 const ADDRESS_1 = 'SoldToContact.Address1'
@@ -29,7 +29,7 @@ const CUSTOMER_COUNTRY = 'Country'
 const CUSTOMER_POSTCODE = 'Post code'
 const DELIVERY_QUANTITY = 'Copies'
 
-const outputHeaders = [
+export const outputHeaders = [
   CUSTOMER_REFERENCE,
   CUSTOMER_FULL_NAME,
   CUSTOMER_COMPANY_NAME,
@@ -51,7 +51,7 @@ export class WeeklyExporter {
 
   constructor (country: string, deliveryDate: moment, folder: S3Folder) {
     this.country = country
-    this.writeCSVStream = csv.format({ headers: outputHeaders, quoteColumns: true })
+    this.writeCSVStream = csvFormatterForSalesforce(outputHeaders)
 
     this.sentDate = moment().format('DD/MM/YYYY')
     this.chargeDay = deliveryDate.format('dddd')

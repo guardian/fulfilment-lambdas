@@ -30,7 +30,8 @@
     "replace": "^1.1.1",
     "snazzy": "^8.0.0",
     "standard": "^14.3.1",
-    "string-width": "^4.2.0"
+    "string-width": "^4.2.0",
+    "common-tags": "^1.8.0"
   },
   "scripts": {
     "riffraff-artefact": "./node_modules/.bin/riffraff-artefact",
