@@ -87,7 +87,6 @@ async function processSubs (downloadStream: ReadStream, deliveryDate: moment, st
     new UpperCaseAddressExporter('Australia', deliveryDate, config.fulfilments.weekly.AU.uploadFolder),
     new WeeklyExporter('France', deliveryDate, config.fulfilments.weekly.FR.uploadFolder),
     new UpperCaseAddressExporter('New Zealand', deliveryDate, config.fulfilments.weekly.NZ.uploadFolder),
-    new WeeklyExporter('Hong Kong', deliveryDate, config.fulfilments.weekly.ROW.uploadFolder),
     new UpperCaseAddressExporter('Vanuatu', deliveryDate, config.fulfilments.weekly.VU.uploadFolder),
     rowExporter
   ]
