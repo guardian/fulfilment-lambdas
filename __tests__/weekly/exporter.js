@@ -232,6 +232,6 @@ it('should generate correct fulfilment file for weekly', async () => {
     ]
   }
 
-  const expectedResponse = { ...input, fulfilmentFile: '2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv' }
+  const expectedResponse = { ...input, fulfilmentFile: '2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv,2017-07-06_WEEKLY.csv' }
   await expect(handler(input, {})).resolves.toEqual(expectedResponse)
 })

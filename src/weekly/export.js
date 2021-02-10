@@ -66,6 +66,7 @@ function getHolidaySuspensions (downloadStream: ReadStream): Promise<Set<string>
 
 /**
  * Transfroms raw CSV from Zuora to expected CSV format, splits it per regions, and uploads it to S3 fulfilments folder.
+ * If an exporter is not defined for a specific country, then it defaults to Rest of the world (ROW) fulfilment file.
  * FIXME: Rename fulfilments to something meaningful such as guardian_weekly!
  *
  * @param downloadStream raw Guardian Weekly CSV exported from Zuora
@@ -87,7 +88,6 @@ async function processSubs (downloadStream: ReadStream, deliveryDate: moment, st
     new UpperCaseAddressExporter('Australia', deliveryDate, config.fulfilments.weekly.AU.uploadFolder),
     new WeeklyExporter('France', deliveryDate, config.fulfilments.weekly.FR.uploadFolder),
     new UpperCaseAddressExporter('New Zealand', deliveryDate, config.fulfilments.weekly.NZ.uploadFolder),
-    new WeeklyExporter('Hong Kong', deliveryDate, config.fulfilments.weekly.HK.uploadFolder),
     new UpperCaseAddressExporter('Vanuatu', deliveryDate, config.fulfilments.weekly.VU.uploadFolder),
     rowExporter
   ]
