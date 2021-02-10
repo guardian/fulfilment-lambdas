@@ -66,6 +66,7 @@ function getHolidaySuspensions (downloadStream: ReadStream): Promise<Set<string>
 
 /**
  * Transfroms raw CSV from Zuora to expected CSV format, splits it per regions, and uploads it to S3 fulfilments folder.
+ * If an exporter is not defined for a specific country, then it defaults to Rest of the world (ROW) fulfilment file.
  * FIXME: Rename fulfilments to something meaningful such as guardian_weekly!
  *
  * @param downloadStream raw Guardian Weekly CSV exported from Zuora
