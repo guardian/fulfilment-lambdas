@@ -45,7 +45,6 @@ export async function handler (input: WeeklyInput) {
     buildSourceAndDestination(config.fulfilments.weekly.AU, s3ToSfName('GWAU'), sourceFileName),
     buildSourceAndDestination(config.fulfilments.weekly.CA, s3ToSfName('GWCA'), sourceFileName),
     buildSourceAndDestination(config.fulfilments.weekly.CAHAND, s3ToSfName('GWCA_HAND'), sourceFileName),
-    buildSourceAndDestination(config.fulfilments.weekly.HK, s3ToSfName('GWHK'), sourceFileName),
     buildSourceAndDestination(config.fulfilments.weekly.ROW, s3ToSfName('GWRW'), sourceFileName),
     buildSourceAndDestination(config.fulfilments.weekly.UK, s3ToSfName('GWUK'), sourceFileName),
     buildSourceAndDestination(config.fulfilments.weekly.US, s3ToSfName('GWUS'), sourceFileName),

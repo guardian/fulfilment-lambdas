@@ -42,7 +42,6 @@ export type Config = {
       NZ: uploadDownload,
       FR: uploadDownload,
       VU: uploadDownload,
-      HK: uploadDownload,
       AU: uploadDownload,
       UK: uploadDownload,
       CA: uploadDownload,
