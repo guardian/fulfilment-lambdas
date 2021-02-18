@@ -43,7 +43,7 @@ async function queryZuora (deliveryDate, config: Config) {
       SoldToContact.State,
       Subscription.CanadaHandDelivery__c
       FROM
-        rateplan
+        RatePlanCharge
       WHERE 
         Product.ProductType__c = 'Guardian Weekly' AND
         RatePlan.Name != 'Guardian Weekly 6 Issues' AND
@@ -58,13 +58,15 @@ async function queryZuora (deliveryDate, config: Config) {
            ) OR
           (
             RatePlan.AmendmentType = 'RemoveProduct' AND 
-            Amendment.EffectiveDate > '${formattedDeliveryDate}' 
+            Amendment.EffectiveDate > '${formattedDeliveryDate}' AND
+            EffectiveStartDate <= '${formattedDeliveryDate}' 
             ) OR 
            (
             RatePlan.AmendmentType = 'NewProduct' AND 
             Amendment.CustomerAcceptanceDate <= '${formattedDeliveryDate}' 
            )
         ) AND
+        IsLastSegment = true AND
         Subscription.ContractAcceptanceDate <= '${formattedDeliveryDate}' AND
         (
           (
