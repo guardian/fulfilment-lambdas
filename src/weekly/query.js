@@ -3,9 +3,11 @@ import { fetchConfig } from './../lib/config'
 import type { Config } from './../lib/config'
 import { Zuora } from './../lib/Zuora'
 import type { Query } from './../lib/Zuora'
+import { buildHolidayCreditQuery } from '../lib/HolidayCreditQuery'
 import moment from 'moment'
 import { getDeliveryDate } from './WeeklyInput'
 import type { WeeklyInput } from './WeeklyInput'
+
 function getCutOffDate (deliveryDate: moment) {
   const today = moment().startOf('day')
   const daysUntilDelivery = deliveryDate.diff(today)
@@ -116,18 +118,7 @@ async function queryZuora (deliveryDate, config: Config) {
   const holidaySuspensionQuery: Query =
     {
       name: 'WeeklyHolidaySuspensions',
-      query: `
-      SELECT
-        Subscription.Name
-      FROM
-        rateplancharge
-      WHERE
-       (Subscription.Status = 'Active' OR Subscription.Status = 'Cancelled') AND
-       ProductRatePlanCharge.ProductType__c = 'Adjustment' AND
-       RateplanCharge.Name = 'Holiday Credit' AND
-       RatePlanCharge.HolidayStart__c <= '${formattedDeliveryDate}' AND
-       RatePlanCharge.HolidayEnd__c >= '${formattedDeliveryDate}' AND
-       RatePlan.AmendmentType != 'RemoveProduct'`
+      query: buildHolidayCreditQuery(formattedDeliveryDate)
     }
   const jobId = await zuora.query('Fulfilment-Queries', subsQuery, holidaySuspensionQuery, introductoryPeriodQuery)
   return { deliveryDate: formattedDeliveryDate, jobId: jobId }
