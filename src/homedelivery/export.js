@@ -13,13 +13,11 @@ import type { result, Input } from '../exporter'
 const ADDRESS_1 = 'SoldToContact.Address1'
 const ADDRESS_2 = 'SoldToContact.Address2'
 const CITY = 'SoldToContact.City'
-// const TITLE = 'SoldToContact.Title__c'
 const FIRST_NAME = 'SoldToContact.FirstName'
 const LAST_NAME = 'SoldToContact.LastName'
 const POSTAL_CODE = 'SoldToContact.PostalCode'
 const SUBSCRIPTION_NAME = 'Subscription.Name'
 const QUANTITY = 'RatePlanCharge.Quantity'
-const WORK_PHONE = 'SoldToContact.WorkPhone'
 const DELIVERY_INSTRUCTIONS = 'SoldToContact.SpecialDeliveryInstructions__c'
 // output headers
 const CUSTOMER_REFERENCE = 'Customer Reference'
@@ -153,7 +151,7 @@ async function processSubs (downloadStream: ReadStream, deliveryDate: moment, st
       outputCsvRow[SENT_DATE] = sentDate
       outputCsvRow[DELIVERY_DATE] = formattedDeliveryDate
       outputCsvRow[CHARGE_DAY] = chargeDay
-      outputCsvRow[CUSTOMER_PHONE] = row[WORK_PHONE]
+      outputCsvRow[CUSTOMER_PHONE] = '' // Was row[WORK_PHONE]. Removed on 6-Apr-2021 due to no longer being necessary.
       outputCsvRow[ADDITIONAL_INFORMATION] = formatDeliveryInstructions(row[DELIVERY_INSTRUCTIONS])
       csvStream.write(outputCsvRow)
     }
