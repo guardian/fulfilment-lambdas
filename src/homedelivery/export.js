@@ -153,7 +153,7 @@ async function processSubs (downloadStream: ReadStream, deliveryDate: moment, st
       outputCsvRow[SENT_DATE] = sentDate
       outputCsvRow[DELIVERY_DATE] = formattedDeliveryDate
       outputCsvRow[CHARGE_DAY] = chargeDay
-      outputCsvRow[CUSTOMER_PHONE] = row[WORK_PHONE]
+      outputCsvRow[CUSTOMER_PHONE] = '' // row[WORK_PHONE] - Removed on 6 April 2021 due to no longer being necessary.
       outputCsvRow[ADDITIONAL_INFORMATION] = formatDeliveryInstructions(row[DELIVERY_INSTRUCTIONS])
       csvStream.write(outputCsvRow)
     }
