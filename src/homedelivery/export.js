@@ -19,7 +19,7 @@ const LAST_NAME = 'SoldToContact.LastName'
 const POSTAL_CODE = 'SoldToContact.PostalCode'
 const SUBSCRIPTION_NAME = 'Subscription.Name'
 const QUANTITY = 'RatePlanCharge.Quantity'
-const WORK_PHONE = 'SoldToContact.WorkPhone'
+// const WORK_PHONE = 'SoldToContact.WorkPhone'
 const DELIVERY_INSTRUCTIONS = 'SoldToContact.SpecialDeliveryInstructions__c'
 // output headers
 const CUSTOMER_REFERENCE = 'Customer Reference'
