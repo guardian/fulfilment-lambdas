@@ -1,25 +1,31 @@
 // @flow
-import { fetchConfig } from './../lib/config'
-import type { Config } from './../lib/config'
-import { Zuora } from './../lib/Zuora'
-import type { Query } from './../lib/Zuora'
+import { fetchConfig } from '../lib/config'
+import type { Config } from '../lib/config'
+import { Zuora } from '../lib/Zuora'
+import type { Query } from '../lib/Zuora'
 import { buildHolidayCreditQuery } from '../lib/HolidayCreditQuery'
 import moment from 'moment'
 import { getDeliveryDate } from './WeeklyInput'
 import type { WeeklyInput } from './WeeklyInput'
 
+/**
+ * Date to compare termEndDate with to decide whether sub should be fulfilled.
+ *
+ * @param deliveryDate Issue date of publication
+ * @returns {*|moment} Comparison date
+ */
 function getCutOffDate (deliveryDate: moment) {
   const today = moment().startOf('day')
   const daysUntilDelivery = deliveryDate.diff(today)
   if (daysUntilDelivery <= 0) {
     return deliveryDate
   }
-  // TODO this code just replicates what the sf fulfilment does to minimize the differences, maybe we could change it later to just use the daysUntilDelivery
-  if (daysUntilDelivery <= 6) {
-    return deliveryDate.subtract(6, 'days')
-  } else {
-    return deliveryDate.subtract(13, 'days')
-  }
+  /*
+   * We give a grace period so that
+   * the next issue after cancellation is fulfilled
+   * if the cancellation falls between two issues.
+   */
+  return deliveryDate.subtract(6, 'days')
 }
 
 async function queryZuora (deliveryDate, config: Config) {
