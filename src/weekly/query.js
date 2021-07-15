@@ -83,6 +83,7 @@ async function queryZuora (deliveryDate, config: Config) {
           ) OR
           (
             Subscription.Status = 'Cancelled' AND
+            Subscription.ReaderType__c != 'Gift' AND
             Subscription.TermEndDate >= '${cutOffDate}'
           ) OR
           (
