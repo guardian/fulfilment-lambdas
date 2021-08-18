@@ -1,7 +1,7 @@
 // @flow
 import moment from 'moment'
-import type { S3Folder } from './../lib/storage'
-import { getCanadianState, getUSState } from './../lib/states'
+import type { S3Folder } from '../lib/storage'
+import { getCanadianState, getUSState } from '../lib/states'
 import { csvFormatterForSalesforce } from '../lib/formatters'
 
 // input headers
@@ -145,5 +145,46 @@ export class USExporter extends WeeklyExporter {
 export class CaHandDeliveryExporter extends CaExporter {
   checkHandDelivery (handDeliveryValue: string): boolean {
     return handDeliveryValue.trim().toUpperCase() === 'YES'
+  }
+}
+
+const euCountries: string[] = [
+  'Austria',
+  'Belgium',
+  'Bulgaria',
+  'Croatia',
+  'Cyprus',
+  'Czech Republic',
+  'Denmark',
+  'Estonia',
+  'Finland',
+  'France',
+  'Germany',
+  'Greece',
+  'Hungary',
+  'Ireland',
+  'Italy',
+  'Latvia',
+  'Lithuania',
+  'Luxembourg',
+  'Malta',
+  'Netherlands',
+  'Poland',
+  'Portugal',
+  'Romania',
+  'Slovakia',
+  'Slovenia',
+  'Spain',
+  'Sweden'
+]
+
+export class EuExporter extends WeeklyExporter {
+  contains (arr: string[], s: string): boolean {
+    return arr.indexOf(s) > -1
+  }
+
+  useForRow (row: { [string]: string }): boolean {
+    // No need for trimmed or case-insensitive comparison as country field is from a picklist
+    return this.contains(euCountries, row[COUNTRY])
   }
 }

@@ -41,14 +41,14 @@ export async function handler (input: WeeklyInput) {
   const s3ToSfName = (prefix: string) => `${prefix}_${sfFormattedDeliveryDate}_${uploadTimeStamp}.csv`
   const filesToUpload = [
     buildSourceAndDestination(config.fulfilments.weekly.NZ, s3ToSfName('GWNZ'), sourceFileName),
-    buildSourceAndDestination(config.fulfilments.weekly.FR, s3ToSfName('GWFR'), sourceFileName),
     buildSourceAndDestination(config.fulfilments.weekly.AU, s3ToSfName('GWAU'), sourceFileName),
     buildSourceAndDestination(config.fulfilments.weekly.CA, s3ToSfName('GWCA'), sourceFileName),
     buildSourceAndDestination(config.fulfilments.weekly.CAHAND, s3ToSfName('GWCA_HAND'), sourceFileName),
     buildSourceAndDestination(config.fulfilments.weekly.ROW, s3ToSfName('GWRW'), sourceFileName),
     buildSourceAndDestination(config.fulfilments.weekly.UK, s3ToSfName('GWUK'), sourceFileName),
     buildSourceAndDestination(config.fulfilments.weekly.US, s3ToSfName('GWUS'), sourceFileName),
-    buildSourceAndDestination(config.fulfilments.weekly.VU, s3ToSfName('GWVA'), sourceFileName)
+    buildSourceAndDestination(config.fulfilments.weekly.VU, s3ToSfName('GWVA'), sourceFileName),
+    buildSourceAndDestination(config.fulfilments.weekly.EU, s3ToSfName('GWEU'), sourceFileName)
   ]
   const result = await uploadFiles(filesToUpload, salesforce)
   console.log(`Successfully uploaded Guardian Weekly issue ${sfFormattedDeliveryDate} to Salesforce`)

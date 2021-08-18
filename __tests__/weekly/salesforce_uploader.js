@@ -101,18 +101,18 @@ jest.mock('../../src/lib/config', () => ({
               prefix: 'TEST/salesforce_output/weekly/usa/'
             }
           },
-          FR: {
+          EU: {
             uploadFolder: {
-              folderId: 'folderId_FR_RELEASE',
-              name: 'Weekly_Pipeline_FR',
+              folderId: 'folderId_EU_RELEASE',
+              name: 'Weekly_Pipeline_EU',
               bucket: 'fulfilment-bucket-name',
-              prefix: 'TEST/fulfilments/Weekly_FR/'
+              prefix: 'TEST/fulfilments/Weekly_EU/'
             },
             downloadFolder: {
-              folderId: 'folderId_FR_SF',
-              name: 'Guardian Weekly (France)',
+              folderId: 'folderId_EU_SF',
+              name: 'Guardian Weekly (EU)',
               bucket: 'fulfilment-bucket-name',
-              prefix: 'TEST/salesforce_output/weekly/fr/'
+              prefix: 'TEST/salesforce_output/weekly/eu/'
             }
           },
           NZ: {
