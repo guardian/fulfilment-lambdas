@@ -154,6 +154,7 @@ const euCountries: string[] = [
   'Bulgaria',
   'Croatia',
   'Cyprus',
+  'Czechia',
   'Czech Republic',
   'Denmark',
   'Estonia',
