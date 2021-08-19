@@ -17,8 +17,10 @@ const SUBSCRIPTION_NAME = 'Subscription.Name'
 const COMPANY_NAME = 'SoldToContact.Company_Name__c'
 const SHOULD_HAND_DELIVER = 'Subscription.CanadaHandDelivery__c'
 const STATE = 'SoldToContact.State'
-// output headers
+const MRR = 'Account.Mrr'
+const ACCOUNT_CURRENCY = 'Account.Currency'
 
+// output headers
 const CUSTOMER_REFERENCE = 'Subscriber ID'
 const CUSTOMER_FULL_NAME = 'Name'
 const CUSTOMER_COMPANY_NAME = 'Company name'
@@ -28,6 +30,8 @@ const CUSTOMER_ADDRESS_LINE_3 = 'Address  3'// extra space added on purpose to r
 const CUSTOMER_COUNTRY = 'Country'
 const CUSTOMER_POSTCODE = 'Post code'
 const DELIVERY_QUANTITY = 'Copies'
+const UNIT_PRICE = 'Unit price'
+const CURRENCY = 'Currency'
 
 export const outputHeaders = [
   CUSTOMER_REFERENCE,
@@ -86,15 +90,10 @@ export class WeeklyExporter {
     return [zTitle, firstName, zLastName.trim()].join(' ')
   }
 
-  processRow (row: { [string]: string }) {
-    if (row[SUBSCRIPTION_NAME] === 'Subscription.Name') {
-      return
-    }
+  buildOutputCsv (row: { [string]: string }) {
     const outputCsvRow = {}
     const addressLine1 = [row[ADDRESS_1], row[ADDRESS_2]].filter(x => x).join(', ')
-
     const fullName = this.getFullName(row[TITLE], row[FIRST_NAME], row[LAST_NAME])
-
     outputCsvRow[CUSTOMER_REFERENCE] = row[SUBSCRIPTION_NAME]
     outputCsvRow[CUSTOMER_FULL_NAME] = this.formatAddress(fullName)
     outputCsvRow[CUSTOMER_COMPANY_NAME] = this.formatAddress(row[COMPANY_NAME])
@@ -104,7 +103,14 @@ export class WeeklyExporter {
     outputCsvRow[CUSTOMER_POSTCODE] = this.toUpperCase(row[POSTAL_CODE])
     outputCsvRow[DELIVERY_QUANTITY] = '1.0'
     outputCsvRow[CUSTOMER_COUNTRY] = this.toUpperCase(row[COUNTRY])
-    this.writeCSVStream.write(outputCsvRow)
+    return outputCsvRow
+  }
+
+  processRow (row: { [string]: string }) {
+    if (row[SUBSCRIPTION_NAME] === 'Subscription.Name') {
+      return
+    }
+    this.writeCSVStream.write(this.buildOutputCsv(row))
   }
 
   end () {
@@ -180,12 +186,43 @@ const euCountries: string[] = [
 ]
 
 export class EuExporter extends WeeklyExporter {
+  constructor (country: string, deliveryDate: moment, folder: S3Folder) {
+    super(country, deliveryDate, folder)
+    const headers = this.append(outputHeaders, UNIT_PRICE, CURRENCY)
+    this.writeCSVStream = csvFormatterForSalesforce(headers)
+  }
+
+  clone (arr: string[]): string[] {
+    return arr.slice()
+  }
+
+  append (arr: string[], ...values: string[]): string[] {
+    const appended = this.clone(arr)
+    values.forEach(s => appended.push(s))
+    return appended
+  }
+
   contains (arr: string[], s: string): boolean {
     return arr.indexOf(s) > -1
+  }
+
+  round (n: number): number {
+    return Math.round(n * 100) / 100
+  }
+
+  monthlyValueToWeekly (n: number): number {
+    return n * 12 / 52
   }
 
   useForRow (row: { [string]: string }): boolean {
     // No need for trimmed or case-insensitive comparison as country field is from a picklist
     return this.contains(euCountries, row[COUNTRY])
+  }
+
+  buildOutputCsv (row: { [string]: string }) {
+    const outputCsvRow = super.buildOutputCsv(row)
+    outputCsvRow[UNIT_PRICE] = this.round(this.monthlyValueToWeekly(parseFloat(row[MRR])))
+    outputCsvRow[CURRENCY] = row[ACCOUNT_CURRENCY]
+    return outputCsvRow
   }
 }
