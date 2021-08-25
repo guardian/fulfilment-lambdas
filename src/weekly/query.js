@@ -38,18 +38,20 @@ async function queryZuora (deliveryDate, config: Config) {
       name: 'WeeklySubscriptions',
       query: `
       SELECT
-      Subscription.Name,
-      SoldToContact.Address1,
-      SoldToContact.Address2,
-      SoldToContact.City,
-      SoldToContact.Company_Name__c,
-      SoldToContact.Country,
-      SoldToContact.Title__c,
-      SoldToContact.FirstName,
-      SoldToContact.LastName,
-      SoldToContact.PostalCode,
-      SoldToContact.State,
-      Subscription.CanadaHandDelivery__c
+        Subscription.Name,
+        SoldToContact.Address1,
+        SoldToContact.Address2,
+        SoldToContact.City,
+        SoldToContact.Company_Name__c,
+        SoldToContact.Country,
+        SoldToContact.Title__c,
+        SoldToContact.FirstName,
+        SoldToContact.LastName,
+        SoldToContact.PostalCode,
+        SoldToContact.State,
+        Subscription.CanadaHandDelivery__c,
+        Account.MRR,
+        Account.Currency
       FROM
         RatePlanCharge
       WHERE 
@@ -104,18 +106,20 @@ async function queryZuora (deliveryDate, config: Config) {
       name: 'WeeklyIntroductoryPeriods',
       query: `
       SELECT
-      Subscription.Name,
-      SoldToContact.Address1,
-      SoldToContact.Address2,
-      SoldToContact.City,
-      SoldToContact.Company_Name__c,
-      SoldToContact.Country,
-      SoldToContact.Title__c,
-      SoldToContact.FirstName,
-      SoldToContact.LastName,
-      SoldToContact.PostalCode,
-      SoldToContact.State,
-      Subscription.CanadaHandDelivery__c
+        Subscription.Name,
+        SoldToContact.Address1,
+        SoldToContact.Address2,
+        SoldToContact.City,
+        SoldToContact.Company_Name__c,
+        SoldToContact.Country,
+        SoldToContact.Title__c,
+        SoldToContact.FirstName,
+        SoldToContact.LastName,
+        SoldToContact.PostalCode,
+        SoldToContact.State,
+        Subscription.CanadaHandDelivery__c,
+        Account.MRR,
+        Account.Currency
       FROM
         RatePlanCharge
       WHERE 
