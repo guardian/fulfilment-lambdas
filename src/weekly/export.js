@@ -2,12 +2,19 @@
 import * as csv from 'fast-csv'
 import moment from 'moment'
 import MultiStream from 'multistream'
-import { upload, createReadStream } from './../lib/storage'
+import { upload, createReadStream } from '../lib/storage'
 import { ReadStream } from 'fs'
-import { getStage, fetchConfig } from './../lib/config'
-import { generateFilename } from './../lib/Filename'
-import type { Filename } from './../lib/Filename'
-import { WeeklyExporter, CaExporter, CaHandDeliveryExporter, USExporter, UpperCaseAddressExporter } from './WeeklyExporter'
+import { getStage, fetchConfig } from '../lib/config'
+import { generateFilename } from '../lib/Filename'
+import type { Filename } from '../lib/Filename'
+import {
+  WeeklyExporter,
+  CaExporter,
+  CaHandDeliveryExporter,
+  USExporter,
+  UpperCaseAddressExporter,
+  EuExporter
+} from './WeeklyExporter'
 import type { result, Input } from '../exporter'
 import getStream from 'get-stream'
 
@@ -86,9 +93,9 @@ async function processSubs (downloadStream: ReadStream, deliveryDate: moment, st
     new CaHandDeliveryExporter('Canada', deliveryDate, config.fulfilments.weekly.CAHAND.uploadFolder),
     new USExporter('United States', deliveryDate, config.fulfilments.weekly.US.uploadFolder),
     new UpperCaseAddressExporter('Australia', deliveryDate, config.fulfilments.weekly.AU.uploadFolder),
-    new WeeklyExporter('France', deliveryDate, config.fulfilments.weekly.FR.uploadFolder),
     new UpperCaseAddressExporter('New Zealand', deliveryDate, config.fulfilments.weekly.NZ.uploadFolder),
     new UpperCaseAddressExporter('Vanuatu', deliveryDate, config.fulfilments.weekly.VU.uploadFolder),
+    new EuExporter('EU', deliveryDate, config.fulfilments.weekly.EU.uploadFolder),
     rowExporter
   ]
 

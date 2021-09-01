@@ -40,13 +40,13 @@ export type Config = {
     homedelivery: uploadDownload,
     weekly: {
       NZ: uploadDownload,
-      FR: uploadDownload,
       VU: uploadDownload,
       AU: uploadDownload,
       UK: uploadDownload,
       CA: uploadDownload,
       CAHAND: uploadDownload,
       US: uploadDownload,
+      EU: uploadDownload,
       ROW: uploadDownload
     }
   }
