@@ -17,8 +17,8 @@ const SUBSCRIPTION_NAME = 'Subscription.Name'
 const COMPANY_NAME = 'SoldToContact.Company_Name__c'
 const SHOULD_HAND_DELIVER = 'Subscription.CanadaHandDelivery__c'
 const STATE = 'SoldToContact.State'
-const MRR = 'Account.Mrr'
-const ACCOUNT_CURRENCY = 'Account.Currency'
+const MRR = 'RatePlanCharge.MRR'
+const ACCOUNT_CURRENCY = 'RatePlanCharge.TransactionCurrency'
 
 // output headers
 const CUSTOMER_REFERENCE = 'Subscriber ID'
