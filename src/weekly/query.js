@@ -50,8 +50,7 @@ async function queryZuora (deliveryDate, config: Config) {
         SoldToContact.PostalCode,
         SoldToContact.State,
         Subscription.CanadaHandDelivery__c,
-        Account.MRR,
-        Account.Currency
+        MRR
       FROM
         RatePlanCharge
       WHERE 
@@ -118,8 +117,7 @@ async function queryZuora (deliveryDate, config: Config) {
         SoldToContact.PostalCode,
         SoldToContact.State,
         Subscription.CanadaHandDelivery__c,
-        Account.MRR,
-        Account.Currency
+        MRR
       FROM
         RatePlanCharge
       WHERE 
