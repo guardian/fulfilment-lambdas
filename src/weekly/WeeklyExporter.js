@@ -17,8 +17,6 @@ const SUBSCRIPTION_NAME = 'Subscription.Name'
 const COMPANY_NAME = 'SoldToContact.Company_Name__c'
 const SHOULD_HAND_DELIVER = 'Subscription.CanadaHandDelivery__c'
 const STATE = 'SoldToContact.State'
-const MRR = 'RatePlanCharge.MRR'
-const ACCOUNT_CURRENCY = 'RatePlanCharge.TransactionCurrency'
 
 // output headers
 const CUSTOMER_REFERENCE = 'Subscriber ID'
@@ -206,14 +204,6 @@ export class EuExporter extends WeeklyExporter {
     return arr.indexOf(s) > -1
   }
 
-  round (n: number): number {
-    return Math.round(n * 100) / 100
-  }
-
-  monthlyValueToWeekly (n: number): number {
-    return n * 12 / 52
-  }
-
   useForRow (row: { [string]: string }): boolean {
     // No need for trimmed or case-insensitive comparison as country field is from a picklist
     return this.contains(euCountries, row[COUNTRY])
@@ -221,8 +211,15 @@ export class EuExporter extends WeeklyExporter {
 
   buildOutputCsv (row: { [string]: string }) {
     const outputCsvRow = super.buildOutputCsv(row)
-    outputCsvRow[UNIT_PRICE] = this.round(this.monthlyValueToWeekly(parseFloat(row[MRR])))
-    outputCsvRow[CURRENCY] = row[ACCOUNT_CURRENCY]
+    /*
+     * The arbitrary value of an individual Guardian Weekly
+     * for the purposes of checks at the EU border.
+     *
+     * This was determined by the most common MRR (* 12 / 52 to give a weekly value)
+     * of the batch of deliveries for the 24 Sep 2021 issue.
+     */
+    outputCsvRow[UNIT_PRICE] = 4.72
+    outputCsvRow[CURRENCY] = 'EUR'
     return outputCsvRow
   }
 }
