@@ -630,7 +630,7 @@ Resources:
       Period: 60
       EvaluationPeriods: 1
       Statistic: Sum
-      TreatMissingData: notBreaching
+      TreatMissingData: ignore
     DependsOn: FulfilmentStateMachine_[STAGE]
 
   HomeDeliveryUploadToSalesforceApiAlarm:
