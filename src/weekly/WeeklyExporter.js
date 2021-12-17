@@ -1,8 +1,8 @@
 // @flow
-import * as csv from 'fast-csv'
 import moment from 'moment'
-import type { S3Folder } from './../lib/storage'
-import { getCanadianState, getUSState } from './../lib/states'
+import type { S3Folder } from '../lib/storage'
+import { getCanadianState, getUSState } from '../lib/states'
+import { csvFormatterForSalesforce } from '../lib/formatters'
 
 // input headers
 const ADDRESS_1 = 'SoldToContact.Address1'
@@ -17,8 +17,8 @@ const SUBSCRIPTION_NAME = 'Subscription.Name'
 const COMPANY_NAME = 'SoldToContact.Company_Name__c'
 const SHOULD_HAND_DELIVER = 'Subscription.CanadaHandDelivery__c'
 const STATE = 'SoldToContact.State'
-// output headers
 
+// output headers
 const CUSTOMER_REFERENCE = 'Subscriber ID'
 const CUSTOMER_FULL_NAME = 'Name'
 const CUSTOMER_COMPANY_NAME = 'Company name'
@@ -28,8 +28,10 @@ const CUSTOMER_ADDRESS_LINE_3 = 'Address  3'// extra space added on purpose to r
 const CUSTOMER_COUNTRY = 'Country'
 const CUSTOMER_POSTCODE = 'Post code'
 const DELIVERY_QUANTITY = 'Copies'
+const UNIT_PRICE = 'Unit price'
+const CURRENCY = 'Currency'
 
-const outputHeaders = [
+export const outputHeaders = [
   CUSTOMER_REFERENCE,
   CUSTOMER_FULL_NAME,
   CUSTOMER_COMPANY_NAME,
@@ -51,7 +53,7 @@ export class WeeklyExporter {
 
   constructor (country: string, deliveryDate: moment, folder: S3Folder) {
     this.country = country
-    this.writeCSVStream = csv.format({ headers: outputHeaders, quoteColumns: true })
+    this.writeCSVStream = csvFormatterForSalesforce(outputHeaders)
 
     this.sentDate = moment().format('DD/MM/YYYY')
     this.chargeDay = deliveryDate.format('dddd')
@@ -86,15 +88,10 @@ export class WeeklyExporter {
     return [zTitle, firstName, zLastName.trim()].join(' ')
   }
 
-  processRow (row: { [string]: string }) {
-    if (row[SUBSCRIPTION_NAME] === 'Subscription.Name') {
-      return
-    }
+  buildOutputCsv (row: { [string]: string }) {
     const outputCsvRow = {}
     const addressLine1 = [row[ADDRESS_1], row[ADDRESS_2]].filter(x => x).join(', ')
-
     const fullName = this.getFullName(row[TITLE], row[FIRST_NAME], row[LAST_NAME])
-
     outputCsvRow[CUSTOMER_REFERENCE] = row[SUBSCRIPTION_NAME]
     outputCsvRow[CUSTOMER_FULL_NAME] = this.formatAddress(fullName)
     outputCsvRow[CUSTOMER_COMPANY_NAME] = this.formatAddress(row[COMPANY_NAME])
@@ -104,7 +101,14 @@ export class WeeklyExporter {
     outputCsvRow[CUSTOMER_POSTCODE] = this.toUpperCase(row[POSTAL_CODE])
     outputCsvRow[DELIVERY_QUANTITY] = '1.0'
     outputCsvRow[CUSTOMER_COUNTRY] = this.toUpperCase(row[COUNTRY])
-    this.writeCSVStream.write(outputCsvRow)
+    return outputCsvRow
+  }
+
+  processRow (row: { [string]: string }) {
+    if (row[SUBSCRIPTION_NAME] === 'Subscription.Name') {
+      return
+    }
+    this.writeCSVStream.write(this.buildOutputCsv(row))
   }
 
   end () {
@@ -145,5 +149,77 @@ export class USExporter extends WeeklyExporter {
 export class CaHandDeliveryExporter extends CaExporter {
   checkHandDelivery (handDeliveryValue: string): boolean {
     return handDeliveryValue.trim().toUpperCase() === 'YES'
+  }
+}
+
+const euCountries: string[] = [
+  'Austria',
+  'Belgium',
+  'Bulgaria',
+  'Croatia',
+  'Cyprus',
+  'Czechia',
+  'Czech Republic',
+  'Denmark',
+  'Estonia',
+  'Finland',
+  'France',
+  'Germany',
+  'Greece',
+  'Hungary',
+  'Ireland',
+  'Italy',
+  'Latvia',
+  'Lithuania',
+  'Luxembourg',
+  'Malta',
+  'Netherlands',
+  'Poland',
+  'Portugal',
+  'Romania',
+  'Slovakia',
+  'Slovenia',
+  'Spain',
+  'Sweden'
+]
+
+export class EuExporter extends WeeklyExporter {
+  constructor (country: string, deliveryDate: moment, folder: S3Folder) {
+    super(country, deliveryDate, folder)
+    const headers = this.append(outputHeaders, UNIT_PRICE, CURRENCY)
+    this.writeCSVStream = csvFormatterForSalesforce(headers)
+  }
+
+  clone (arr: string[]): string[] {
+    return arr.slice()
+  }
+
+  append (arr: string[], ...values: string[]): string[] {
+    const appended = this.clone(arr)
+    values.forEach(s => appended.push(s))
+    return appended
+  }
+
+  contains (arr: string[], s: string): boolean {
+    return arr.indexOf(s) > -1
+  }
+
+  useForRow (row: { [string]: string }): boolean {
+    // No need for trimmed or case-insensitive comparison as country field is from a picklist
+    return this.contains(euCountries, row[COUNTRY])
+  }
+
+  buildOutputCsv (row: { [string]: string }) {
+    const outputCsvRow = super.buildOutputCsv(row)
+    /*
+     * The arbitrary value of an individual Guardian Weekly
+     * for the purposes of checks at the EU border.
+     *
+     * This was determined by the most common MRR (* 12 / 52 to give a weekly value)
+     * of the batch of deliveries for the 24 Sep 2021 issue.
+     */
+    outputCsvRow[UNIT_PRICE] = 4.72
+    outputCsvRow[CURRENCY] = 'EUR'
+    return outputCsvRow
   }
 }

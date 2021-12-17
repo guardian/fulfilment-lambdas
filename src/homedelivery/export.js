@@ -1,7 +1,7 @@
 // @flow
 import * as csv from 'fast-csv'
 import moment from 'moment'
-import { formatPostCode } from './../lib/formatters'
+import { formatPostCode, formatDeliveryInstructions, csvFormatterForSalesforce } from './../lib/formatters'
 import { upload, createReadStream } from './../lib/storage'
 import { ReadStream } from 'fs'
 import { getStage, fetchConfig } from './../lib/config'
@@ -13,13 +13,11 @@ import type { result, Input } from '../exporter'
 const ADDRESS_1 = 'SoldToContact.Address1'
 const ADDRESS_2 = 'SoldToContact.Address2'
 const CITY = 'SoldToContact.City'
-// const TITLE = 'SoldToContact.Title__c'
 const FIRST_NAME = 'SoldToContact.FirstName'
 const LAST_NAME = 'SoldToContact.LastName'
 const POSTAL_CODE = 'SoldToContact.PostalCode'
 const SUBSCRIPTION_NAME = 'Subscription.Name'
 const QUANTITY = 'RatePlanCharge.Quantity'
-const WORK_PHONE = 'SoldToContact.WorkPhone'
 const DELIVERY_INSTRUCTIONS = 'SoldToContact.SpecialDeliveryInstructions__c'
 // output headers
 const CUSTOMER_REFERENCE = 'Customer Reference'
@@ -34,7 +32,36 @@ const SENT_DATE = 'Sent Date'
 const DELIVERY_DATE = 'Delivery Date'
 const CHARGE_DAY = 'Charge day'
 const CUSTOMER_PHONE = 'Customer Telephone'
-const outputHeaders = [CUSTOMER_REFERENCE, 'Contract ID', CUSTOMER_FULL_NAME, 'Customer Job Title', 'Customer Company', 'Customer Department', CUSTOMER_ADDRESS_LINE_1, CUSTOMER_ADDRESS_LINE_2, 'Customer Address Line 3', CUSTOMER_TOWN, CUSTOMER_POSTCODE, DELIVERY_QUANTITY, CUSTOMER_PHONE, 'Property type', 'Front Door Access', 'Door Colour', 'House Details', 'Where to Leave', 'Landmarks', ADDITIONAL_INFORMATION, 'Letterbox', 'Source campaign', SENT_DATE, DELIVERY_DATE, 'Returned Date', 'Delivery problem', 'Delivery problem notes', CHARGE_DAY]
+export const outputHeaders = [
+  CUSTOMER_REFERENCE,
+  'Contract ID',
+  CUSTOMER_FULL_NAME,
+  'Customer Job Title',
+  'Customer Company',
+  'Customer Department',
+  CUSTOMER_ADDRESS_LINE_1,
+  CUSTOMER_ADDRESS_LINE_2,
+  'Customer Address Line 3',
+  CUSTOMER_TOWN,
+  CUSTOMER_POSTCODE,
+  DELIVERY_QUANTITY,
+  CUSTOMER_PHONE,
+  'Property type',
+  'Front Door Access',
+  'Door Colour',
+  'House Details',
+  'Where to Leave',
+  'Landmarks',
+  ADDITIONAL_INFORMATION,
+  'Letterbox',
+  'Source campaign',
+  SENT_DATE,
+  DELIVERY_DATE,
+  'Returned Date',
+  'Delivery problem',
+  'Delivery problem notes',
+  CHARGE_DAY
+]
 const HOLIDAYS_QUERY_NAME = 'HolidaySuspensions'
 const SUBSCRIPTIONS_QUERY_NAME = 'Subscriptions'
 
@@ -108,7 +135,7 @@ async function processSubs (downloadStream: ReadStream, deliveryDate: moment, st
   const folder = config.fulfilments.homedelivery.uploadFolder
 
   console.log('loaded ' + holidaySuspensions.size + ' holiday suspensions')
-  const csvFormatterStream = csv.format({ headers: outputHeaders, quoteColumns: true })
+  const csvFormatterStream = csvFormatterForSalesforce(outputHeaders)
 
   const writeRowToCsvStream = (row, csvStream) => {
     const subscriptionName = row[SUBSCRIPTION_NAME]
@@ -124,8 +151,8 @@ async function processSubs (downloadStream: ReadStream, deliveryDate: moment, st
       outputCsvRow[SENT_DATE] = sentDate
       outputCsvRow[DELIVERY_DATE] = formattedDeliveryDate
       outputCsvRow[CHARGE_DAY] = chargeDay
-      outputCsvRow[CUSTOMER_PHONE] = row[WORK_PHONE]
-      outputCsvRow[ADDITIONAL_INFORMATION] = row[DELIVERY_INSTRUCTIONS]
+      outputCsvRow[CUSTOMER_PHONE] = '' // Was row[WORK_PHONE]. Removed on 6-Apr-2021 due to no longer being necessary.
+      outputCsvRow[ADDITIONAL_INFORMATION] = formatDeliveryInstructions(row[DELIVERY_INSTRUCTIONS])
       csvStream.write(outputCsvRow)
     }
   }
