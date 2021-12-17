@@ -30,7 +30,8 @@
     "replace": "^1.1.1",
     "snazzy": "^8.0.0",
     "standard": "^14.3.1",
-    "string-width": "^4.2.0"
+    "string-width": "^4.2.0",
+    "common-tags": "^1.8.0"
   },
   "scripts": {
     "riffraff-artefact": "./node_modules/.bin/riffraff-artefact",
@@ -58,15 +59,15 @@
     "testOnly": "jest -t 'should generate correct fulfilment file'"
   },
   "dependencies": {
-    "fast-csv": "4.0.2",
-    "get-stream": "^5.2.0",
-    "http-signature": "^1.3.1",
+    "fast-csv": "4.3.6",
+    "get-stream": "^5.1.0",
+    "http-signature": "^1.3.5",
     "lodash-es": "^4.17.15",
     "moment": "^2.19.3",
     "multistream": "^2.1.0",
     "request": "^2.88.2",
     "request-promise-native": "^1.0.9",
-    "safe-buffer": "^5.2.0"
+    "safe-buffer": "^5.2.1"
   },
   "standard": {
     "plugins": [
