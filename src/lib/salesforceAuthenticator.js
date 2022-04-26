@@ -70,7 +70,7 @@ export class Salesforce {
       Body: { value: body, options: { contentType: 'text/csv', filename: path } }
     }
 
-    const url = '/services/data/v23.0/sobjects/Document/' // NOT FOR UPDATING
+    const url = '/services/data/v54.0/sobjects/Document/' // NOT FOR UPDATING
     const uploadResult = await this.post(url, form)
     const parsed = JSON.parse(uploadResult)
 
@@ -85,7 +85,7 @@ export class Salesforce {
   }
 
   async getDocuments (folderId: Folder) {
-    const response = await this.get(`/services/data/v20.0/query?q=SELECT Id, Name FROM Document WHERE FolderId= '${folderId.folderId}'`)
+    const response = await this.get(`/services/data/v54.0/query?q=SELECT Id, Name FROM Document WHERE FolderId= '${folderId.folderId}'`)
     if (response == null) {
       throw new Error(`Failed to parse salesforce attempt when listing folder ${folderId.name} (${folderId.folderId}) contents.`)
     }
