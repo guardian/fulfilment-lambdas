@@ -68,7 +68,7 @@ is uploaded.
 
 ### Home Delivery Schedule
 
-Home Delivery files will be generated Monday to Friday at 7:30 GMT (see [cloudwatch rule](https://eu-west-1.console.aws.amazon.com/cloudwatch/home?region=eu-west-1#rules:name=fulfilment-lambdas-PROD-ScheduledRule-CBXIT5CNIZ8C))
+Home Delivery files will be generated Monday to Friday at 7:30 GMT (see [cloudwatch rule](https://eu-west-1.console.aws.amazon.com/events/home?region=eu-west-1#/eventbus/default/rules/fulfilment-lambdas-PROD-ScheduledRule-CBXIT5CNIZ8C))
 Each time 5 files will be generated for 1, 2, 3, 4 and 5 days into the future.
 
 Upload to salesforce is triggered manually by calling our [fulfilment api](https://github.com/guardian/fulfilment-lambdas/blob/main/cloudformation/cloudformation.yaml#L355) from a salesforce UI that allows to download one or multiple files.
@@ -76,10 +76,10 @@ Upload to salesforce is triggered manually by calling our [fulfilment api](https
 
 ### Guardian Weekly Schedule
 
-Guardian Weekly files are generated every day at 2:00 GMT (see [cloudwatch rule](https://eu-west-1.console.aws.amazon.com/cloudwatch/home?region=eu-west-1#rules:name=fulfilment-lambdas-PROD-WeeklyScheduledRule-1QIVLQ8W0XG6M)). Each time a set of fulfilment files for all regions is generated for the next Friday that is at least 8 days away.
+Guardian Weekly files are generated every day at 2:00 GMT (see [cloudwatch rule](https://eu-west-1.console.aws.amazon.com/events/home?region=eu-west-1#/eventbus/default/rules/fulfilment-lambdas-PROD-WeeklyScheduledRule-1QIVLQ8W0XG6M)). Each time a set of fulfilment files for all regions is generated for the next Friday that is at least 8 days away.
 This guarantees that we only generate files that have not been uploaded to salesforce yet.
 
-Guardian Weekly files will be automatically uploaded to salesforce every Thursday at 11:00 GMT (see [cloudwatch rule](https://eu-west-1.console.aws.amazon.com/cloudwatch/home?region=eu-west-1#rules:name=fulfilment-lambdas-PROD-WeeklyScheduledUploadRule-NRHNG387CPKL)). Files are uploaded a week in advance, so each Thursday the uploaded files are not the ones used for delivery the next day but the Friday on the following week.
+Guardian Weekly files will be automatically uploaded to salesforce every Thursday at 11:00 GMT (see [cloudwatch rule](https://eu-west-1.console.aws.amazon.com/events/home?region=eu-west-1#/eventbus/default/rules/fulfilment-lambdas-PROD-WeeklyScheduledUploadRule-NRHNG387CPKL)). Files are uploaded a week in advance, so each Thursday the uploaded files are not the ones used for delivery the next day but the Friday on the following week.
 
 ## Testing in CODE
 1. Deploy your branch to CODE using riffraff
