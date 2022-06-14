@@ -53,6 +53,7 @@ following columns
 The fulfilment files are generated on a schedule from Zuora by an AWS stack and then uploaded to Salesforce Documents.
 
 ![image](https://user-images.githubusercontent.com/13835317/72618036-27606c00-3932-11ea-8beb-4837f30f64b5.png)
+State machine FulfilmentStateMachinePROD-6GIFG3TX23IP
 
 ## Fallback mechanism
 
@@ -80,6 +81,15 @@ Guardian Weekly files are generated every day at 2:00 GMT (see [cloudwatch rule]
 This guarantees that we only generate files that have not been uploaded to salesforce yet.
 
 Guardian Weekly files will be automatically uploaded to salesforce every Thursday at 11:00 GMT (see [cloudwatch rule](https://eu-west-1.console.aws.amazon.com/events/home?region=eu-west-1#/eventbus/default/rules/fulfilment-lambdas-PROD-WeeklyScheduledUploadRule-NRHNG387CPKL)). Files are uploaded a week in advance, so each Thursday the uploaded files are not the ones used for delivery the next day but the Friday on the following week.
+
+## To check fulfilment files ready for third parties to collect
+You need to be in Salesforce Classic.  
+Then 'Documents' > 'Home Delivery Pipeline Fulfilment' or 'Guardian Weekly ({region})'
+
+## Testing changes to ZOQL queries
+
+Using Postman, the `https://rest.zuora.com/v1/batch-query/` API call can be used to trial new queries.  
+See the [API documentation](https://knowledgecenter.zuora.com/Central_Platform/API/AB_Aggregate_Query_API/B_Submit_Query) for details.
 
 ## Testing in CODE
 1. Deploy your branch to CODE using riffraff
