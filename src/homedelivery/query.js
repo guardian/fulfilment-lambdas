@@ -37,6 +37,7 @@ async function queryZuora (deliveryDate, config: Config) {
      ProductRatePlanCharge.ProductType__c = 'Print ${deliveryDay}' AND
      Product.Name = 'Newspaper Delivery' AND
      RatePlanCharge.EffectiveStartDate <= '${formattedDate}' AND
+     RatePlanCharge.EffectiveStartDate != RatePlanCharge.EffectiveEndDate AND
      (
       ( 
         Subscription.Status = 'Active' AND Subscription.AutoRenew = true AND RatePlanCharge.EffectiveStartDate <= '${currentDate}' AND RatePlanCharge.EffectiveEndDate >= '${currentDate}'
