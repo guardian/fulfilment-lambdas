@@ -38,21 +38,23 @@ async function queryZuora (deliveryDate, config: Config) {
      Product.Name = 'Newspaper Delivery' AND
      RatePlanCharge.EffectiveStartDate <= '${formattedDate}' AND
      (
+      RatePlanCharge.EffectiveEndDate > '${formattedDate}' OR
       ( 
-        Subscription.Status = 'Active' AND Subscription.AutoRenew = true AND RatePlanCharge.EffectiveStartDate <= '${currentDate}' AND RatePlanCharge.EffectiveEndDate >= '${currentDate}'
-      )
-      OR
-      (
-        Subscription.Status = 'Active' AND RatePlanCharge.EffectiveEndDate >= '${formattedDate}'
-      )
-      OR
-      ( 
-        Subscription.Status = 'Cancelled' AND RatePlanCharge.EffectiveEndDate > '${formattedDate}' 
+        RatePlanCharge.EffectiveEndDate >= '${currentDate}' AND
+        Subscription.Status = 'Active' AND Subscription.AutoRenew = true AND 
+        ( RatePlan.AmendmentType IS NULL OR RatePlan.AmendmentType != 'RemoveProduct' )
       )
      ) 
      AND
      (RatePlanCharge.MRR != 0 OR ProductRatePlan.FrontendId__c != 'EchoLegacy')`
-    } // NB to avoid case where subscription gets auto renewed after fulfilment time
+    }
+    /*
+    if the charge ends on or after the fulfilment date, it's a standard case so fall through.
+    
+    alternatively, if it ends on or after today it may be auto renewed by zuora before the fulfilment date. 
+    We need to predict whether zuora will auto renew based on the fields we have available.
+    At present we predict based on the fields checked below the OR statement above, however this may be refined in future.
+  */
 
   const holidaySuspensionQuery: Query =
     {
