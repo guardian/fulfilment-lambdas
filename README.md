@@ -91,6 +91,25 @@ Then 'Documents' > 'Home Delivery Pipeline Fulfilment' or 'Guardian Weekly ({reg
 Using Postman, the `https://rest.zuora.com/v1/batch-query/` API call can be used to trial new queries.  
 See the [API documentation](https://knowledgecenter.zuora.com/Central_Platform/API/AB_Aggregate_Query_API/B_Submit_Query) for details.
 
+An example JSON body to the endpoint:
+
+```json
+{
+  "format" : "gzip",
+  "version" : "1.1",
+  "name" : "test",
+  "encrypted" : "none",
+  "useQueryLabels" : "true",
+  "dateTimeUtc" : "true",
+  "queries" : [
+    {"name" : "hd_subs_fulfil",
+      "query" : "ZOQL query goes here!",
+      "type" : "zoqlexport"}
+  ]
+}
+```
+
+Querying this endpoint will produce a job in Zuora which takes about 5 minutes to run. The produced CSV file can be found [here](https://www.zuora.com/apps/BatchQuery.do). To navigate from the dashboard, click your profile avatar in the top right corner, select 'Reporting' in the dropdown Menu, then select 'AQuA Job Finder' and there will be a list of recently executed jobs. 
 ## Testing in CODE
 1. Deploy your branch to CODE using riffraff
 1. Go to the step functions section in AWS
@@ -201,7 +220,7 @@ Because of limitations in cloudformation templates we need an additional step to
 
 FIXME: Is this still working?
 
-Each lambda can be run locally using the appropriate `yarn run:` command. This uses [lambda-local](https://github.com/ashiina/lambda-local) to emulate the AWS environment. 
+Each lambda can be run locally using the appropriate `yarn run:` command. This uses [lambda-local](https://github.com/ashiina/lambda-local) to emulate the AWS environment.  
 _Note: A specific build is referenced in package.json as there is a bug in lambda-local regarding aws credentials that hasn't been fixed in the main branch_
 
 To install dependencies for running locally:
