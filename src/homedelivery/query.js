@@ -49,9 +49,9 @@ async function queryZuora (deliveryDate, config: Config) {
      (RatePlanCharge.MRR != 0 OR ProductRatePlan.FrontendId__c != 'EchoLegacy')`
     }
     /*
-    if the charge ends on or after the fulfilment date, it's a standard case so fall through.
-    
-    alternatively, if it ends on or after today it may be auto renewed by zuora before the fulfilment date. 
+    if the charge ends on or after the fulfilment date, it's a standard case so fulfil with no problem.
+
+    alternatively, if it ends on or after today it may be auto renewed by zuora before the fulfilment date.
     We need to predict whether zuora will auto renew based on the fields we have available.
     At present we predict based on the fields checked below the OR statement above, however this may be refined in future.
   */
