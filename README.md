@@ -220,7 +220,7 @@ Because of limitations in cloudformation templates we need an additional step to
 
 FIXME: Is this still working?
 
-Each lambda can be run locally using the appropriate `yarn run:` command. This uses [lambda-local](https://github.com/ashiina/lambda-local) to emulate the AWS environment.  
+Each lambda can be run locally using the appropriate `yarn run:` command. This uses [lambda-local](https://github.com/ashiina/lambda-local) to emulate the AWS environment. 
 _Note: A specific build is referenced in package.json as there is a bug in lambda-local regarding aws credentials that hasn't been fixed in the main branch_
 
 To install dependencies for running locally:
