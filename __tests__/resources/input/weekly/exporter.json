@@ -1,19 +1,19 @@
 {
-        "deliveryDate": "2017-10-27",
+        "deliveryDate": "2022-08-05",
         "type": "weekly",
-        "jobId": "2c92a0ff5f0ffc67015f25e3bd1f7d6b",
+        "jobId": "8a1291128234ae1801824288f38c16f4",
         "results": [
                 {
                         "queryName": "WeeklySubscriptions",
-                        "fileName": "WeeklySubscriptions_2017-10-27_2c92a0aa5f0fc118015f25e6186d709a.csv"
+                        "fileName": "WeeklySubscriptions_2022-08-05_8a128c2d823495800182428d686c4d09.csv"
                 },
                 {
                         "queryName": "WeeklyHolidaySuspensions",
-                        "fileName": "WeeklyHolidaySuspensions_2017-10-27_2c92a0aa5f0fc118015f25e7dca370ab.csv"
+                        "fileName": "WeeklyHolidaySuspensions_2022-08-05_8a128c2d823495800182428d6b794d0b.csv"
                 },
                 {
                         "queryName": "WeeklyIntroductoryPeriods",
-                        "fileName": "WeeklyIntroductoryPeriods_2017-10-27_2c92a0aa5f0fc118015f25e80b7770ac.csv"
+                        "fileName": "WeeklyIntroductoryPeriods_2022-08-05_8a128c2d8234958001824292f8d64f9f.csv"
                 }
         ]
 }
