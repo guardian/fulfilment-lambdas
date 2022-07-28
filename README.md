@@ -80,7 +80,7 @@ Upload to salesforce is triggered manually by calling our [fulfilment api](https
 Guardian Weekly files are generated every day at 2:00 GMT (see [cloudwatch rule](https://eu-west-1.console.aws.amazon.com/events/home?region=eu-west-1#/eventbus/default/rules/fulfilment-lambdas-PROD-WeeklyScheduledRule-1QIVLQ8W0XG6M)). Each time a set of fulfilment files for all regions is generated for the next Friday that is at least 8 days away.
 This guarantees that we only generate files that have not been uploaded to salesforce yet.
 
-Guardian Weekly files will be automatically uploaded to salesforce every Thursday at 11:00 GMT (see [cloudwatch rule](https://eu-west-1.console.aws.amazon.com/events/home?region=eu-west-1#/eventbus/default/rules/fulfilment-lambdas-PROD-WeeklyScheduledUploadRule-NRHNG387CPKL)). Files are uploaded a week in advance, so each Thursday the uploaded files are not the ones used for delivery the next day but the Friday on the following week.
+Guardian Weekly files will be automatically uploaded to salesforce (via the [weekly-fulfilmentUploader lambda](./src/weekly/salesforce_uploader.js)) every Thursday at 11:00 GMT (see [cloudwatch rule](https://eu-west-1.console.aws.amazon.com/events/home?region=eu-west-1#/eventbus/default/rules/fulfilment-lambdas-PROD-WeeklyScheduledUploadRule-NRHNG387CPKL)). Files are uploaded a week in advance, so each Thursday the uploaded files are not the ones used for delivery the next day but the Friday on the following week.
 
 ## To check fulfilment files ready for third parties to collect
 You need to be in Salesforce Classic.  
@@ -184,28 +184,28 @@ Revert
 
 ## Glossary
 
-|System           |Name                                    |Description                                                                                |
-|-----------------|----------------------------------------|------------------------------------------------------------------------------------------ |
-|AWS Step         |QueryZuora                              |`querier.js`                                                                               |
-|AWS Step         |FetchResults                            |`fetcher.js`                                                                               |
-|AWS Step         |GenerateFulfilmentFiles                 |`exporter.js`                                                                              |
-|AWS Lambda       |salesforce_uploader                     |`salesforce_uploader.js` uploads Home Delivery; behind fulfilment-api                      |
-|AWS Lambda       |weekly-fulfilmentUploader               |`/weekly/salesforce_uploader.js` uploads Guardian Weekly; triggered on a schedule          |
-|AWS S3           |zuoraExport                             |Raw zuora CSV export (https://www.zuora.com/apps/BatchQuery.do)                            |
-|AWS S3           |zuoraExport/Subscriptions_*             |Home Delivery raw export                                                                   |
-|AWS S3           |zuoraExport/HolidaySuspensions_*        |Home Delivery holiday suspension                                                           |
-|AWS S3           |zuoraExport/WeeklyIntroductoryPeriods_* |Guardian Weekly 6-for-6 subscriptions raw                                                  |
-|AWS S3           |zuoraExport/WeeklySubscriptions_*       |Guardian Weekly regular subscriptions raw                                                  |
-|AWS S3           |zuoraExport/WeeklyHolidaySuspensions_*  |Guardian Weekly holiday suspensions raw                                                    |
-|AWS S3           |fulfilments                             |Guardian Weekly clean with holidays filtered out                                           |
-|AWS S3           |fulfilment_output                       |Home Delivery clean with holidays filtered out                                             |
-|AWS S3           |uploaded                                |Home Delivery manually uploaded files to SF                                                |
-|AWS API          |fulfilment-api                          |API hit by SF to manually trigger upload of Home Delivery via `salesforce_uploader.js`     |
-|SF Documents     |Home_Delivery_Pipeline_Fulfilment       |Folder where Home Delivery CSV is manually uploaded via 'Home Delivery Reports' page       |
-|SF Documents     |Guardian Weekly (REGION)                |Folder where Guardian weekly CSV is automatically uploaded on a schedule                   |
-|SF Documents     |weekly_sample_files                     |(UAT only) Folder where Guardian weekly CSV is automatically uploaded on a schedule        |
-|SF Page          |Home Delivery Reports                   |Page where CSR can manually trigger upload of Home Delivery CSV                            |
-|SF User          |Fulfilment User API                     |Credentials for upload to SF are in gu-reader-revenue-private/membership/fulfilment-lambdas|
+|System           |Name                                    | Description                                                                                                                                                           |
+|-----------------|----------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|AWS Step         |QueryZuora                              | `querier.js`   Creates a query job in Zuora which takes several minutes to complete                                                                                   |
+|AWS Step         |FetchResults                            | `fetcher.js`   Fetches query job and exports results to a CSV file, then uploads it to S3 with path `fulfilment-export-prod/zuoraExport`                 |
+|AWS Step         |GenerateFulfilmentFiles                 | `exporter.js`  Fetches the previously uploaded CSV file and generates the fulfilment files, uploading them to S3 with path `fulfilment-export-prod/fulfilments`       |
+|AWS Lambda       |salesforce_uploader                     | `salesforce_uploader.js` uploads Home Delivery; behind fulfilment-api                                                                                                 |
+|AWS Lambda       |weekly-fulfilmentUploader               | `/weekly/salesforce_uploader.js` uploads Guardian Weekly; triggered on a schedule. Takes previously generated fulfilment files from S3 and uploads them to salesforce |
+|AWS S3           |zuoraExport                             | Raw zuora CSV export (https://www.zuora.com/apps/BatchQuery.do)                                                                                                       |
+|AWS S3           |zuoraExport/Subscriptions_*             | Home Delivery raw export                                                                                                                                              |
+|AWS S3           |zuoraExport/HolidaySuspensions_*        | Home Delivery holiday suspension                                                                                                                                      |
+|AWS S3           |zuoraExport/WeeklyIntroductoryPeriods_* | Guardian Weekly 6-for-6 subscriptions raw                                                                                                                             |
+|AWS S3           |zuoraExport/WeeklySubscriptions_*       | Guardian Weekly regular subscriptions raw                                                                                                                             |
+|AWS S3           |zuoraExport/WeeklyHolidaySuspensions_*  | Guardian Weekly holiday suspensions raw                                                                                                                               |
+|AWS S3           |fulfilments                             | Guardian Weekly clean with holidays filtered out                                                                                                                      |
+|AWS S3           |fulfilment_output                       | Home Delivery clean with holidays filtered out                                                                                                                        |
+|AWS S3           |uploaded                                | Home Delivery manually uploaded files to SF                                                                                                                           |
+|AWS API          |fulfilment-api                          | API hit by SF to manually trigger upload of Home Delivery via `salesforce_uploader.js`                                                                                |
+|SF Documents     |Home_Delivery_Pipeline_Fulfilment       | Folder where Home Delivery CSV is manually uploaded via 'Home Delivery Reports' page                                                                                  |
+|SF Documents     |Guardian Weekly (REGION)                | Folder where Guardian weekly CSV is automatically uploaded on a schedule                                                                                              |
+|SF Documents     |weekly_sample_files                     | (UAT only) Folder where Guardian weekly CSV is automatically uploaded on a schedule                                                                                   |
+|SF Page          |Home Delivery Reports                   | Page where CSR can manually trigger upload of Home Delivery CSV                                                                                                       |
+|SF User          |Fulfilment User API                     | Credentials for upload to SF are in gu-reader-revenue-private/membership/fulfilment-lambdas                                                                           |
 
 ## Cloudforming 
 
