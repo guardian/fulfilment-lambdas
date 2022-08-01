@@ -71,6 +71,8 @@ function getHolidaySuspensions (downloadStream: ReadStream): Promise<Set<string>
   })
 }
 
+const australiaFulfilmentCountries = ['Australia', 'Japan', 'Singapore', 'Thailand']
+
 /**
  * Transfroms raw CSV from Zuora to expected CSV format, splits it per regions, and uploads it to S3 fulfilments folder.
  * If an exporter is not defined for a specific country, then it defaults to Rest of the world (ROW) fulfilment file.
@@ -92,7 +94,7 @@ async function processSubs (downloadStream: ReadStream, deliveryDate: moment, st
     new CaExporter('Canada', deliveryDate, config.fulfilments.weekly.CA.uploadFolder),
     new CaHandDeliveryExporter('Canada', deliveryDate, config.fulfilments.weekly.CAHAND.uploadFolder),
     new USExporter('United States', deliveryDate, config.fulfilments.weekly.US.uploadFolder),
-    new UpperCaseAddressExporter('Australia', deliveryDate, config.fulfilments.weekly.AU.uploadFolder),
+    new UpperCaseAddressExporter(australiaFulfilmentCountries, deliveryDate, config.fulfilments.weekly.AU.uploadFolder),
     new UpperCaseAddressExporter('New Zealand', deliveryDate, config.fulfilments.weekly.NZ.uploadFolder),
     new UpperCaseAddressExporter('Vanuatu', deliveryDate, config.fulfilments.weekly.VU.uploadFolder),
     new EuExporter('EU', deliveryDate, config.fulfilments.weekly.EU.uploadFolder),

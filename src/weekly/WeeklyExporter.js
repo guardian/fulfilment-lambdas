@@ -44,15 +44,16 @@ export const outputHeaders = [
 ]
 
 export class WeeklyExporter {
-  country: string
+  countries: string[]
   sentDate: string
   formattedDeliveryDate: string
   chargeDay: string
   writeCSVStream: any
   folder: S3Folder
 
-  constructor (country: string, deliveryDate: moment, folder: S3Folder) {
-    this.country = country
+  constructor (countries: string[] | string, deliveryDate: moment, folder: S3Folder) {
+    this.countries = typeof countries === 'string' ? [countries] : countries
+
     this.writeCSVStream = csvFormatterForSalesforce(outputHeaders)
 
     this.sentDate = moment().format('DD/MM/YYYY')
@@ -62,7 +63,8 @@ export class WeeklyExporter {
   }
 
   useForRow (row: { [string]: string }): boolean {
-    return !!(row[COUNTRY] && row[COUNTRY] === this.country)
+    // No need for trimmed or case-insensitive comparison as country field is from a picklist
+    return this.countries.includes(row[COUNTRY])
   }
 
   formatAddress (name: string) {
