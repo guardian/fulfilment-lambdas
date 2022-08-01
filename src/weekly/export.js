@@ -71,7 +71,6 @@ function getHolidaySuspensions (downloadStream: ReadStream): Promise<Set<string>
   })
 }
 
-// add description of problem
 const australiaFulfilmentCountries = ['Australia', 'Japan', 'Singapore', 'Thailand']
 
 /**
