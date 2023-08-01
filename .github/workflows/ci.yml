@@ -1,0 +1,41 @@
+name: CI
+on: [push]
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 14.17.x
+      - name: Yarn install
+        uses: borales/actions-yarn@v4
+        with:
+          cmd: install
+      - run: yarn check
+      - run: yarn lint
+      - run: yarn flow
+      - run: yarn compile
+      - run: yarn test
+      - run: yarn dist
+      - run: yarn riffraff
+      - name: AWS Auth
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.GU_RIFF_RAFF_ROLE_ARN }}
+          aws-region: eu-west-1
+      - name: Upload to riff-raff
+        uses: guardian/actions-riff-raff@v2
+        with:
+          configPath: riff-raff.yaml
+          projectName: MemSub::Fulfilment::Lambdas
+          buildNumberOffset: 755 # This is the last build number from TeamCity
+          contentDirectories: |
+            fulfilment-lambdas:
+              - cloudformation/cloudformation.yaml
+              - /home/runner/work/fulfilment-lambdas/fulfilment-lambdas/target/riffraff/fulfilment-lambdas/fulfilment-lambdas.zip
