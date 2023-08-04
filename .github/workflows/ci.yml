@@ -13,6 +13,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version-file: .nvmrc
+          cache: 'yarn'
       - name: Yarn install
         uses: borales/actions-yarn@v4
         with:
