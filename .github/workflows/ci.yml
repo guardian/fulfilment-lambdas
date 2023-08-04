@@ -18,12 +18,13 @@ jobs:
         uses: borales/actions-yarn@v4
         with:
           cmd: install
-      - run: yarn check
-      - run: yarn lint
-      - run: yarn flow
-      - run: yarn compile
-      - run: yarn test
-      - run: yarn dist
+      - run: |
+          yarn check
+          yarn lint
+          yarn flow
+          yarn compile
+          yarn test
+          yarn dist
       - run: yarn riffraff
       - name: AWS Auth
         uses: aws-actions/configure-aws-credentials@v2
