@@ -22,7 +22,6 @@ jobs:
           yarn compile
           yarn test
           yarn dist
-      - run: yarn riffraff
       - name: AWS Auth
         uses: aws-actions/configure-aws-credentials@v2
         with:
