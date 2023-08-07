@@ -14,11 +14,8 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: 'yarn'
-      - name: Yarn install
-        uses: borales/actions-yarn@v4
-        with:
-          cmd: install
       - run: |
+          yarn install --frozen-lockfile
           yarn check
           yarn lint
           yarn flow
