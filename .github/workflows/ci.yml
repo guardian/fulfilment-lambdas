@@ -1,0 +1,44 @@
+name: CI
+on: [push]
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: .nvmrc
+          cache: 'yarn'
+      - run: |
+          yarn install --frozen-lockfile
+          yarn check
+          yarn lint
+          yarn flow
+          yarn compile
+          yarn test
+          yarn dist
+          # RiffRaff expects `fulfilment-lambdas.zip`, but `yarn compile` produces
+          # the `dist` direcrtory. We rename dist into fulfilment-lambdas before
+          # zipping.
+          mv dist fulfilment-lambdas
+          zip -r fulfilment-lambdas.zip fulfilment-lambdas
+      - name: AWS Auth
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.GU_RIFF_RAFF_ROLE_ARN }}
+          aws-region: eu-west-1
+      - name: Upload to riff-raff
+        uses: guardian/actions-riff-raff@v2
+        with:
+          configPath: riff-raff.yaml
+          projectName: MemSub::Fulfilment::Lambdas
+          buildNumberOffset: 755 # This is the last build number from TeamCity
+          contentDirectories: |
+            fulfilment-lambdas:
+              - cloudformation/cloudformation.yaml
+              - fulfilment-lambdas.zip
