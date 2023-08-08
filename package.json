@@ -2,12 +2,7 @@
   "name": "fulfilment-lambdas",
   "version": "0.0.1",
   "description": "Lambdas to fulfil guardian subscriptions",
-  "isAwsLambda": true,
-  "projectName": "MemSub::Fulfilment::Lambdas",
-  "riffraffFile": "riff-raff.yaml",
-  "uploadArtefact": true,
   "buildDir": "dist",
-  "cloudformation": false,
   "devDependencies": {
     "@babel/cli": "^7.7.7",
     "@babel/core": "^7.7.7",
@@ -27,17 +22,14 @@
     "jest": "^24.9.0",
     "lambda-local": "^1.6.3",
     "mockdate": "^2.0.5",
-    "node-riffraff-artefact": "^2.0.1",
     "replace": "^1.1.1",
     "snazzy": "^8.0.0",
     "standard": "^14.3.1",
     "string-width": "^4.2.0"
   },
   "scripts": {
-    "riffraff-artefact": "./node_modules/.bin/riffraff-artefact",
     "dist": "mv node_modules node_modules_bak && yarn install --frozen-lockfile --production --modules-folder dist/node_modules > /dev/null && rm -rf node_modules/ && mv node_modules_bak node_modules",
     "compile": "babel src -d dist",
-    "riffraff": "VERBOSE=true ARTEFACT_PATH=$PWD yarn riffraff-artefact",
     "local": "yarn run:index && yarn run:hello",
     "cloudform": "yarn cloudform:prod & yarn cloudform:code",
     "cloudform:prod": "cp cloudformation/cloudformation.yaml cloudformation/prod.yaml && replace '_\\[STAGE\\]' 'PROD' cloudformation/prod.yaml",
@@ -55,7 +47,7 @@
     "clean": "rm -rf dist && rm -rf target && rm -f cloudformation/prod.yaml && rm -f  cloudformation/code.yaml",
     "lint": "standard | snazzy",
     "test": "jest --runInBand",
-    "tc": "yarn install && yarn check && yarn flow && yarn compile && yarn dist && yarn riffraff",
+    "tc": "yarn install && yarn check && yarn flow && yarn compile && yarn dist",
     "testOnly": "jest -t 'should generate correct fulfilment file'"
   },
   "dependencies": {
