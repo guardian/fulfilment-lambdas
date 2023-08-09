@@ -23,10 +23,11 @@ jobs:
           yarn test
           yarn dist
           # RiffRaff expects `fulfilment-lambdas.zip`, but `yarn compile` produces
-          # the `dist` direcrtory. We rename dist into fulfilment-lambdas before
-          # zipping.
-          mv dist fulfilment-lambdas
-          zip -r fulfilment-lambdas.zip fulfilment-lambdas
+          # the `dist` directory. 
+          # Note that the zipped will be: dist/fulfilment-lambdas.zip
+          pushd dist
+          zip -r fulfilment-lambdas.zip ./*
+          popd
       - name: AWS Auth
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -41,4 +42,4 @@ jobs:
           contentDirectories: |
             fulfilment-lambdas:
               - cloudformation/cloudformation.yaml
-              - fulfilment-lambdas.zip
+              - dist/fulfilment-lambdas.zip
