@@ -1,0 +1,20 @@
+regions:
+  - eu-west-1
+stacks:
+  - membership
+deployments:
+  cloudformation:
+    type: cloud-formation
+    app: national-delivery-fulfilment
+    parameters:
+      templateStagePaths:
+        CODE: NationalDeliveryFulfilment-CODE.template.json
+        PROD: NationalDeliveryFulfilment-PROD.template.json
+  national-delivery-fulfilment:
+    type: aws-lambda
+    parameters:
+      bucketSsmLookup: true
+      fileName: national-delivery-fulfilment.zip
+      functionNames:
+        - national-delivery-fulfilment-
+    dependencies: [cloudformation]

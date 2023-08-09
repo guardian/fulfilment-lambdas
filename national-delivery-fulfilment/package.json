@@ -1,0 +1,19 @@
+{
+  "name": "national-delivery-fulfilment",
+  "version": "1.0.0",
+  "description": "National Delivery fulfilment",
+  "main": "index.js",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "@types/aws-lambda": "^8.10.119",
+    "aws-lambda": "^1.0.7",
+    "aws-sdk": "^2.1432.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.19.0"
+  },
+  "scripts": {
+    "build": "yarn esbuild --bundle --platform=node --target=node18 --outfile=dist/index.js src/index.ts"
+  }
+}
