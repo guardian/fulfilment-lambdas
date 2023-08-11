@@ -18,6 +18,10 @@ jobs:
         working-directory: national-delivery-fulfilment
       - name: CDK synth
         run: |
+          yarn install
+          yarn tsc
+          yarn lint
+          yarn test
           yarn synth
         working-directory: national-delivery-fulfilment/cdk
       - name: AWS Auth
