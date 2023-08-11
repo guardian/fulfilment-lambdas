@@ -16,5 +16,5 @@ deployments:
       bucketSsmLookup: true
       fileName: national-delivery-fulfilment.zip
       functionNames:
-        - national-delivery-fulfilment-
+        - -national-delivery-fulfilment-
     dependencies: [cloudformation]

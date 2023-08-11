@@ -37,7 +37,7 @@ exports[`The NationalDeliveryFulfilment stack matches the snapshot 1`] = `
             "STAGE": "CODE",
           },
         },
-        "FunctionName": "national-delivery-fulfilment-CODE",
+        "FunctionName": "membership-national-delivery-fulfilment-CODE",
         "Handler": "national-delivery-fulfilment/lambda/lambda.handler",
         "MemorySize": 1024,
         "Role": {
@@ -267,7 +267,7 @@ exports[`The NationalDeliveryFulfilment stack matches the snapshot 2`] = `
             "STAGE": "PROD",
           },
         },
-        "FunctionName": "national-delivery-fulfilment-PROD",
+        "FunctionName": "membership-national-delivery-fulfilment-PROD",
         "Handler": "national-delivery-fulfilment/lambda/lambda.handler",
         "MemorySize": 1024,
         "Role": {
