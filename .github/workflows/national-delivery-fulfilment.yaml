@@ -1,0 +1,37 @@
+name: "CI: National Delivery Fulfilment"
+on: [push]
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: national-delivery-fulfilment/.nvmrc
+          cache: "yarn"
+      - run: |
+          yarn install --frozen-lockfile
+          yarn build
+          yarn package
+      - name: CDK synth
+        run: |
+          yarn synth
+        working-directory: ./national-delivery-fulfilment/cdk
+      - name: AWS Auth
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.GU_RIFF_RAFF_ROLE_ARN }}
+          aws-region: eu-west-1
+      - name: Upload to riff-raff
+        uses: guardian/actions-riff-raff@v2
+        with:
+          configPath: national-delivery-fulfilment/riff-raff.yaml
+          projectName: MemSub::Fulfilment::NationalDelivery
+          contentDirectories: |
+            cloudformation:
+              - ./national-delivery-fulfilment/cdk/cdk.out/NationalDeliveryFulfilment-CODE.template.json
+              - ./national-delivery-fulfilment/cdk/cdk.out/NationalDeliveryFulfilment-PROD.template.json
+            national-delivery-fulfilment:
+              - ./national-delivery-fulfilment/national-delivery-fulfilment.zip

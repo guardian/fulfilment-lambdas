@@ -9,3 +9,4 @@ jsconfig.json
 *.csv
 .DS_Store
 yarn-error.log
+/national-delivery-fulfilment/national-delivery-fulfilment.zip
