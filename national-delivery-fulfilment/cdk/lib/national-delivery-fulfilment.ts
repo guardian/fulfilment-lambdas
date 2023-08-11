@@ -17,7 +17,7 @@ export class NationalDeliveryFulfilment extends GuStack {
 			{
 				description: 'A lambda to handle fulfilment for national delivery',
 				functionName: `membership-${app}-${this.stage}`,
-				handler: 'national-delivery-fulfilment/lambda/lambda.handler',
+				handler: 'national-delivery-fulfilment/index.handler',
 				runtime: Runtime.NODEJS_18_X,
 				memorySize: 1024,
 				fileName: `${app}.zip`,

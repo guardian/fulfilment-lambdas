@@ -38,7 +38,7 @@ exports[`The NationalDeliveryFulfilment stack matches the snapshot 1`] = `
           },
         },
         "FunctionName": "membership-national-delivery-fulfilment-CODE",
-        "Handler": "national-delivery-fulfilment/lambda/lambda.handler",
+        "Handler": "national-delivery-fulfilment/index.handler",
         "MemorySize": 1024,
         "Role": {
           "Fn::GetAtt": [
@@ -268,7 +268,7 @@ exports[`The NationalDeliveryFulfilment stack matches the snapshot 2`] = `
           },
         },
         "FunctionName": "membership-national-delivery-fulfilment-PROD",
-        "Handler": "national-delivery-fulfilment/lambda/lambda.handler",
+        "Handler": "national-delivery-fulfilment/index.handler",
         "MemorySize": 1024,
         "Role": {
           "Fn::GetAtt": [
