@@ -15,10 +15,11 @@ jobs:
           yarn install --frozen-lockfile
           yarn build
           yarn package
+        working-directory: national-delivery-fulfilment
       - name: CDK synth
         run: |
           yarn synth
-        working-directory: ./national-delivery-fulfilment/cdk
+        working-directory: national-delivery-fulfilment/cdk
       - name: AWS Auth
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -31,7 +32,7 @@ jobs:
           projectName: MemSub::Fulfilment::NationalDelivery
           contentDirectories: |
             cloudformation:
-              - ./national-delivery-fulfilment/cdk/cdk.out/NationalDeliveryFulfilment-CODE.template.json
-              - ./national-delivery-fulfilment/cdk/cdk.out/NationalDeliveryFulfilment-PROD.template.json
+              - national-delivery-fulfilment/cdk/cdk.out/NationalDeliveryFulfilment-CODE.template.json
+              - national-delivery-fulfilment/cdk/cdk.out/NationalDeliveryFulfilment-PROD.template.json
             national-delivery-fulfilment:
-              - ./national-delivery-fulfilment/national-delivery-fulfilment.zip
+              - national-delivery-fulfilment/national-delivery-fulfilment.zip
