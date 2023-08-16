@@ -1,2 +1,6 @@
 [include]
 ./src/*.js
+
+[ignore]
+<PROJECT_ROOT>/national-delivery-fulfilment/.*
+<PROJECT_ROOT>/node_modules/.*

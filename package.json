@@ -67,7 +67,8 @@
     ],
     "parser": "babel-eslint",
     "ignore": [
-      "flow-typed/*"
+      "flow-typed/*",
+      "national-delivery-fulfilment"
     ]
   },
   "jest": {

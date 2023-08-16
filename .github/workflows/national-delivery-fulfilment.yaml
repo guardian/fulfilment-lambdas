@@ -15,7 +15,7 @@ jobs:
           node-version-file: national-delivery-fulfilment/.nvmrc
           cache: "yarn"
       - run: |
-          yarn install --frozen-lockfile
+          yarn install
           yarn build
           yarn package
         working-directory: national-delivery-fulfilment
