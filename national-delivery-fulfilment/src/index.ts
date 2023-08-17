@@ -1,12 +1,12 @@
 import { APIGatewayProxyCallback, Context } from "aws-lambda";
-import { helloWorld } from "./something";
+import { main } from "./main";
 
-export function handler(
+export async function handler(
   event: APIGatewayEvent,
   context: Context,
   callback: APIGatewayProxyCallback
 ) {
-  helloWorld();
+  await main();
 }
 
 export interface APIGatewayEvent {
