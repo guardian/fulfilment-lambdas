@@ -1,11 +1,12 @@
 import { APIGatewayProxyCallback, Context } from "aws-lambda";
+import { helloWorld } from "./something";
 
 export function handler(
   event: APIGatewayEvent,
   context: Context,
   callback: APIGatewayProxyCallback
 ) {
-  console.log("We ran!");
+  helloWorld();
 }
 
 export interface APIGatewayEvent {
