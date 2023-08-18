@@ -30,10 +30,10 @@ const credentials = new Credentials({
 
 const client = new S3Client({ credentials: credentials, region: "eu-west-1" });
 
-const main = async () => {
+export const main = async () => {
   const command = new PutObjectCommand({
     Bucket: "national-delivery-fulfilment-code",
-    Key: "hello-world-s3.txt",
+    Key: "hello-world.txt",
     Body: "Hello World!",
   });
 
@@ -44,5 +44,3 @@ const main = async () => {
     console.error(err);
   }
 };
-
-main();

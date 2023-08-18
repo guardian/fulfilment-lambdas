@@ -12,5 +12,5 @@
   
   To run it:
   1. Read the instructions in the file
-  1. `$ npx ts-node src/examples/learning-s3.ts`
+  1. `$ npx ts-node src/examples/learning-s3-main.ts`
 
