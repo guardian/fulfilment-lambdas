@@ -14,3 +14,10 @@
   1. Read the instructions in the file
   1. `$ npx ts-node src/examples/learning-s3-main.ts`
 
+###
+
+Accepting a new cdk snapshot
+
+```
+npm test -- -u
+```
