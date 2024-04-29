@@ -224,11 +224,14 @@ Each lambda can be run locally using the appropriate `yarn run:` command. This u
 _Note: A specific build is referenced in package.json as there is a bug in lambda-local regarding aws credentials that hasn't been fixed in the main branch_
 
 To install dependencies for running locally:
+
 ```bash
 yarn install 
 yarn dist
 ```
+
 And to transpile the lambdas:
+
 ```bash
 yarn compile
 ```
