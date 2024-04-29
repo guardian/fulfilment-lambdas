@@ -297,7 +297,8 @@ Resources:
         !Sub
           - |-
            {
-             "Comment": "fulfilment test",
+             "Comment": "State machine for Fulfilment",
+             "TimeoutSeconds": 64800,
              "StartAt": "QueryZuora",
              "States": {
                "QueryZuora": {
@@ -323,9 +324,9 @@ Resources:
                  "Retry": [
                     {
                      "ErrorEquals": ["States.ALL"],
-                     "IntervalSeconds": 60,
-                     "MaxAttempts": 20,
-                     "BackoffRate": 1.0
+                     "IntervalSeconds": 30,
+                     "MaxAttempts": 50,
+                     "BackoffRate": 1.15
                    }]
                },
                "GenerateFulfilmentFile": {
