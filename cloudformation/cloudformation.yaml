@@ -407,7 +407,7 @@ Resources:
     Type: "AWS::Events::Rule"
     Properties:
       Description: "TriggerFulfilment"
-      ScheduleExpression: "cron(30 7 ? * mon-fri *)"
+      ScheduleExpression: "cron(0 7 ? * mon-fri *)"
       State: "ENABLED"
       Targets:
         -
