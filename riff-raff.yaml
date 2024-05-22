@@ -21,5 +21,6 @@ deployments:
 #  fulfilment-node-stub-cloudformation:
 #  N.B.: cloudformation deployment not quite finished
 #   type: cloud-formation
+#     app: fulfilment-lambdas
 #     parameters:
 #       templatePath: 'cloudformation/cloudformation.yaml'

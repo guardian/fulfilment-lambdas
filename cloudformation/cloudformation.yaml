@@ -611,7 +611,7 @@ Resources:
     Condition: CreateProdResources
     Properties:
       AlarmActions:
-      - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:fulfilment-dev
+      - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:alarms-handler-topic-${Stage}
       AlarmName: !Join
         - ' '
         - - !FindInMap [ Constants, Alarm, Urgent ]
@@ -639,7 +639,7 @@ Resources:
     Condition: CreateProdResources
     Properties:
       AlarmActions:
-        - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:fulfilment-dev
+        - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:alarms-handler-topic-${Stage}
       AlarmName: !Join
         - ' '
         - - !FindInMap [ Constants, Alarm, Urgent ]
@@ -669,7 +669,7 @@ Resources:
     Condition: CreateProdResources
     Properties:
       AlarmActions:
-        - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:fulfilment-dev
+        - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:alarms-handler-topic-${Stage}
       AlarmName: !Join
         - ' '
         - - !FindInMap [ Constants, Alarm, Urgent ]
