@@ -609,6 +609,9 @@ Resources:
   FulfilmentStateMachineAlarm:
     Type: AWS::CloudWatch::Alarm
     Condition: CreateProdResources
+    Tags:
+      - Key: "App"
+        Value: "fulfilment-lambdas"
     Properties:
       AlarmActions:
       - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:alarms-handler-topic-${Stage}
@@ -637,6 +640,9 @@ Resources:
   HomeDeliveryUploadToSalesforceApiAlarm:
     Type: AWS::CloudWatch::Alarm
     Condition: CreateProdResources
+    Tags:
+      - Key: "App"
+        Value: "fulfilment-lambdas"
     Properties:
       AlarmActions:
         - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:alarms-handler-topic-${Stage}
@@ -667,6 +673,9 @@ Resources:
   GuardianWeeklyUploadToSalesforceLambdaAlarm:
     Type: AWS::CloudWatch::Alarm
     Condition: CreateProdResources
+    Tags:
+      - Key: "App"
+        Value: "fulfilment-lambdas"
     Properties:
       AlarmActions:
         - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:alarms-handler-topic-${Stage}
