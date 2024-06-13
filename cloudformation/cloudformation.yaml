@@ -74,7 +74,7 @@ Resources:
             - EnvironmentBucketMap
             - Ref: Stage
             - "logs"
-        LogFilePrefix: "fulfilment-salesforce-backup-_[STAGE]/"
+        LogFilePrefix: !Sub fulfilment-salesforce-backup-_${Stage}/
       VersioningConfiguration:
         Status: "Enabled"
 
@@ -171,13 +171,13 @@ Resources:
         S3Bucket: fulfilment-lambdas-dist
         S3Key: !Sub membership/${Stage}/fulfilment-lambdas/fulfilment-lambdas.zip
       MemorySize: 512
-      Runtime: nodejs14.x
+      Runtime: nodejs20.x
       Timeout: 300
       Environment:
         Variables:
            'Stage': !Sub ${Stage}
-           'StateMachine': !Ref FulfilmentStateMachine_[STAGE]
-    DependsOn: FulfilmentStateMachine_[STAGE]
+           'StateMachine': !Ref FulfilmentStateMachine
+    DependsOn: FulfilmentStateMachine
 
   ZuoraQuerierLambda:
     Type: "AWS::Lambda::Function"
@@ -191,7 +191,7 @@ Resources:
         S3Bucket: fulfilment-lambdas-dist
         S3Key: !Sub membership/${Stage}/fulfilment-lambdas/fulfilment-lambdas.zip
       MemorySize: 512
-      Runtime: nodejs14.x
+      Runtime: nodejs20.x
       Timeout: 300
       Environment:
         Variables:
@@ -209,7 +209,7 @@ Resources:
         S3Bucket: fulfilment-lambdas-dist
         S3Key: !Sub membership/${Stage}/fulfilment-lambdas/fulfilment-lambdas.zip
       MemorySize: 512
-      Runtime: nodejs14.x
+      Runtime: nodejs20.x
       Timeout: 300
       Environment:
         Variables:
@@ -227,7 +227,7 @@ Resources:
         S3Bucket: fulfilment-lambdas-dist
         S3Key: !Sub membership/${Stage}/fulfilment-lambdas/fulfilment-lambdas.zip
       MemorySize: 512
-      Runtime: nodejs14.x
+      Runtime: nodejs20.x
       Timeout: 300
       Environment:
         Variables:
@@ -245,7 +245,7 @@ Resources:
         S3Bucket: fulfilment-lambdas-dist
         S3Key: !Sub membership/${Stage}/fulfilment-lambdas/fulfilment-lambdas.zip
       MemorySize: 512
-      Runtime: nodejs14.x
+      Runtime: nodejs20.x
       Timeout: 300
       Environment:
         Variables:
@@ -263,7 +263,7 @@ Resources:
           S3Bucket: fulfilment-lambdas-dist
           S3Key: !Sub membership/${Stage}/fulfilment-lambdas/fulfilment-lambdas.zip
         MemorySize: 512
-        Runtime: nodejs14.x
+        Runtime: nodejs20.x
         Timeout: 300
         Environment:
           Variables:
@@ -290,9 +290,10 @@ Resources:
                   - "lambda:InvokeFunction"
                 Resource: "*"
 
-  FulfilmentStateMachine_[STAGE]:
+  FulfilmentStateMachine:
     Type: "AWS::StepFunctions::StateMachine"
     Properties:
+      StateMachineName: !Sub 'FulfilmentStateMachine-${Stage}'
       DefinitionString:
         !Sub
           - |-
@@ -411,7 +412,7 @@ Resources:
       State: "ENABLED"
       Targets:
         -
-          Arn: !Ref FulfilmentStateMachine_[STAGE]
+          Arn: !Ref FulfilmentStateMachine
           Id: !Sub trigger_state_machine-${Stage}-1
           Input: |
             {
@@ -420,7 +421,7 @@ Resources:
             }
           RoleArn: !GetAtt [ fulfilmentTriggerRole, Arn ]
         -
-          Arn: !Ref FulfilmentStateMachine_[STAGE]
+          Arn: !Ref FulfilmentStateMachine
           Id: !Sub trigger_state_machine-${Stage}-2
           Input: |
             {
@@ -429,7 +430,7 @@ Resources:
             }
           RoleArn: !GetAtt [ fulfilmentTriggerRole, Arn ]
         -
-          Arn: !Ref FulfilmentStateMachine_[STAGE]
+          Arn: !Ref FulfilmentStateMachine
           Id: !Sub trigger_state_machine-${Stage}-3
           Input: |
             {
@@ -438,7 +439,7 @@ Resources:
             }
           RoleArn: !GetAtt [ fulfilmentTriggerRole, Arn ]
         -
-          Arn: !Ref FulfilmentStateMachine_[STAGE]
+          Arn: !Ref FulfilmentStateMachine
           Id: !Sub trigger_state_machine-${Stage}-4
           Input: |
             {
@@ -448,7 +449,7 @@ Resources:
 
           RoleArn: !GetAtt [ fulfilmentTriggerRole, Arn ]
         -
-          Arn: !Ref FulfilmentStateMachine_[STAGE]
+          Arn: !Ref FulfilmentStateMachine
           Id: !Sub trigger_state_machine-${Stage}-5
           Input: |
             {
@@ -456,7 +457,7 @@ Resources:
              "type":"homedelivery"
             }
           RoleArn: !GetAtt [ fulfilmentTriggerRole, Arn ]
-    DependsOn: FulfilmentStateMachine_[STAGE]
+    DependsOn: FulfilmentStateMachine
 
   WeeklyScheduledRule:
     Type: "AWS::Events::Rule"
@@ -466,7 +467,7 @@ Resources:
       State: "ENABLED"
       Targets:
         -
-          Arn: !Ref FulfilmentStateMachine_[STAGE]
+          Arn: !Ref FulfilmentStateMachine
           Id: !Sub trigger_state_machine-${Stage}-1
           Input: |
             {
@@ -485,7 +486,7 @@ Resources:
       Targets:
         -
           Arn: !GetAtt WeeklyUploaderLambda.Arn
-          Id: !Sub weeklySfUploader_[STAGE]
+          Id: !Sub weeklySfUploader
           Input: |
             {
             "type":"weekly",
@@ -502,8 +503,8 @@ Resources:
       Targets:
         - 
           Arn: !GetAtt SalesforceDownloaderLambda.Arn
-          Id: !Sub salesforceDownloader_[STAGE]
-    DependsOn: FulfilmentStateMachine_[STAGE]
+          Id: !Sub salesforceDownloader
+    DependsOn: FulfilmentStateMachine
 
   fulfilmentTriggerRole:
     Type: AWS::IAM::Role
@@ -524,7 +525,7 @@ Resources:
                      - Effect: Allow
                        Action:
                        - states:StartExecution
-                       Resource: !Ref FulfilmentStateMachine_[STAGE]
+                       Resource: !Ref FulfilmentStateMachine
 
   checkerLambda:
     Type: "AWS::Lambda::Function"
@@ -538,7 +539,7 @@ Resources:
         S3Bucket: fulfilment-lambdas-dist
         S3Key: !Sub membership/${Stage}/fulfilment-lambdas/fulfilment-lambdas.zip
       MemorySize: 128
-      Runtime: nodejs14.x
+      Runtime: nodejs20.x
       Timeout: 300
       Environment:
         Variables:
@@ -625,14 +626,14 @@ Resources:
       Namespace: AWS/States
       Dimensions:
         - Name: StateMachineArn
-          Value: !Ref FulfilmentStateMachine_[STAGE]
+          Value: !Ref FulfilmentStateMachine
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
       Period: 60
       EvaluationPeriods: 1
       Statistic: Sum
       TreatMissingData: ignore
-    DependsOn: FulfilmentStateMachine_[STAGE]
+    DependsOn: FulfilmentStateMachine
 
   HomeDeliveryUploadToSalesforceApiAlarm:
     Type: AWS::CloudWatch::Alarm

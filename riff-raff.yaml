@@ -1,14 +1,23 @@
 regions:
-- eu-west-1
+  - eu-west-1
 stacks:
-- membership 
+  - membership
 deployments:
+  cloudformation:
+    type: cloud-formation
+    app: fulfilment-lambdas
+    parameters:
+      cloudFormationStackName: fulfilment-lambdas
+      appendStageToCloudFormationStackName: true
+      prependStackToCloudFormationStackName: false
+      cloudFormationStackByTags: false
+      templatePath: cloudformation.yaml
   fulfilment-lambdas:
     type: aws-lambda
     parameters:
       bucket: fulfilment-lambdas-dist
       prefixStack: false
-      fileName: 'fulfilment-lambdas.zip'
+      fileName: fulfilment-lambdas.zip
       functionNames:
         - zuora_fulfilment_querier-
         - zuora_fulfilment_fetcher-
@@ -17,10 +26,4 @@ deployments:
         - salesforce_uploader-
         - zuora_fulfilment_checker-
         - weekly-fulfilmentUploader-
-       #get from cloudformation
-#  fulfilment-node-stub-cloudformation:
-#  N.B.: cloudformation deployment not quite finished
-#   type: cloud-formation
-#     app: fulfilment-lambdas
-#     parameters:
-#       templatePath: 'cloudformation/cloudformation.yaml'
+    dependencies: [cloudformation]
