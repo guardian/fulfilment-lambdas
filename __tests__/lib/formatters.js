@@ -6,6 +6,10 @@ import { outputHeaders as gwOutputHeaders } from '../../src/weekly/WeeklyExporte
 import { outputHeaders as hdOutputHeaders } from '../../src/homedelivery/export'
 import la from 'lodash/array'
 
+jest.mock('../../src/lib/config', () => ({
+  getStage: () => 'CODE',
+}))
+
 test('should format delivery instructions for Salesforce CSV parser', () => {
   const rawSpecialDeliveryInstructionsInSoldToZuoraContact = 'front door is on "Foo\'s Drive ",Put though the letterbox, do not leave on door step.'
   const expected = 'front door is on \'Foo\'s Drive \',Put though the letterbox, do not leave on door step.'
