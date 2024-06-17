@@ -6,7 +6,6 @@
   "devDependencies": {
     "@babel/cli": "^7.7.7",
     "@babel/core": "^7.7.7",
-    "@babel/plugin-proposal-object-rest-spread": "^7.7.7",
     "@babel/preset-env": "7.7.7",
     "@babel/preset-flow": "^7.7.4",
     "babel-eslint": "^10.0.3",
