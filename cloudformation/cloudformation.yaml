@@ -293,7 +293,7 @@ Resources:
   FulfilmentStateMachine:
     Type: "AWS::StepFunctions::StateMachine"
     Properties:
-      StateMachineName: !Sub 'FulfilmentStateMachine-${Stage}'
+      StateMachineName: !Sub 'fulfilment-state-machine-${Stage}'
       DefinitionString:
         !Sub
           - |-
