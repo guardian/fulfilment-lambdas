@@ -5,12 +5,9 @@
       "@babel/env",
       {
         "targets": {
-          "node": "14.17.3"
+          "node": "20.14.0"
         }
       }
     ]
-  ],
-  "plugins":[
-    "@babel/plugin-proposal-object-rest-spread"
   ]
 }
