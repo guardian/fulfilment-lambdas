@@ -53,7 +53,7 @@ async function queryZuora (deliveryDate, config: Config) {
       FROM
         RatePlanCharge
       WHERE 
-        Product.ProductType__c = 'Guardian Weekly' AND
+        ProductRatePlanCharge.ProductType__c = 'Guardian Weekly' AND
         RatePlan.Name != 'Guardian Weekly 6 Issues' AND
         RatePlan.Name != 'Guardian Weekly 12 Issues' AND
         RatePlan.Name != 'GW Oct 18 - Six for Six - ROW' AND
