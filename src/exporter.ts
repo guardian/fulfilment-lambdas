@@ -1,4 +1,3 @@
-import { Handler } from "aws-lambda";
 import type { fulfilmentType } from "./lib/config";
 import { weeklyExport } from "./weekly/export";
 import { homedeliveryExport } from "./homedelivery/export";
@@ -14,26 +13,18 @@ export type Input = {
   type: fulfilmentType;
 };
 
-export const handler: Handler<
-  Input,
-  {
-    fulfilmentFile: any;
-    deliveryDate: string;
-    results: Array<result>;
-    type: fulfilmentType;
-  }
-> = async (event: Input) => {
+export const handler = async (input: Input) => {
   const generateFulfilmentFiles = async (type: string) => {
     if (type === "homedelivery") {
-      return homedeliveryExport(event);
+      return homedeliveryExport(input);
     } else if (type === "weekly") {
-      return weeklyExport(event);
-    } else throw Error(`Invalid type field ${util.inspect(event)}`);
+      return weeklyExport(input);
+    } else throw Error(`Invalid type field ${util.inspect(input)}`);
   };
 
   try {
-    const outputFileName = await generateFulfilmentFiles(event.type);
-    return { ...event, fulfilmentFile: outputFileName };
+    const outputFileName = await generateFulfilmentFiles(input.type);
+    return { ...input, fulfilmentFile: outputFileName };
   } catch (err) {
     throw new Error(
       `Failed to generate fulfilment files in S3: ${util.inspect(err)}`

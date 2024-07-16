@@ -132,6 +132,7 @@ function getHolidaySuspensions(
 ): Promise<Set<string>> {
   return new Promise((resolve, reject) => {
     const suspendedSubs = new Set<string>();
+
     downloadStream
       .pipe(csv.parse({ headers: true }))
       .on("error", (error) =>
