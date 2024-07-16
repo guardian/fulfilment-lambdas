@@ -1,12 +1,11 @@
-// @flow
-import { fetchConfig } from '../lib/config'
-import type { Config } from '../lib/config'
-import { Zuora } from '../lib/Zuora'
-import type { Query } from '../lib/Zuora'
-import { buildHolidayCreditQuery } from '../lib/HolidayCreditQuery'
-import moment from 'moment'
-import { getDeliveryDate } from './WeeklyInput'
-import type { WeeklyInput } from './WeeklyInput'
+import { fetchConfig } from "../lib/config";
+import type { Config } from "../lib/config";
+import { Zuora } from "../lib/Zuora";
+import type { Query } from "../lib/Zuora";
+import { buildHolidayCreditQuery } from "../lib/HolidayCreditQuery";
+import moment, { Moment } from "moment";
+import { getDeliveryDate } from "./WeeklyInput";
+import type { WeeklyInput } from "./WeeklyInput";
 
 /**
  * Date to compare termEndDate with to decide whether sub should be fulfilled.
@@ -14,29 +13,28 @@ import type { WeeklyInput } from './WeeklyInput'
  * @param deliveryDate Issue date of publication
  * @returns {*|moment} Comparison date
  */
-function getCutOffDate (deliveryDate: moment) {
-  const today = moment().startOf('day')
-  const daysUntilDelivery = deliveryDate.diff(today)
+function getCutOffDate(deliveryDate: Moment) {
+  const today = moment().startOf("day");
+  const daysUntilDelivery = deliveryDate.diff(today);
   if (daysUntilDelivery <= 0) {
-    return deliveryDate
+    return deliveryDate;
   }
   /*
    * We give a grace period so that
    * the next issue after cancellation is fulfilled
    * if the cancellation falls between two issues.
    */
-  return deliveryDate.subtract(6, 'days')
+  return deliveryDate.subtract(6, "days");
 }
 
-async function queryZuora (deliveryDate, config: Config) {
-  const formattedDeliveryDate = deliveryDate.format('YYYY-MM-DD')
-  const cutOffDate = getCutOffDate(deliveryDate).format('YYYY-MM-DD')
-  const zuora = new Zuora(config)
+async function queryZuora(deliveryDate: Moment, config: Config) {
+  const formattedDeliveryDate = deliveryDate.format("YYYY-MM-DD");
+  const cutOffDate = getCutOffDate(deliveryDate).format("YYYY-MM-DD");
+  const zuora = new Zuora(config);
 
-  const subsQuery: Query =
-    {
-      name: 'WeeklySubscriptions',
-      query: `
+  const subsQuery: Query = {
+    name: "WeeklySubscriptions",
+    query: `
       SELECT
         Subscription.Name,
         SoldToContact.Address1,
@@ -97,12 +95,11 @@ async function queryZuora (deliveryDate, config: Config) {
            Subscription.TermEndDate >= '${cutOffDate}'
           )
         )
-    `
-    }
-  const introductoryPeriodQuery: Query =
-    {
-      name: 'WeeklyIntroductoryPeriods',
-      query: `
+    `,
+  };
+  const introductoryPeriodQuery: Query = {
+    name: "WeeklyIntroductoryPeriods",
+    query: `
       SELECT
         Subscription.Name,
         SoldToContact.Address1,
@@ -125,20 +122,24 @@ async function queryZuora (deliveryDate, config: Config) {
         ( RatePlan.AmendmentType IS NULL OR RatePlan.AmendmentType != 'RemoveProduct' ) AND
         RatePlanCharge.EffectiveStartDate <= '${formattedDeliveryDate}' AND
         RatePlanCharge.EffectiveEndDate > '${formattedDeliveryDate}' 
-    `
-    }
-  const holidaySuspensionQuery: Query =
-    {
-      name: 'WeeklyHolidaySuspensions',
-      query: buildHolidayCreditQuery(formattedDeliveryDate)
-    }
-  const jobId = await zuora.query('Fulfilment-Queries', subsQuery, holidaySuspensionQuery, introductoryPeriodQuery)
-  return { deliveryDate: formattedDeliveryDate, jobId: jobId }
+    `,
+  };
+  const holidaySuspensionQuery: Query = {
+    name: "WeeklyHolidaySuspensions",
+    query: buildHolidayCreditQuery(formattedDeliveryDate),
+  };
+  const jobId = await zuora.query(
+    "Fulfilment-Queries",
+    subsQuery,
+    holidaySuspensionQuery,
+    introductoryPeriodQuery
+  );
+  return { deliveryDate: formattedDeliveryDate, jobId: jobId };
 }
 
-export async function weeklyQuery (input: WeeklyInput) {
-  const deliveryDate = getDeliveryDate(input)
-  const config = await fetchConfig()
-  console.log('Config fetched succesfully.')
-  return queryZuora(deliveryDate, config)
+export async function weeklyQuery(input: WeeklyInput) {
+  const deliveryDate = getDeliveryDate(input);
+  const config = await fetchConfig();
+  console.log("Config fetched succesfully.");
+  return queryZuora(deliveryDate, config);
 }
