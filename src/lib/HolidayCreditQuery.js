@@ -1,5 +1,5 @@
-export function buildHolidayCreditQuery (formattedDeliveryDate: string) {
-  return `
+export function buildHolidayCreditQuery(formattedDeliveryDate) {
+	return `
       SELECT
         Subscription.Name
       FROM
@@ -10,5 +10,5 @@ export function buildHolidayCreditQuery (formattedDeliveryDate: string) {
        RatePlanCharge.Name = 'Holiday Credit' AND
        RatePlanCharge.HolidayStart__c <= '${formattedDeliveryDate}' AND
        RatePlanCharge.HolidayEnd__c >= '${formattedDeliveryDate}' AND
-       RatePlan.AmendmentType != 'RemoveProduct'`
+       RatePlan.AmendmentType != 'RemoveProduct'`;
 }

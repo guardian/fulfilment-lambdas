@@ -1,72 +1,74 @@
 {
-  "name": "fulfilment-lambdas",
-  "version": "0.0.1",
-  "description": "Lambdas to fulfil guardian subscriptions",
-  "buildDir": "dist",
-  "devDependencies": {
-    "@babel/cli": "^7.7.7",
-    "@babel/core": "^7.7.7",
-    "@babel/preset-env": "7.7.7",
-    "@babel/preset-flow": "^7.7.4",
-    "babel-eslint": "^10.0.3",
-    "babel-jest": "^24.9.0",
-    "common-tags": "^1.8.0",
-    "eslint": "^6.7.2",
-    "eslint-plugin-import": "^2.29.1",
-    "eslint-plugin-node": "^10.0.0",
-    "eslint-plugin-standard": "^4.0.1",
-    "flow-bin": "0.114.0",
-    "jest": "^24.9.0",
-    "lambda-local": "^1.6.3",
-    "mockdate": "^2.0.5",
-    "replace": "^1.1.1",
-    "snazzy": "^8.0.0",
-    "standard": "^14.3.1",
-    "string-width": "^4.2.0"
-  },
-  "scripts": {
-    "dist": "mv node_modules node_modules_bak && yarn install --frozen-lockfile --production --modules-folder dist/node_modules > /dev/null && rm -rf node_modules/ && mv node_modules_bak node_modules",
-    "compile": "babel src -d dist",
-    "local": "yarn run:index && yarn run:hello",
-    "run:hd:exporter": "lambda-local -l dist/exporter.js -e __tests__/resources/input/homedelivery/exporter.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
-    "run:weekly:exporter": "lambda-local -l dist/exporter.js -e __tests__/resources/input/weekly/exporter.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
-    "run:hd:querier": "lambda-local -l dist/querier.js -e __tests__/resources/input/homedelivery/querier.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
-    "run:weekly:querier": "lambda-local -l dist/querier.js -e __tests__/resources/input/weekly/querier.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
-    "run:hd:fetcher": "lambda-local -l dist/fetcher.js -e __tests__/resources/input/homedelivery/fetcher.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
-    "run:weekly:fetcher": "lambda-local -l dist/fetcher.js -e __tests__/resources/input/weekly/fetcher.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
-    "run:weekly:uploader": "lambda-local -l dist/weekly/salesforce_uploader.js -e __tests__/resources/input/weekly/salesforce_uploader.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
-    "run:sf": "lambda-local -l dist/salesforce_downloader.js -e __tests__/resources/input/input.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
-    "run:sfup": "lambda-local -l dist/salesforce_uploader.js -e __tests__/resources/input/upload.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
-    "run:checker": "lambda-local -l dist/checker.js -e __tests__/resources/input/checker.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
-    "clean": "rm -rf dist && rm -rf target && rm -f cloudformation/prod.yaml && rm -f  cloudformation/code.yaml",
-    "lint": "standard | snazzy",
-    "test": "jest --runInBand",
-    "tc": "yarn install && yarn check && yarn flow && yarn compile && yarn dist",
-    "testOnly": "jest -t 'should generate correct fulfilment file'"
-  },
-  "dependencies": {
-    "aws-sdk": "^2.1641.0",
-    "fast-csv": "4.3.6",
-    "get-stream": "^5.1.0",
-    "http-signature": "^1.3.5",
-    "lodash-es": "^4.17.15",
-    "moment": "^2.29.4",
-    "multistream": "^2.1.0",
-    "request": "^2.88.2",
-    "request-promise-native": "^1.0.9",
-    "safe-buffer": "^5.2.1"
-  },
-  "standard": {
-    "plugins": [
-      "flowtype"
-    ],
-    "parser": "babel-eslint",
-    "ignore": [
-      "flow-typed/*"
-    ]
-  },
-  "jest": {
-    "verbose": false,
-    "testEnvironment": "node"
-  }
+	"name": "fulfilment-lambdas",
+	"version": "0.0.1",
+	"description": "Lambdas to fulfil guardian subscriptions",
+	"buildDir": "dist",
+	"devDependencies": {
+		"@babel/cli": "^7.7.7",
+		"@babel/core": "^7.7.7",
+		"@babel/preset-env": "7.7.7",
+		"@babel/preset-flow": "^7.7.4",
+		"@guardian/prettier": "^8.0.1",
+		"babel-eslint": "^10.0.3",
+		"babel-jest": "^24.9.0",
+		"common-tags": "^1.8.0",
+		"eslint": "^6.7.2",
+		"eslint-plugin-import": "^2.29.1",
+		"eslint-plugin-node": "^10.0.0",
+		"eslint-plugin-standard": "^4.0.1",
+		"flow-bin": "0.114.0",
+		"jest": "^24.9.0",
+		"lambda-local": "^1.6.3",
+		"mockdate": "^2.0.5",
+		"prettier": "^3.3.3",
+		"replace": "^1.1.1",
+		"snazzy": "^8.0.0",
+		"standard": "^14.3.1",
+		"string-width": "^4.2.0"
+	},
+	"scripts": {
+		"dist": "mv node_modules node_modules_bak && yarn install --frozen-lockfile --production --modules-folder dist/node_modules > /dev/null && rm -rf node_modules/ && mv node_modules_bak node_modules",
+		"compile": "babel src -d dist",
+		"local": "yarn run:index && yarn run:hello",
+		"run:hd:exporter": "lambda-local -l dist/exporter.js -e __tests__/resources/input/homedelivery/exporter.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
+		"run:weekly:exporter": "lambda-local -l dist/exporter.js -e __tests__/resources/input/weekly/exporter.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
+		"run:hd:querier": "lambda-local -l dist/querier.js -e __tests__/resources/input/homedelivery/querier.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
+		"run:weekly:querier": "lambda-local -l dist/querier.js -e __tests__/resources/input/weekly/querier.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
+		"run:hd:fetcher": "lambda-local -l dist/fetcher.js -e __tests__/resources/input/homedelivery/fetcher.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
+		"run:weekly:fetcher": "lambda-local -l dist/fetcher.js -e __tests__/resources/input/weekly/fetcher.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
+		"run:weekly:uploader": "lambda-local -l dist/weekly/salesforce_uploader.js -e __tests__/resources/input/weekly/salesforce_uploader.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
+		"run:sf": "lambda-local -l dist/salesforce_downloader.js -e __tests__/resources/input/input.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
+		"run:sfup": "lambda-local -l dist/salesforce_uploader.js -e __tests__/resources/input/upload.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
+		"run:checker": "lambda-local -l dist/checker.js -e __tests__/resources/input/checker.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
+		"clean": "rm -rf dist && rm -rf target && rm -f cloudformation/prod.yaml && rm -f  cloudformation/code.yaml",
+		"lint": "standard | snazzy",
+		"test": "jest --runInBand",
+		"tc": "yarn install && yarn check && yarn flow && yarn compile && yarn dist",
+		"testOnly": "jest -t 'should generate correct fulfilment file'"
+	},
+	"dependencies": {
+		"aws-sdk": "^2.1641.0",
+		"fast-csv": "4.3.6",
+		"get-stream": "^5.1.0",
+		"http-signature": "^1.3.5",
+		"lodash-es": "^4.17.15",
+		"moment": "^2.29.4",
+		"multistream": "^2.1.0",
+		"request": "^2.88.2",
+		"request-promise-native": "^1.0.9",
+		"safe-buffer": "^5.2.1"
+	},
+	"standard": {
+		"plugins": [
+			"flowtype"
+		],
+		"parser": "babel-eslint",
+		"ignore": [
+			"flow-typed/*"
+		]
+	},
+	"jest": {
+		"verbose": false,
+		"testEnvironment": "node"
+	}
 }
