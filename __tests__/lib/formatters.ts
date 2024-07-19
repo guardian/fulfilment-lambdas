@@ -7,6 +7,7 @@ import getStream from "get-stream";
 import { stripIndents } from "common-tags";
 import { outputHeaders as gwOutputHeaders } from "../../src/weekly/WeeklyExporter";
 import { outputHeaders as hdOutputHeaders } from "../../src/homedelivery/export";
+// @ts-ignore
 import la from "lodash/array";
 
 jest.mock("../../src/lib/config", () => ({

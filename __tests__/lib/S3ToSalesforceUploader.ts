@@ -41,6 +41,7 @@ test("should upload files", (done) => {
 
   const testInput = [getTestInput("1"), getTestInput("2"), getTestInput("3")];
 
+  // @ts-ignore
   sfUpload.uploadFiles(testInput, mockSalesForce).then((res) => {
     try {
       // downloads from s3
@@ -106,6 +107,7 @@ test("should NOT ignore missing files", async () => {
   });
   const testInput = [getTestInput("1"), getTestInput("2"), getTestInput("3")];
   await expect(
+    // @ts-ignore
     sfUpload.uploadFiles(testInput, mockSalesForce)
   ).rejects.toThrow();
 });
