@@ -10,6 +10,7 @@
     "@babel/preset-env": "^7.24.8",
     "@babel/preset-flow": "^7.24.7",
     "@babel/preset-typescript": "^7.24.7",
+    "@guardian/prettier": "^8.0.1",
     "@types/aws-lambda": "^8.10.141",
     "@types/common-tags": "^1.8.4",
     "@types/jest": "^29.5.12",
@@ -28,6 +29,7 @@
     "jest": "^24.9.0",
     "lambda-local": "^1.6.3",
     "mockdate": "^2.0.5",
+    "prettier": "^3.3.3",
     "replace": "^1.1.1",
     "snazzy": "^8.0.0",
     "standard": "^14.3.1",
@@ -36,9 +38,10 @@
     "typescript": "^5.5.3"
   },
   "scripts": {
-    "build": "esbuild --bundle --platform=node --target=node20 --outdir=target src/**/*.ts",
-    "dist": "mv node_modules node_modules_bak && yarn install --frozen-lockfile --production --modules-folder dist/node_modules > /dev/null && rm -rf node_modules/ && mv node_modules_bak node_modules",
-    "local": "yarn run:index && yarn run:hello",
+    "build": "esbuild --bundle --platform=node --target=node20 --outdir=dist src/*.ts src/**/*.ts",
+    "package": "yarn type-check && yarn lint && yarn check-formatting && yarn test && yarn build && cd dist && zip -qr fulfilment-lambdas.zip ./*.js",
+    "check-formatting": "prettier --check **/*.ts",
+    "fix-formatting": "prettier --write **/*.ts",
     "run:hd:exporter": "lambda-local -l dist/exporter.js -e __tests__/resources/input/homedelivery/exporter.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
     "run:weekly:exporter": "lambda-local -l dist/exporter.js -e __tests__/resources/input/weekly/exporter.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
     "run:hd:querier": "lambda-local -l dist/querier.js -e __tests__/resources/input/homedelivery/querier.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
@@ -52,7 +55,6 @@
     "clean": "rm -rf dist && rm -rf target && rm -f cloudformation/prod.yaml && rm -f  cloudformation/code.yaml",
     "lint": "standard | snazzy",
     "test": "jest --runInBand",
-    "tc": "yarn install && yarn check && yarn compile && yarn dist",
     "testOnly": "jest -t 'should generate correct fulfilment file'",
     "type-check": "tsc --noEmit",
     "type-watch": "tsc --noEmit --watch"
