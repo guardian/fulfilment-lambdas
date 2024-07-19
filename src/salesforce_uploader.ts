@@ -30,7 +30,7 @@ function range(amount: number) {
 
 function validateToken(
   expectedToken: string,
-  providedToken: string
+  providedToken: string,
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     if (expectedToken === providedToken) {
@@ -53,7 +53,7 @@ type apiGatewayLambdaInput = {
 async function copyToUploadedFolder(
   stage: string,
   s3Path: string,
-  sfFileName: string
+  sfFileName: string,
 ) {
   try {
     const uploadedPath = `uploaded/${sfFileName}`;
@@ -75,7 +75,7 @@ async function copyToUploadedFolder(
 export function handler(
   input: apiGatewayLambdaInput,
   context: any,
-  callback: (error: any, apiResponse: ApiResponse) => void
+  callback: (error: any, apiResponse: ApiResponse) => void,
 ) {
   function validationError(message: string) {
     console.log(message);
@@ -90,7 +90,7 @@ export function handler(
     },
     stage: string,
     salesforce: Salesforce,
-    sfFolder: Folder & S3Folder
+    sfFolder: Folder & S3Folder,
   ) {
     const dayOfTheWeek = fileData.date.format("dddd");
     const dateSuffix = fileData.date.format("DD_MM_YYYY");
@@ -101,10 +101,10 @@ export function handler(
       outputFileName,
       sfFolder,
       sfFileDescription,
-      fileData.file.Body
+      fileData.file.Body,
     );
     const lastModified = moment(fileData.file.LastModified).format(
-      "YYYY-MM-DD"
+      "YYYY-MM-DD",
     );
     await copyToUploadedFolder(stage, fileData.s3Path, outputFileName);
     return Promise.resolve({
@@ -128,7 +128,7 @@ export function handler(
   async function asyncHandler(
     startDate: Moment,
     amount: number,
-    providedToken: string
+    providedToken: string,
   ) {
     const config = await fetchConfig();
     console.log("Config fetched successfully.");

@@ -32,11 +32,11 @@ async function downloader() {
     ...Object.keys(config.fulfilments.weekly).map(
       (k) =>
         config.fulfilments.weekly[k as keyof Config["fulfilments"]["weekly"]]
-          .downloadFolder
+          .downloadFolder,
     ),
   ];
   const promises = folders.map((folder) =>
-    download(config, salesforce, folder)
+    download(config, salesforce, folder),
   );
   const result = await Promise.all(promises);
   return result.reduce((acc, val) => {
@@ -47,7 +47,7 @@ async function downloader() {
 async function download(
   config: Config,
   salesforce: Salesforce,
-  folder: Folder & S3Folder
+  folder: Folder & S3Folder,
 ) {
   console.log("Fetching existing files in S3: ", folder.bucket, folder.prefix);
   const contents = await ls(folder);
@@ -72,7 +72,7 @@ async function download(
       console.log("Starting upload to S3 ");
       const streamAsString = await getStream(new stream());
       return upload(streamAsString, doc.Name, folder);
-    }
+    },
   );
   console.log("Performing upload/downloads.");
   const status = await Promise.all(uploads);

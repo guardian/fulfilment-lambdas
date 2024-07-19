@@ -24,7 +24,7 @@ export const handler = async (input: Input) => {
     return { ...input, jobId: res.jobId, deliveryDate: res.deliveryDate };
   } catch (err) {
     throw new Error(
-      `Failed to start Zuora export batch jobs ${util.inspect(err)}`
+      `Failed to start Zuora export batch jobs ${util.inspect(err)}`,
     );
   }
 };

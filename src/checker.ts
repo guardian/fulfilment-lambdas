@@ -50,7 +50,7 @@ async function checkFile(): Promise<boolean> {
   const tomorrowDayOfTheWeek = tomorrow.format("ddd") as keyof typeof maxAgeFor;
   const maxAllowedAge = maxAgeFor[tomorrowDayOfTheWeek];
   console.log(
-    `Max allowed age for ${tomorrowDayOfTheWeek} files is ${maxAllowedAge}`
+    `Max allowed age for ${tomorrowDayOfTheWeek} files is ${maxAllowedAge}`,
   );
   return fileAge <= maxAllowedAge;
 }

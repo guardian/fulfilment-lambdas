@@ -48,7 +48,7 @@ const asyncHandler = async (input: Input) => {
   const batches = await zuora.getJobResult(input.jobId);
   console.log("Job results returned.");
   const files = batches.map((batch) =>
-    zuora.fetchFile(batch, input.deliveryDate)
+    zuora.fetchFile(batch, input.deliveryDate),
   );
   console.log("Downloading job results.");
   const uploads = await Promise.all(files);

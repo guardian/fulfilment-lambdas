@@ -27,7 +27,7 @@ export const handler = async (input: Input) => {
     return { ...input, fulfilmentFile: outputFileName };
   } catch (err) {
     throw new Error(
-      `Failed to generate fulfilment files in S3: ${util.inspect(err)}`
+      `Failed to generate fulfilment files in S3: ${util.inspect(err)}`,
     );
   }
 };

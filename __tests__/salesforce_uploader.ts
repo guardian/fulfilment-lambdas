@@ -74,7 +74,7 @@ type DoneFunction = {
 function verify(
   done: DoneFunction,
   expectedResponse: unknown,
-  expectedFulfilmentDays: string[]
+  expectedFulfilmentDays: string[],
 ) {
   return function (err: unknown, res: unknown) {
     if (err) {
@@ -87,10 +87,10 @@ function verify(
     try {
       expect(responseAsJson).toEqual(expectedResponseAsJson);
       expect(mockSalesForce.uploadDocument.mock.calls.length).toBe(
-        expectedFulfilmentDays.length
+        expectedFulfilmentDays.length,
       );
       expect(mockStorage.copyObject.mock.calls.length).toBe(
-        expectedFulfilmentDays.length
+        expectedFulfilmentDays.length,
       );
       const expectedFolder = {
         folderId: "someFolderId",
@@ -106,11 +106,11 @@ function verify(
           expectedSalesForceFileName,
           expectedFolder,
           expectedDescription,
-          "csv would be here"
+          "csv would be here",
         );
         expect(mockStorage.copyObject).toHaveBeenCalledWith(
           `fulfilment_output/${date}_HOME_DELIVERY.csv`,
-          `uploaded/${expectedSalesForceFileName}`
+          `uploaded/${expectedSalesForceFileName}`,
         );
       });
       done();
@@ -132,7 +132,7 @@ test("should return error if api token is wrong", (done) => {
   handler(
     wrongTokenInput,
     {},
-    verify(done, expectedResponse, expectedFulfilmentDates)
+    verify(done, expectedResponse, expectedFulfilmentDates),
   );
 });
 
@@ -143,7 +143,7 @@ test("should return 400 error required parameters are missing", (done) => {
   handler(
     emptyRequest,
     {},
-    verify(done, expectedResponse, expectedFulfilments)
+    verify(done, expectedResponse, expectedFulfilments),
   );
 });
 test("should return 400 error no api token is provided", (done) => {
@@ -156,13 +156,13 @@ test("should return 400 error if too many days in request", (done) => {
   const tooManyDaysInput = getFakeInput("testToken", "2017-06-12", 21);
   const expectedResponse = errorResponse(
     400,
-    "amount should be a number between 1 and 5"
+    "amount should be a number between 1 and 5",
   );
   const expectedFulfilments: string[] = [];
   handler(
     tooManyDaysInput,
     {},
-    verify(done, expectedResponse, expectedFulfilments)
+    verify(done, expectedResponse, expectedFulfilments),
   );
 });
 test("should return error if files not found in bucket", (done) => {
@@ -192,6 +192,6 @@ test("should return error if api token is wrong", (done) => {
   handler(
     wrongTokenInput,
     {},
-    verify(done, expectedResponse, expectedFulfilmentDates)
+    verify(done, expectedResponse, expectedFulfilmentDates),
   );
 });
