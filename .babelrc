@@ -1,13 +1,13 @@
 {
-  "presets": [
-    "@babel/flow",
-    [
-      "@babel/env",
-      {
-        "targets": {
-          "node": "20.14.0"
-        }
-      }
-    ]
-  ]
+	"presets": [
+		"@babel/preset-typescript",
+		[
+			"@babel/env",
+			{
+				"targets": {
+					"node": "20.14.0"
+				}
+			}
+		]
+	]
 }
