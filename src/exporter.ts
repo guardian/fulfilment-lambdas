@@ -1,21 +1,20 @@
-// @flow
 import type { fulfilmentType } from './lib/config';
 import { weeklyExport } from './weekly/export';
 import { homedeliveryExport } from './homedelivery/export';
 import util from 'util';
 
 export type result = {
-	queryName: string,
-	fileName: string,
+	queryName: string;
+	fileName: string;
 };
 export type Input = {
-	deliveryDate: string,
-	results: Array<result>,
-	type: fulfilmentType,
+	deliveryDate: string;
+	results: Array<result>;
+	type: fulfilmentType;
 };
 
-export async function handler(input: Input, context: ?any) {
-	const generateFulfilmentFiles = async (type) => {
+export const handler = async (input: Input) => {
+	const generateFulfilmentFiles = async (type: string) => {
 		if (type === 'homedelivery') {
 			return homedeliveryExport(input);
 		} else if (type === 'weekly') {
@@ -31,4 +30,4 @@ export async function handler(input: Input, context: ?any) {
 			`Failed to generate fulfilment files in S3: ${util.inspect(err)}`,
 		);
 	}
-}
+};

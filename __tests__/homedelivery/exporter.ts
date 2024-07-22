@@ -1,5 +1,5 @@
 /* eslint-env jest */
-import { handler } from '../../src/exporter';
+import { handler, Input } from '../../src/exporter';
 var MockDate = require('mockdate');
 
 // mock current date
@@ -8,8 +8,9 @@ MockDate.set('7/5/2017');
 jest.mock('../../src/lib/storage', () => {
 	const fs = require('fs');
 	return {
-		upload: async (stringSource, outputLocation) => outputLocation,
-		createReadStream: async (filePath) => {
+		upload: async (stringSource: string, outputLocation: string) =>
+			outputLocation,
+		createReadStream: async (filePath: string) => {
 			const testFilePath = `./__tests__/resources/${filePath}`;
 			console.log(`loading test file ${testFilePath} ...`);
 			return fs.createReadStream(testFilePath);
@@ -29,7 +30,7 @@ beforeEach(() => {
 });
 
 it('should return error on missing query subscriptions query result', async () => {
-	const input = {
+	const input: Input = {
 		type: 'homedelivery',
 		deliveryDate: '2017-07-06',
 		results: [
@@ -39,11 +40,11 @@ it('should return error on missing query subscriptions query result', async () =
 			},
 		],
 	};
-	await expect(handler(input, {})).rejects.toThrow();
+	await expect(handler(input)).rejects.toThrow();
 });
 
 it('should return error on invalid deliveryDate', async () => {
-	const input = {
+	const input: Input = {
 		type: 'homedelivery',
 		deliveryDate: '2017-14-06',
 		results: [
@@ -53,11 +54,11 @@ it('should return error on invalid deliveryDate', async () => {
 			},
 		],
 	};
-	await expect(handler(input, {})).rejects.toThrow();
+	await expect(handler(input)).rejects.toThrow();
 });
 
 it('should generate correct fulfilment file', async () => {
-	const input = {
+	const input: Input = {
 		type: 'homedelivery',
 		deliveryDate: '2017-07-06',
 		results: [
@@ -73,5 +74,5 @@ it('should generate correct fulfilment file', async () => {
 	};
 	const expectedFileName = '2017-07-06_HOME_DELIVERY.csv';
 	const expectedResponse = { ...input, fulfilmentFile: expectedFileName };
-	await expect(handler(input, {})).resolves.toEqual(expectedResponse);
+	await expect(handler(input)).resolves.toEqual(expectedResponse);
 });

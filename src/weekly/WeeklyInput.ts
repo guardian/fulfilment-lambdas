@@ -1,10 +1,9 @@
-// @flow
 import moment from 'moment';
 
 export type WeeklyInput = {
-	deliveryDate: ?string,
-	deliveryDayOfWeek: ?string,
-	minDaysInAdvance: ?number,
+	deliveryDate?: string;
+	deliveryDayOfWeek?: string;
+	minDaysInAdvance?: number;
 };
 
 const weekDays: Map<string, number> = new Map([

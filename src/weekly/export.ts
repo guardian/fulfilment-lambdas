@@ -1,9 +1,7 @@
-// @flow
 import * as csv from 'fast-csv';
-import moment from 'moment';
-import MultiStream from 'multistream';
+import moment, { Moment } from 'moment';
+import MultiStream, { Readable } from 'multistream';
 import { upload, createReadStream } from '../lib/storage';
-import { ReadStream } from 'fs';
 import { getStage, fetchConfig } from '../lib/config';
 import { generateFilename } from '../lib/Filename';
 import type { Filename } from '../lib/Filename';
@@ -23,13 +21,13 @@ const HOLIDAYS_QUERY_NAME = 'WeeklyHolidaySuspensions';
 const SUBSCRIPTIONS_QUERY_NAME = 'WeeklySubscriptions';
 const INTRODUCTORY_QUERY_NAME = 'WeeklyIntroductoryPeriods';
 
-function getDownloadStream(
+async function getDownloadStream(
 	results: Array<result>,
 	stage: string,
 	queryName: string,
-): Promise<ReadStream> {
-	function getFileName(queryName) {
-		function isTargetQuery(result) {
+): Promise<Readable> {
+	function getFileName(queryName: string) {
+		function isTargetQuery(result: { queryName: string }) {
 			return result.queryName === queryName;
 		}
 
@@ -39,7 +37,7 @@ function getDownloadStream(
 		if (filtered.length !== 1) {
 			return null; // not sure if there are options in js
 		} else {
-			return filtered[0].fileName;
+			return filtered[0]?.fileName;
 		}
 	}
 
@@ -57,22 +55,20 @@ function getDownloadStream(
 	});
 }
 
-function getHolidaySuspensions(
-	downloadStream: ReadStream,
-): Promise<Set<string>> {
+function getHolidaySuspensions(downloadStream: Readable): Promise<Set<string>> {
 	return new Promise((resolve, reject) => {
-		const suspendedSubs = new Set();
+		const suspendedSubs = new Set<string>();
 		downloadStream
 			.pipe(csv.parse({ headers: true }))
 			.on('error', (error) => {
 				console.log('Failed to get HolidaySuspensions CSV: ', error);
-				reject(Error(error));
+				reject(error);
 			})
 			.on('data', (row) => {
 				const subName = row['Subscription.Name'];
 				suspendedSubs.add(subName);
 			})
-			.on('end', (rowCount) => {
+			.on('end', (rowCount: number) => {
 				console.log(`Successfully write ${rowCount} rows`);
 				resolve(suspendedSubs);
 			});
@@ -98,8 +94,8 @@ const australiaFulfilmentCountries = [
  * @returns {Promise<Filename[]>}
  */
 async function processSubs(
-	downloadStream: ReadStream,
-	deliveryDate: moment,
+	downloadStream: MultiStream,
+	deliveryDate: Moment,
 	stage: string,
 	holidaySuspensions: Set<string>,
 ): Promise<Array<Filename>> {
@@ -155,12 +151,12 @@ async function processSubs(
 		rowExporter,
 	];
 
-	const writableCsvPromise = new Promise((resolve, reject) => {
+	const writableCsvPromise: Promise<void> = new Promise((resolve, reject) => {
 		downloadStream
 			.pipe(csv.parse({ headers: true }))
 			.on('error', (error) => {
 				console.log('ignoring invalid data: ', error);
-				reject(Error(error));
+				reject(error);
 			})
 			.on('data', (row) => {
 				const subscriptionName = row[SUBSCRIPTION_NAME];
@@ -169,7 +165,7 @@ async function processSubs(
 					exporters.find((exporter) => exporter.useForRow(row)) || rowExporter;
 				selectedExporter.processRow(row);
 			})
-			.on('end', (rowCount) => {
+			.on('end', (rowCount: number) => {
 				console.log(`Successfully written ${rowCount} rows`);
 				exporters.map((exporter) => {
 					exporter.end();
@@ -193,7 +189,7 @@ async function processSubs(
 	return Promise.all(uploads);
 }
 
-function getDeliveryDate(input: Input): Promise<moment> {
+function getDeliveryDate(input: Input): Promise<Moment> {
 	return new Promise((resolve, reject) => {
 		const deliveryDate = moment(input.deliveryDate, 'YYYY-MM-DD');
 		if (deliveryDate.isValid()) {
@@ -225,7 +221,7 @@ export async function weeklyExport(input: Input) {
 		stage,
 		SUBSCRIPTIONS_QUERY_NAME,
 	);
-	const subscriptionsStream = MultiStream([
+	const subscriptionsStream = new MultiStream([
 		introductoryPeriodStream,
 		NonIntroductorySubsStream,
 	]);

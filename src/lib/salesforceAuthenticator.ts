@@ -1,12 +1,12 @@
-// @flow
 import request from 'request';
 import rp from 'request-promise-native';
 import type { Config } from './config';
 import NamedError from './NamedError';
+import { S3 } from 'aws-sdk';
 
 export type Folder = {
-	folderId: string,
-	name: string,
+	folderId: string;
+	name: string;
 };
 
 export async function authenticate(config: Config) {
@@ -44,7 +44,7 @@ export class Salesforce {
 		return rp.get({ uri: `${this.url}${endpoint}`, headers: this.headers });
 	}
 
-	post(endpoint: string, form: mixed) {
+	post(endpoint: string, form: { [key: string]: unknown }) {
 		return rp.post({
 			uri: `${this.url}${endpoint}`,
 			headers: this.headers,
@@ -56,7 +56,7 @@ export class Salesforce {
 		path: string,
 		folder: Folder,
 		description: string,
-		body: Buffer,
+		body?: S3.Body,
 	) {
 		// build a little json
 		const message = {

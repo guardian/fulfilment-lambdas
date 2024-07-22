@@ -1,4 +1,4 @@
-export function buildHolidayCreditQuery(formattedDeliveryDate) {
+export function buildHolidayCreditQuery(formattedDeliveryDate: string) {
 	return `
       SELECT
         Subscription.Name

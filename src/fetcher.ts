@@ -1,12 +1,16 @@
-// @flow
+import { Handler } from 'aws-lambda';
 import { fetchConfig } from './lib/config';
 import NamedError from './lib/NamedError';
 import { upload } from './lib/storage';
 import { Zuora } from './lib/Zuora';
-import type { result, Input as output } from './exporter';
-export type input = { jobId: string, deliveryDate: string };
 
-async function uploadFile(fileData, config): Promise<result> {
+export type Input = { jobId: string; deliveryDate: string };
+
+const uploadFile = async (fileData: {
+	fileName: string;
+	batchName: string;
+	data: Buffer;
+}) => {
 	const savePath = `zuoraExport/${fileData.fileName}`;
 	const result = await upload(fileData.data.toString(), savePath);
 	return {
@@ -14,13 +18,9 @@ async function uploadFile(fileData, config): Promise<result> {
 		fileName: fileData.fileName,
 		s3: result,
 	};
-}
+};
 
-export function handler(
-	input: ?any,
-	context: ?any,
-	callback: (?Error, ?output) => void,
-) {
+export const handler: Handler<Input> = async (input, _, callback) => {
 	if (
 		input == null ||
 		input.jobId == null ||
@@ -37,9 +37,11 @@ export function handler(
 			console.log(e);
 			callback(e);
 		});
-}
-async function asyncHandler(input: input): Promise<Array<result>> {
-	// eslint-disable-line no-use-before-define
+
+	return null;
+};
+
+const asyncHandler = async (input: Input) => {
 	const config = await fetchConfig();
 	console.log('Config fetched succesfully.');
 	const zuora = new Zuora(config);
@@ -51,7 +53,7 @@ async function asyncHandler(input: input): Promise<Array<result>> {
 	console.log('Downloading job results.');
 	const uploads = await Promise.all(files);
 	console.log('Generating upload');
-	const result = uploads.map((data) => uploadFile(data, config));
+	const result = uploads.map((data) => uploadFile(data));
 	console.log('Returning.');
 	return Promise.all(result);
-}
+};

@@ -1,6 +1,6 @@
 /* eslint-env jest */
 
-import { formatPostCode } from './../src/lib/formatters';
+import { formatPostCode } from '../src/lib/formatters';
 
 test('postcode formatting', () => {
 	expect(formatPostCode('n19gu')).toEqual('N1 9GU');

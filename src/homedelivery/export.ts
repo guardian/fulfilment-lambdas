@@ -1,15 +1,14 @@
-// @flow
 import * as csv from 'fast-csv';
-import moment from 'moment';
+import moment, { Moment } from 'moment';
 import {
 	formatPostCode,
 	formatDeliveryInstructions,
 	csvFormatterForSalesforce,
-} from './../lib/formatters';
-import { upload, createReadStream } from './../lib/storage';
+} from '../lib/formatters';
+import { upload, createReadStream } from '../lib/storage';
 import { ReadStream } from 'fs';
-import { getStage, fetchConfig } from './../lib/config';
-import { generateFilename } from './../lib/Filename';
+import { getStage, fetchConfig } from '../lib/config';
+import { generateFilename } from '../lib/Filename';
 import getStream from 'get-stream';
 import type { result, Input } from '../exporter';
 
@@ -23,6 +22,25 @@ const POSTAL_CODE = 'SoldToContact.PostalCode';
 const SUBSCRIPTION_NAME = 'Subscription.Name';
 const QUANTITY = 'RatePlanCharge.Quantity';
 const DELIVERY_INSTRUCTIONS = 'SoldToContact.SpecialDeliveryInstructions__c';
+
+const inputHeaders = [
+	ADDRESS_1,
+	ADDRESS_2,
+	CITY,
+	FIRST_NAME,
+	LAST_NAME,
+	POSTAL_CODE,
+	SUBSCRIPTION_NAME,
+	QUANTITY,
+	DELIVERY_INSTRUCTIONS,
+];
+
+type InputHeader = (typeof inputHeaders)[number];
+
+type InputRow = {
+	[key in InputHeader]: string;
+};
+
 // output headers
 const CUSTOMER_REFERENCE = 'Customer Reference';
 const CUSTOMER_FULL_NAME = 'Customer Full Name';
@@ -66,6 +84,13 @@ export const outputHeaders = [
 	'Delivery problem notes',
 	CHARGE_DAY,
 ];
+
+type OutputHeader = (typeof outputHeaders)[number];
+
+type OutputRow = {
+	[key in OutputHeader]: string;
+};
+
 const HOLIDAYS_QUERY_NAME = 'HolidaySuspensions';
 const SUBSCRIPTIONS_QUERY_NAME = 'Subscriptions';
 
@@ -73,9 +98,9 @@ function getDownloadStream(
 	results: Array<result>,
 	stage: string,
 	queryName: string,
-): Promise<ReadStream> {
-	function getFileName(queryName) {
-		function isTargetQuery(result) {
+) {
+	function getFileName(queryName: string) {
+		function isTargetQuery(result: { queryName: string }) {
 			return result.queryName === queryName;
 		}
 
@@ -84,7 +109,7 @@ function getDownloadStream(
 		if (filtered.length !== 1) {
 			return null; // not sure if there are options in js
 		} else {
-			return filtered[0].fileName;
+			return filtered[0]?.fileName;
 		}
 	}
 
@@ -106,7 +131,8 @@ function getHolidaySuspensions(
 	downloadStream: ReadStream,
 ): Promise<Set<string>> {
 	return new Promise((resolve, reject) => {
-		const suspendedSubs = new Set();
+		const suspendedSubs = new Set<string>();
+
 		downloadStream
 			.pipe(csv.parse({ headers: true }))
 			.on('error', (error) =>
@@ -116,7 +142,7 @@ function getHolidaySuspensions(
 				const subName = row['Subscription.Name'];
 				suspendedSubs.add(subName);
 			})
-			.on('end', (rowCount) => {
+			.on('end', (rowCount: number) => {
 				console.log(`Successfully read ${rowCount} rows of HolidaySuspensions`);
 				resolve(suspendedSubs);
 			});
@@ -143,7 +169,7 @@ function getFullName(zFirstName: string, zLastName: string) {
  */
 async function processSubs(
 	downloadStream: ReadStream,
-	deliveryDate: moment,
+	deliveryDate: Moment,
 	stage: string,
 	holidaySuspensions: Set<string>,
 ): Promise<string> {
@@ -156,18 +182,21 @@ async function processSubs(
 	console.log('loaded ' + holidaySuspensions.size + ' holiday suspensions');
 	const csvFormatterStream = csvFormatterForSalesforce(outputHeaders);
 
-	const writeRowToCsvStream = (row, csvStream) => {
+	const writeRowToCsvStream = (
+		row: Partial<InputRow>,
+		csvStream: csv.CsvFormatterStream<csv.FormatterRow, csv.FormatterRow>,
+	) => {
 		const subscriptionName = row[SUBSCRIPTION_NAME];
-		if (!holidaySuspensions.has(subscriptionName)) {
-			const outputCsvRow = {};
+		if (!holidaySuspensions.has(subscriptionName || '')) {
+			const outputCsvRow: Partial<OutputRow> = {};
 			outputCsvRow[CUSTOMER_REFERENCE] = subscriptionName;
 			outputCsvRow[CUSTOMER_TOWN] = row[CITY];
-			outputCsvRow[CUSTOMER_POSTCODE] = formatPostCode(row[POSTAL_CODE]);
+			outputCsvRow[CUSTOMER_POSTCODE] = formatPostCode(row[POSTAL_CODE] || '');
 			outputCsvRow[CUSTOMER_ADDRESS_LINE_1] = row[ADDRESS_1];
 			outputCsvRow[CUSTOMER_ADDRESS_LINE_2] = row[ADDRESS_2];
 			outputCsvRow[CUSTOMER_FULL_NAME] = getFullName(
-				row[FIRST_NAME],
-				row[LAST_NAME],
+				row[FIRST_NAME] || '',
+				row[LAST_NAME] || '',
 			);
 			outputCsvRow[DELIVERY_QUANTITY] = row[QUANTITY];
 			outputCsvRow[SENT_DATE] = sentDate;
@@ -175,7 +204,7 @@ async function processSubs(
 			outputCsvRow[CHARGE_DAY] = chargeDay;
 			outputCsvRow[CUSTOMER_PHONE] = ''; // Was row[WORK_PHONE]. Removed on 6-Apr-2021 due to no longer being necessary.
 			outputCsvRow[ADDITIONAL_INFORMATION] = formatDeliveryInstructions(
-				row[DELIVERY_INSTRUCTIONS],
+				row[DELIVERY_INSTRUCTIONS] || '',
 			);
 			csvStream.write(outputCsvRow);
 		}
@@ -186,10 +215,10 @@ async function processSubs(
 			.pipe(csv.parse({ headers: true }))
 			.on('error', (error) => {
 				console.log('Failed to write HomeDelivery CSV: ', error);
-				reject(Error(error));
+				reject(error);
 			})
 			.on('data', (row) => writeRowToCsvStream(row, csvFormatterStream))
-			.on('end', (rowCount) => {
+			.on('end', (rowCount: number) => {
 				console.log(`Successfully written ${rowCount} rows`);
 				csvFormatterStream.end();
 				resolve(csvFormatterStream);
@@ -203,12 +232,12 @@ async function processSubs(
 	 * 'Body: stream' params field, it does not seem to work with the stream provided by csv-parser,
 	 * thus we had to convert the stream to string using get-stream package.
 	 */
-	const streamAsString = await getStream(stream);
+	const streamAsString = await getStream(stream as ReadStream);
 	await upload(streamAsString, outputFileName, folder);
 	return outputFileName.filename;
 }
 
-function getDeliveryDate(input: Input): Promise<moment> {
+function getDeliveryDate(input: Input): Promise<Moment> {
 	return new Promise((resolve, reject) => {
 		const deliveryDate = moment(input.deliveryDate, 'YYYY-MM-DD');
 		if (deliveryDate.isValid()) {
@@ -228,7 +257,7 @@ export async function homedeliveryExport(input: Input) {
 		HOLIDAYS_QUERY_NAME,
 	);
 	const holidaySuspensions = await getHolidaySuspensions(
-		holidaySuspensionsStream,
+		holidaySuspensionsStream as ReadStream,
 	);
 	const subscriptionsStream = await getDownloadStream(
 		input.results,
@@ -236,7 +265,7 @@ export async function homedeliveryExport(input: Input) {
 		SUBSCRIPTIONS_QUERY_NAME,
 	);
 	const outputFileName = await processSubs(
-		subscriptionsStream,
+		subscriptionsStream as ReadStream,
 		deliveryDate,
 		stage,
 		holidaySuspensions,

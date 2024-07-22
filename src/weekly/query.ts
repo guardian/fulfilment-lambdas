@@ -1,10 +1,9 @@
-// @flow
 import { fetchConfig } from '../lib/config';
 import type { Config } from '../lib/config';
 import { Zuora } from '../lib/Zuora';
 import type { Query } from '../lib/Zuora';
 import { buildHolidayCreditQuery } from '../lib/HolidayCreditQuery';
-import moment from 'moment';
+import moment, { Moment } from 'moment';
 import { getDeliveryDate } from './WeeklyInput';
 import type { WeeklyInput } from './WeeklyInput';
 
@@ -14,7 +13,7 @@ import type { WeeklyInput } from './WeeklyInput';
  * @param deliveryDate Issue date of publication
  * @returns {*|moment} Comparison date
  */
-function getCutOffDate(deliveryDate: moment) {
+function getCutOffDate(deliveryDate: Moment) {
 	const today = moment().startOf('day');
 	const daysUntilDelivery = deliveryDate.diff(today);
 	if (daysUntilDelivery <= 0) {
@@ -28,7 +27,7 @@ function getCutOffDate(deliveryDate: moment) {
 	return deliveryDate.subtract(6, 'days');
 }
 
-async function queryZuora(deliveryDate, config: Config) {
+async function queryZuora(deliveryDate: Moment, config: Config) {
 	const formattedDeliveryDate = deliveryDate.format('YYYY-MM-DD');
 	const cutOffDate = getCutOffDate(deliveryDate).format('YYYY-MM-DD');
 	const zuora = new Zuora(config);

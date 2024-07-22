@@ -1,22 +1,21 @@
-// @flow
-import moment from 'moment';
+import { Moment } from 'moment';
 
 const OUTPUT_DATE_FORMAT = 'YYYY-MM-DD';
 
 export class Filename {
-	date: moment;
+	date: Moment;
 	filename: string;
-	constructor(date: moment, filename: string) {
+	constructor(date: Moment, filename: string) {
 		this.date = date;
 		this.filename = filename;
 	}
 }
 
 export function generateFilename(
-	date: moment,
+	date: Moment,
 	product: string,
-	maybeCountry: ?string,
-	maybeFileType: ?string,
+	maybeCountry?: string,
+	maybeFileType?: string,
 ) {
 	const fileType = maybeFileType || 'csv';
 	const parts = [date.format(OUTPUT_DATE_FORMAT), product, maybeCountry]

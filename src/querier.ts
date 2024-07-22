@@ -1,17 +1,17 @@
-// @flow
 import { homedeliveryQuery } from './homedelivery/query';
 import { weeklyQuery } from './weekly/query';
 import type { fulfilmentType } from './lib/config';
 import util from 'util';
 
 export type Input = {
-	type: fulfilmentType,
-	deliveryDate: ?string,
-	deliveryDateDaysFromNow: ?number,
-	deliveryDayOfWeek: ?string,
-	minDaysInAdvance: ?number,
+	type: fulfilmentType;
+	deliveryDate?: string;
+	deliveryDateDaysFromNow?: number;
+	deliveryDayOfWeek?: string;
+	minDaysInAdvance?: number;
 };
-export async function handler(input: Input, context: ?any) {
+
+export const handler = async (input: Input) => {
 	const startZuoraBatchJobs = async () => {
 		if (input.type === 'homedelivery') {
 			return homedeliveryQuery(input);
@@ -27,4 +27,4 @@ export async function handler(input: Input, context: ?any) {
 			`Failed to start Zuora export batch jobs ${util.inspect(err)}`,
 		);
 	}
-}
+};

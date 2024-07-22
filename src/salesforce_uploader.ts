@@ -1,8 +1,10 @@
-// @flow
-
 import { fetchConfig } from './lib/config';
-import { authenticate } from './lib/salesforceAuthenticator';
-import { getObject, copyObject } from './lib/storage';
+import {
+	authenticate,
+	Folder,
+	Salesforce,
+} from './lib/salesforceAuthenticator';
+import { getObject, copyObject, S3Folder } from './lib/storage';
 import {
 	ApiResponse,
 	SuccessResponse,
@@ -11,7 +13,9 @@ import {
 	badRequest,
 } from './lib/ApiResponse';
 
-import moment from 'moment';
+import moment, { Moment } from 'moment';
+import { PromiseResult } from 'aws-sdk/lib/request';
+import { AWSError, S3 } from 'aws-sdk';
 
 const DATE_FORMAT = 'YYYY-MM-DD';
 const MAX_DAYS = 5;
@@ -24,7 +28,10 @@ function range(amount: number) {
 	return resArray;
 }
 
-function validateToken(expectedToken: string, providedToken: string) {
+function validateToken(
+	expectedToken: string,
+	providedToken: string,
+): Promise<void> {
 	return new Promise((resolve, reject) => {
 		if (expectedToken === providedToken) {
 			resolve();
@@ -36,14 +43,18 @@ function validateToken(expectedToken: string, providedToken: string) {
 }
 
 type inputHeaders = {
-	apiToken?: string,
+	apiToken?: string;
 };
 type apiGatewayLambdaInput = {
-	body: string,
-	headers: inputHeaders,
+	body: string;
+	headers: inputHeaders;
 };
 
-async function copyToUploadedFolder(stage, s3Path, sfFileName) {
+async function copyToUploadedFolder(
+	stage: string,
+	s3Path: string,
+	sfFileName: string,
+) {
 	try {
 		const uploadedPath = `uploaded/${sfFileName}`;
 		await copyObject(s3Path, uploadedPath);
@@ -66,12 +77,21 @@ export function handler(
 	context: any,
 	callback: (error: any, apiResponse: ApiResponse) => void,
 ) {
-	function validationError(message) {
+	function validationError(message: string) {
 		console.log(message);
 		callback(null, badRequest(message));
 	}
 
-	async function salesforceUpload(fileData, stage, salesforce, sfFolder) {
+	async function salesforceUpload(
+		fileData: {
+			date: Moment;
+			s3Path: string;
+			file: PromiseResult<S3.GetObjectOutput, AWSError>;
+		},
+		stage: string,
+		salesforce: Salesforce,
+		sfFolder: Folder & S3Folder,
+	) {
 		const dayOfTheWeek = fileData.date.format('dddd');
 		const dateSuffix = fileData.date.format('DD_MM_YYYY');
 		const outputFileName = `HOME_DELIVERY_${dayOfTheWeek}_${dateSuffix}.csv`;
@@ -94,7 +114,7 @@ export function handler(
 		});
 	}
 
-	async function getFileData(stage, date) {
+	async function getFileData(stage: string, date: Moment) {
 		const s3FileName = date.format(DATE_FORMAT) + '_HOME_DELIVERY.csv';
 		const s3Path = `fulfilment_output/${s3FileName}`;
 		const file = await getObject(s3Path);
@@ -105,7 +125,11 @@ export function handler(
 		});
 	}
 
-	async function asyncHandler(startDate, amount, providedToken) {
+	async function asyncHandler(
+		startDate: Moment,
+		amount: number,
+		providedToken: string,
+	) {
 		const config = await fetchConfig();
 		console.log('Config fetched successfully.');
 		await validateToken(config.api.expectedToken, providedToken);

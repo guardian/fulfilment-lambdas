@@ -1,11 +1,11 @@
 import * as csv from 'fast-csv';
 
 // https://c2fo.github.io/fast-csv/docs/formatting/examples
-export function csvFormatterForSalesforce(headers) {
+export function csvFormatterForSalesforce(headers: string[]) {
 	return csv.format({ headers: headers, quoteColumns: true });
 }
 
-export function formatPostCode(postCode) {
+export function formatPostCode(postCode: string) {
 	/**
 	 * Supplier requirements:
 	 * 1) all caps
@@ -33,6 +33,6 @@ export function formatPostCode(postCode) {
  *  "front door is on 'Foo's Drive ',Put though the letterbox, do not leave on door step."
  *
  */
-export function formatDeliveryInstructions(deliveryInstructions) {
+export function formatDeliveryInstructions(deliveryInstructions: string) {
 	return deliveryInstructions.replace(/"/g, "'");
 }

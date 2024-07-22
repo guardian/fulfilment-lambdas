@@ -1,7 +1,7 @@
 /* eslint-env jest */
 import * as sfUpload from '../../src/lib/S3ToSalesforceUploader';
 
-function getTestInput(id) {
+function getTestInput(id: string) {
 	return {
 		destination: {
 			fileName: `sfFilename_${id}`,
@@ -39,8 +39,9 @@ test('should upload files', (done) => {
 		});
 	});
 
-	const testInput = [getTestInput(1), getTestInput(2), getTestInput(3)];
+	const testInput = [getTestInput('1'), getTestInput('2'), getTestInput('3')];
 
+	// @ts-ignore
 	sfUpload.uploadFiles(testInput, mockSalesForce).then((res) => {
 		try {
 			// downloads from s3
@@ -86,7 +87,7 @@ test('should upload files', (done) => {
 			expect(res).toEqual(expectedResponse);
 			done();
 		} catch (e) {
-			done.fail(e);
+			done.fail(JSON.stringify(e));
 		}
 	});
 });
@@ -104,8 +105,9 @@ test('should NOT ignore missing files', async () => {
 		}
 		return Promise.reject(expectedError);
 	});
-	const testInput = [getTestInput(1), getTestInput(2), getTestInput(3)];
+	const testInput = [getTestInput('1'), getTestInput('2'), getTestInput('3')];
 	await expect(
+		// @ts-ignore
 		sfUpload.uploadFiles(testInput, mockSalesForce),
 	).rejects.toThrow();
 });

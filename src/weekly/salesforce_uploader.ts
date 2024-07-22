@@ -1,5 +1,3 @@
-// @flow
-
 import { fetchConfig } from '../lib/config';
 import { uploadFiles } from '../lib/S3ToSalesforceUploader';
 import { authenticate } from '../lib/salesforceAuthenticator';

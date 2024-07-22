@@ -1,4 +1,3 @@
-// @flow
 import AWS from 'aws-sdk';
 import NamedError from './NamedError';
 import type { Folder } from './salesforceAuthenticator';
@@ -11,45 +10,45 @@ const stages: Array<Stage> = ['CODE', 'PROD'];
 export type fulfilmentType = 'homedelivery' | 'weekly';
 
 export type uploadDownload = {
-	uploadFolder: Folder & S3Folder,
-	downloadFolder: Folder & S3Folder,
+	uploadFolder: Folder & S3Folder;
+	downloadFolder: Folder & S3Folder;
 };
 export type Config = {
-	stage: Stage,
+	stage: Stage;
 	zuora: {
 		api: {
-			url: string,
-			username: string,
-			password: string,
-		},
-	},
+			url: string;
+			username: string;
+			password: string;
+		};
+	};
 	salesforce: {
 		api: {
-			consumer_key: string,
-			consumer_secret: string,
-			username: string,
-			password: string,
-			token: string,
-			salesforceUrl: string,
-		},
-	},
+			consumer_key: string;
+			consumer_secret: string;
+			username: string;
+			password: string;
+			token: string;
+			salesforceUrl: string;
+		};
+	};
 	api: {
-		expectedToken: string,
-	},
+		expectedToken: string;
+	};
 	fulfilments: {
-		homedelivery: uploadDownload,
+		homedelivery: uploadDownload;
 		weekly: {
-			NZ: uploadDownload,
-			VU: uploadDownload,
-			AU: uploadDownload,
-			UK: uploadDownload,
-			CA: uploadDownload,
-			CAHAND: uploadDownload,
-			US: uploadDownload,
-			EU: uploadDownload,
-			ROW: uploadDownload,
-		},
-	},
+			NZ: uploadDownload;
+			VU: uploadDownload;
+			AU: uploadDownload;
+			UK: uploadDownload;
+			CA: uploadDownload;
+			CAHAND: uploadDownload;
+			US: uploadDownload;
+			EU: uploadDownload;
+			ROW: uploadDownload;
+		};
+	};
 };
 
 export function getStage(): Promise<Stage> {
@@ -62,7 +61,9 @@ export function getStage(): Promise<Stage> {
 		} else {
 			reject(
 				new Error(
-					`invalid stage: ${process.env.Stage || 'not found'}, please fix Stage env variable`,
+					`invalid stage: ${
+						process.env.Stage || 'not found'
+					}, please fix Stage env variable`,
 				),
 			);
 		}
@@ -86,7 +87,7 @@ function fetchConfigForStage(stage: Stage): Promise<Config> {
 					),
 				);
 			} else {
-				const json = JSON.parse(Buffer.from(data.Body).toString());
+				const json = JSON.parse(Buffer.from(data.Body as Buffer).toString());
 				console.log('Config succesfully downloaded and parsed.');
 				resolve({
 					stage: stage,

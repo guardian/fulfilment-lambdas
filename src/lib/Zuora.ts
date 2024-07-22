@@ -1,23 +1,22 @@
-// @flow
 import type { Config } from './config';
 import request from 'request';
 import NamedError from './NamedError';
 
 export type Query = {
-	name: string,
-	query: string,
+	name: string;
+	query: string;
 };
 
 type Batch = {
-	name: string,
-	status: string,
-	fileId: string,
+	name: string;
+	status: string;
+	fileId: string;
 };
 
 export type FileData = {
-	batchName: string,
-	fileName: string,
-	data: Buffer,
+	batchName: string;
+	fileName: string;
+	data: Buffer;
 };
 
 export class Zuora {
@@ -103,30 +102,43 @@ export class Zuora {
 					'Content-Type': 'application/json',
 				},
 			};
-			request(options, function (error, response, body) {
-				if (error) {
-					reject(new NamedError('api_call_error', error));
-					return;
-				}
-				if (response.statusCode !== 200) {
-					reject(
-						new NamedError(
-							'api_call_error',
-							`error response status ${response.statusCode} when getting batch ${batch.name}`,
-						),
-					);
-				} else {
-					// TODO SEE HOW TO DETECT FAILURES OR ANY OTHER SPECIAL CASE HERE
-					const fileData = {
-						batchName: batch.name,
-						fileName: `${batch.name}_${deliveryDate}_${batch.fileId}.csv`,
-						data: body,
-					};
-					resolve(fileData);
-				}
-			});
+			request(
+				options,
+				function (
+					error: unknown,
+					response: { statusCode: number },
+					body: Buffer,
+				) {
+					if (error) {
+						reject(new NamedError('api_call_error', JSON.stringify(error)));
+						return;
+					}
+					if (response.statusCode !== 200) {
+						reject(
+							new NamedError(
+								'api_call_error',
+								`error response status ${response.statusCode} when getting batch ${batch.name}`,
+							),
+						);
+					} else {
+						// TODO SEE HOW TO DETECT FAILURES OR ANY OTHER SPECIAL CASE HERE
+						const fileData = {
+							batchName: batch.name,
+							fileName: `${batch.name}_${deliveryDate}_${batch.fileId}.csv`,
+							data: body,
+						};
+						resolve(fileData);
+					}
+				},
+			);
 		});
 	}
+
+	// export type FileData = {
+	//   batchName: string;
+	//   fileName: string;
+	//   data: Buffer;
+	// };
 
 	getJobResult(jobId: string): Promise<Array<Batch>> {
 		return new Promise((resolve, reject) => {
@@ -140,47 +152,58 @@ export class Zuora {
 					'Content-Type': 'application/json',
 				},
 			};
-			request(options, (error, response, body) => {
-				console.log('Job result received.');
-				if (error) {
-					reject(new NamedError('api_call_error', error));
-					return;
-				}
+			request(
+				options,
+				(
+					error: unknown,
+					response: { statusCode: number },
+					body: { status: string; batches: Batch[] },
+				) => {
+					console.log('Job result received.');
+					if (error) {
+						reject(new NamedError('api_call_error', JSON.stringify(error)));
+						return;
+					}
 
-				if (response.statusCode !== 200) {
-					reject(
-						new NamedError(
-							'api_call_error',
-							`error response status ${response.statusCode} while getting job result`,
-						),
-					);
-				} else if (body.status !== 'completed') {
-					if (body.status !== 'error' && body.status !== 'aborted') {
-						reject(
-							new NamedError(
-								'zuora_job_pending',
-								`job status was ${body.status} api call should be retried later`,
-							),
-						);
-					} else {
+					if (response.statusCode !== 200) {
 						reject(
 							new NamedError(
 								'api_call_error',
-								`job status was ${body.status} expected completed`,
+								`error response status ${response.statusCode} while getting job result`,
 							),
 						);
+					} else if (body.status !== 'completed') {
+						if (body.status !== 'error' && body.status !== 'aborted') {
+							reject(
+								new NamedError(
+									'zuora_job_pending',
+									`job status was ${body.status} api call should be retried later`,
+								),
+							);
+						} else {
+							reject(
+								new NamedError(
+									'api_call_error',
+									`job status was ${body.status} expected completed`,
+								),
+							);
+						}
+					} else {
+						// TODO SEE HOW TO DETECT FAILURES OR ANY OTHER SPECIAL CASE HERE
+						const notCompleted = body.batches
+							.filter((batch: Batch) => batch.status !== 'completed')
+							.map(
+								(batch: Batch) => `${batch.name} is in status: ${batch.status}`,
+							);
+						if (notCompleted.length > 1) {
+							reject(
+								new NamedError('batch_not_completed', notCompleted.join()),
+							);
+						}
+						resolve(body.batches);
 					}
-				} else {
-					// TODO SEE HOW TO DETECT FAILURES OR ANY OTHER SPECIAL CASE HERE
-					const notCompleted = body.batches
-						.filter((batch) => batch.status !== 'completed')
-						.map((batch) => `${batch.name} is in status: ${batch.status}`);
-					if (notCompleted.length > 1) {
-						reject(new NamedError('batch_not_completed', notCompleted.join()));
-					}
-					resolve(body.batches);
-				}
-			});
+				},
+			);
 		});
 	}
 }

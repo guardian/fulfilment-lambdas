@@ -1,22 +1,21 @@
-// @flow
 import type { Salesforce, Folder } from './salesforceAuthenticator';
 import type { S3Folder } from './storage';
 import { getObject } from './storage';
 import util from 'util';
 
 export type sfDestination = {
-	sfDescription: string,
-	sfFolder: Folder,
-	fileName: string,
+	sfDescription: string;
+	sfFolder: Folder;
+	fileName: string;
 };
 
 export type FileUpload = {
-	destination: sfDestination,
-	fileData: any,
+	destination: sfDestination;
+	fileData: any;
 };
 export type UploadInfo = {
-	source: S3Folder,
-	destination: sfDestination,
+	source: S3Folder;
+	destination: sfDestination;
 };
 
 export async function uploadFiles(

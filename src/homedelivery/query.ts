@@ -1,13 +1,12 @@
-// @flow
-import { fetchConfig } from './../lib/config';
-import type { Config } from './../lib/config';
-import { Zuora } from './../lib/Zuora';
-import type { Query } from './../lib/Zuora';
+import { fetchConfig } from '../lib/config';
+import type { Config } from '../lib/config';
+import { Zuora } from '../lib/Zuora';
+import type { Query } from '../lib/Zuora';
 import { buildHolidayCreditQuery } from '../lib/HolidayCreditQuery';
-import moment from 'moment';
+import moment, { Moment } from 'moment';
 import type { Input } from '../querier';
 
-async function queryZuora(deliveryDate, config: Config) {
+async function queryZuora(deliveryDate: Moment, config: Config) {
 	const formattedDate = deliveryDate.format('YYYY-MM-DD');
 	const deliveryDay = deliveryDate.format('dddd');
 	const zuora = new Zuora(config);

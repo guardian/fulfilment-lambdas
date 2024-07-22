@@ -4,11 +4,11 @@ const INTERNAL_SERVER_ERROR = 500;
 const UNAUTHORIZED = 401;
 
 export class ApiResponse {
-	body;
-	statusCode;
-	headers;
+	body: string;
+	statusCode: number;
+	headers: { 'Content-Type': string };
 
-	constructor(status, message) {
+	constructor(status: number, message: string) {
 		const body = { message: message };
 		this.body = JSON.stringify(body);
 		this.statusCode = status;
@@ -16,8 +16,10 @@ export class ApiResponse {
 	}
 }
 
+export type Files = { name: string; id: string }[];
+
 export class SuccessResponse extends ApiResponse {
-	constructor(files) {
+	constructor(files: Files) {
 		super(OK, 'ok');
 		const body = {
 			message: 'ok',
@@ -32,6 +34,6 @@ export const serverError = new ApiResponse(
 	'Unexpected server error',
 );
 export const unauthorizedError = new ApiResponse(UNAUTHORIZED, 'Unauthorized');
-export function badRequest(reason) {
+export function badRequest(reason: string) {
 	return new ApiResponse(BAD_REQUEST, reason);
 }

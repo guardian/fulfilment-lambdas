@@ -15,7 +15,7 @@ jest.mock('../src/lib/storage', () => {
 	];
 	return {
 		copyObject: jest.fn(() => Promise.resolve('ok')),
-		getObject: (path) => {
+		getObject: (path: string) => {
 			if (validPaths.includes(path)) {
 				return Promise.resolve({
 					Body: 'csv would be here',
@@ -31,7 +31,7 @@ jest.mock('../src/lib/storage', () => {
 const mockStorage = require('../src/lib/storage');
 jest.mock('../src/lib/salesforceAuthenticator', () => {
 	return {
-		authenticate: (config) => {
+		authenticate: () => {
 			return Promise.resolve(mockSalesForce);
 		},
 	};
@@ -51,32 +51,32 @@ jest.mock('../src/lib/config', () => ({
 	}),
 }));
 
-function getFakeInput(token, date, amount) {
-	const res = {};
-	const headers = {};
-	headers.apiToken = token;
-	const body = {};
-	body.date = date;
-	body.amount = amount;
-	res.headers = headers;
-	res.body = JSON.stringify(body);
-	return res;
+function getFakeInput(token: string, date: string, amount: number) {
+	return {
+		headers: { apiToken: token },
+		body: JSON.stringify({ date, amount }),
+	};
 }
 
-function errorResponse(status, message) {
-	const res = {};
-	const body = {};
-	const headers = {};
-	body.message = message;
-	headers['Content-Type'] = 'application/json';
-	res.body = JSON.stringify(body);
-	res.headers = headers;
-	res.statusCode = status;
-	return res;
+function errorResponse(status: number, message: string) {
+	return {
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({ message }),
+		statusCode: status,
+	};
 }
 
-function verify(done, expectedResponse, expectedFulfilmentDays) {
-	return function (err, res) {
+type DoneFunction = {
+	(error?: string): void;
+	fail(str: string): void;
+};
+
+function verify(
+	done: DoneFunction,
+	expectedResponse: unknown,
+	expectedFulfilmentDays: string[],
+) {
+	return function (err: unknown, res: unknown) {
 		if (err) {
 			const errDesc = JSON.stringify(err);
 			done.fail(`Unexpected error Response ${errDesc}`);
@@ -96,7 +96,7 @@ function verify(done, expectedResponse, expectedFulfilmentDays) {
 				folderId: 'someFolderId',
 				name: 'someFolderName',
 			};
-			expectedFulfilmentDays.forEach(function (date) {
+			expectedFulfilmentDays.forEach(function (date: string) {
 				const parsedDate = moment(date, 'YYYY-MM-DD');
 				const dayOfTheWeek = parsedDate.format('dddd');
 				const formattedDate = parsedDate.format('DD_MM_YYYY');
@@ -115,7 +115,7 @@ function verify(done, expectedResponse, expectedFulfilmentDays) {
 			});
 			done();
 		} catch (error) {
-			done.fail(error);
+			done.fail(JSON.stringify(error));
 		}
 	};
 }
@@ -128,7 +128,7 @@ beforeEach(() => {
 test('should return error if api token is wrong', (done) => {
 	const wrongTokenInput = getFakeInput('wrongToken', '2017-06-12', 1);
 	const expectedResponse = errorResponse(401, 'Unauthorized');
-	const expectedFulfilmentDates = [];
+	const expectedFulfilmentDates: string[] = [];
 	handler(
 		wrongTokenInput,
 		{},
@@ -137,9 +137,9 @@ test('should return error if api token is wrong', (done) => {
 });
 
 test('should return 400 error required parameters are missing', (done) => {
-	const emptyRequest = { body: '{}' };
+	const emptyRequest = { body: '{}', headers: {} };
 	const expectedResponse = errorResponse(400, 'missing amount or date');
-	const expectedFulfilments = [];
+	const expectedFulfilments: string[] = [];
 	handler(
 		emptyRequest,
 		{},
@@ -148,7 +148,7 @@ test('should return 400 error required parameters are missing', (done) => {
 });
 test('should return 400 error no api token is provided', (done) => {
 	const noApiToken = { headers: {}, body: '{"date":"2017-01-02", "amount":1}' };
-	const expectedFulfilments = [];
+	const expectedFulfilments: string[] = [];
 	const expectedResponse = errorResponse(400, 'ApiToken header missing');
 	handler(noApiToken, {}, verify(done, expectedResponse, expectedFulfilments));
 });
@@ -158,7 +158,7 @@ test('should return 400 error if too many days in request', (done) => {
 		400,
 		'amount should be a number between 1 and 5',
 	);
-	const expectedFulfilments = [];
+	const expectedFulfilments: string[] = [];
 	handler(
 		tooManyDaysInput,
 		{},
@@ -167,7 +167,7 @@ test('should return 400 error if too many days in request', (done) => {
 });
 test('should return error if files not found in bucket', (done) => {
 	const input = getFakeInput('testToken', '2017-06-14', 4);
-	const expectedFulfilments = [];
+	const expectedFulfilments: string[] = [];
 	const expectedResponse = errorResponse(500, 'Unexpected server error');
 	handler(input, {}, verify(done, expectedResponse, expectedFulfilments));
 });
@@ -188,7 +188,7 @@ test('should upload to sf and return file data', (done) => {
 test('should return error if api token is wrong', (done) => {
 	const wrongTokenInput = getFakeInput('wrongToken', '2017-06-12', 1);
 	const expectedResponse = errorResponse(401, 'Unauthorized');
-	const expectedFulfilmentDates = [];
+	const expectedFulfilmentDates: string[] = [];
 	handler(
 		wrongTokenInput,
 		{},

@@ -1,5 +1,4 @@
-// @flow
-import moment from 'moment';
+import moment, { Moment } from 'moment';
 import type { S3Folder } from '../lib/storage';
 import { getCanadianState, getUSState } from '../lib/states';
 import { csvFormatterForSalesforce } from '../lib/formatters';
@@ -17,6 +16,27 @@ const SUBSCRIPTION_NAME = 'Subscription.Name';
 const COMPANY_NAME = 'SoldToContact.Company_Name__c';
 const SHOULD_HAND_DELIVER = 'Subscription.CanadaHandDelivery__c';
 const STATE = 'SoldToContact.State';
+
+const inputHeaders = [
+	ADDRESS_1,
+	ADDRESS_2,
+	CITY,
+	COUNTRY,
+	TITLE,
+	FIRST_NAME,
+	LAST_NAME,
+	POSTAL_CODE,
+	SUBSCRIPTION_NAME,
+	COMPANY_NAME,
+	SHOULD_HAND_DELIVER,
+	STATE,
+];
+
+type InputHeader = (typeof inputHeaders)[number];
+
+type InputRow = {
+	[key in InputHeader]: string;
+};
 
 // output headers
 const CUSTOMER_REFERENCE = 'Subscriber ID';
@@ -43,6 +63,12 @@ export const outputHeaders = [
 	DELIVERY_QUANTITY,
 ];
 
+type OutputHeader = (typeof outputHeaders)[number];
+
+type OutputRow = {
+	[key in OutputHeader]: string;
+} & { 'Unit price': number; Currency: string };
+
 export class WeeklyExporter {
 	countries: string[];
 	sentDate: string;
@@ -53,7 +79,7 @@ export class WeeklyExporter {
 
 	constructor(
 		countries: string[] | string,
-		deliveryDate: moment,
+		deliveryDate: Moment,
 		folder: S3Folder,
 	) {
 		this.countries = typeof countries === 'string' ? [countries] : countries;
@@ -66,9 +92,9 @@ export class WeeklyExporter {
 		this.folder = folder;
 	}
 
-	useForRow(row: { [string]: string }): boolean {
+	useForRow(row: { [key: string]: string }): boolean {
 		// No need for trimmed or case-insensitive comparison as country field is from a picklist
-		return this.countries.includes(row[COUNTRY]);
+		return this.countries.includes(row[COUNTRY] || '');
 	}
 
 	formatAddress(name: string) {
@@ -94,29 +120,31 @@ export class WeeklyExporter {
 		return [zTitle, firstName, zLastName.trim()].join(' ');
 	}
 
-	buildOutputCsv(row: { [string]: string }) {
-		const outputCsvRow = {};
+	buildOutputCsv(row: InputRow) {
+		const outputCsvRow: Partial<OutputRow> = {};
 		const addressLine1 = [row[ADDRESS_1], row[ADDRESS_2]]
 			.filter((x) => x)
 			.join(', ');
 		const fullName = this.getFullName(
-			row[TITLE],
-			row[FIRST_NAME],
-			row[LAST_NAME],
+			row[TITLE] || '',
+			row[FIRST_NAME] || '',
+			row[LAST_NAME] || '',
 		);
-		outputCsvRow[CUSTOMER_REFERENCE] = row[SUBSCRIPTION_NAME];
+		outputCsvRow[CUSTOMER_REFERENCE] = row[SUBSCRIPTION_NAME] || '';
 		outputCsvRow[CUSTOMER_FULL_NAME] = this.formatAddress(fullName);
-		outputCsvRow[CUSTOMER_COMPANY_NAME] = this.formatAddress(row[COMPANY_NAME]);
+		outputCsvRow[CUSTOMER_COMPANY_NAME] = this.formatAddress(
+			row[COMPANY_NAME] || '',
+		);
 		outputCsvRow[CUSTOMER_ADDRESS_LINE_1] = this.formatAddress(addressLine1);
-		outputCsvRow[CUSTOMER_ADDRESS_LINE_2] = this.formatAddress(row[CITY]);
-		outputCsvRow[CUSTOMER_ADDRESS_LINE_3] = this.formatState(row[STATE]);
-		outputCsvRow[CUSTOMER_POSTCODE] = this.toUpperCase(row[POSTAL_CODE]);
+		outputCsvRow[CUSTOMER_ADDRESS_LINE_2] = this.formatAddress(row[CITY] || '');
+		outputCsvRow[CUSTOMER_ADDRESS_LINE_3] = this.formatState(row[STATE] || '');
+		outputCsvRow[CUSTOMER_POSTCODE] = this.toUpperCase(row[POSTAL_CODE] || '');
 		outputCsvRow[DELIVERY_QUANTITY] = '1.0';
-		outputCsvRow[CUSTOMER_COUNTRY] = this.toUpperCase(row[COUNTRY]);
+		outputCsvRow[CUSTOMER_COUNTRY] = this.toUpperCase(row[COUNTRY] || '');
 		return outputCsvRow;
 	}
 
-	processRow(row: { [string]: string }) {
+	processRow(row: InputRow) {
 		if (row[SUBSCRIPTION_NAME] === 'Subscription.Name') {
 			return;
 		}
@@ -143,9 +171,10 @@ export class CaExporter extends WeeklyExporter {
 		return handDeliveryValue.trim().toUpperCase() !== 'YES';
 	}
 
-	useForRow(row: { [string]: string }): boolean {
+	useForRow(row: { [key: string]: string }): boolean {
 		return (
-			super.useForRow(row) && this.checkHandDelivery(row[SHOULD_HAND_DELIVER])
+			super.useForRow(row) &&
+			this.checkHandDelivery(row[SHOULD_HAND_DELIVER] || '')
 		);
 	}
 
@@ -198,7 +227,7 @@ const euCountries: string[] = [
 ];
 
 export class EuExporter extends WeeklyExporter {
-	constructor(country: string, deliveryDate: moment, folder: S3Folder) {
+	constructor(country: string, deliveryDate: Moment, folder: S3Folder) {
 		super(country, deliveryDate, folder);
 		const headers = this.append(outputHeaders, UNIT_PRICE, CURRENCY);
 		this.writeCSVStream = csvFormatterForSalesforce(headers);
@@ -218,12 +247,12 @@ export class EuExporter extends WeeklyExporter {
 		return arr.indexOf(s) > -1;
 	}
 
-	useForRow(row: { [string]: string }): boolean {
+	useForRow(row: { [key: string]: string }): boolean {
 		// No need for trimmed or case-insensitive comparison as country field is from a picklist
-		return this.contains(euCountries, row[COUNTRY]);
+		return this.contains(euCountries, row[COUNTRY] || '');
 	}
 
-	buildOutputCsv(row: { [string]: string }) {
+	buildOutputCsv(row: InputRow) {
 		const outputCsvRow = super.buildOutputCsv(row);
 		/*
 		 * The arbitrary value of an individual Guardian Weekly

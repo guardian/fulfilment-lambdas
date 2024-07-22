@@ -1,4 +1,3 @@
-// @flow
 import AWS from 'aws-sdk';
 import util from 'util';
 import { getStage } from './config';
@@ -16,15 +15,15 @@ const BUCKETS = {
 const getBucket = async () => BUCKETS[await STAGE];
 
 export type S3UploadResponse = {
-	Location: string,
-	ETag: string,
-	Bucket: string,
-	Key: string,
+	Location: string;
+	ETag: string;
+	Bucket: string;
+	Key: string;
 };
 
 export type S3Folder = {
-	bucket: string,
-	prefix: string,
+	bucket: string;
+	prefix: string;
 };
 
 export async function ls(folder: S3Folder) {
@@ -43,7 +42,7 @@ export async function ls(folder: S3Folder) {
 export async function upload(
 	source: string,
 	filename: string | Filename,
-	folder: ?S3Folder,
+	folder?: S3Folder,
 ): Promise<S3UploadResponse> {
 	const outputLocation = getFilename(filename);
 	const bucket = await getBucket();
@@ -61,7 +60,9 @@ export async function upload(
 	const uploadResponse = await s3.upload(params).promise();
 	if (!uploadResponse.Location.includes(key)) {
 		throw new Error(
-			`${key} should be uploaded to S3. Response: ${util.inspect(uploadResponse)}`,
+			`${key} should be uploaded to S3. Response: ${util.inspect(
+				uploadResponse,
+			)}`,
 		);
 	}
 	return uploadResponse;
