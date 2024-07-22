@@ -13,21 +13,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
-          cache: "yarn"
+          cache: 'yarn'
       - run: |
           yarn install --frozen-lockfile
-          yarn check
-          yarn lint
-          yarn flow
-          yarn compile
-          yarn test
-          yarn dist
-          # RiffRaff expects `fulfilment-lambdas.zip`, but `yarn compile` produces
-          # the `dist` directory. 
-          # Note that the zipped will be: dist/fulfilment-lambdas.zip
-          pushd dist
-          zip -r fulfilment-lambdas.zip ./*
-          popd
+          yarn package
       - name: AWS Auth
         uses: aws-actions/configure-aws-credentials@v4
         with:
