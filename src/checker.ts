@@ -1,9 +1,9 @@
-// @flow
+import { Handler } from 'aws-lambda';
 import moment from 'moment';
 import { fetchConfig } from './lib/config';
 import { getFileInfo } from './lib/storage';
 
-export function handler(input: ?any, context: ?any, callback: Function) {
+export const handler: Handler = (_, __, callback) => {
 	checkFile()
 		.then((checkPassed) => {
 			logCheckResult(checkPassed);
@@ -15,7 +15,7 @@ export function handler(input: ?any, context: ?any, callback: Function) {
 			logCheckResult(false);
 			callback(null, { result: 'failed' });
 		});
-}
+};
 
 const maxAgeFor = {
 	Mon: 2,
@@ -39,13 +39,15 @@ async function checkFile(): Promise<boolean> {
 	const config = await fetchConfig();
 	const today = moment();
 	const tomorrow = moment().add(1, 'day');
-	const filePath = `${config.fulfilments.homedelivery.uploadFolder.prefix}${tomorrow.format('YYYY-MM-DD')}_HOME_DELIVERY.csv`;
+	const filePath = `${
+		config.fulfilments.homedelivery.uploadFolder.prefix
+	}${tomorrow.format('YYYY-MM-DD')}_HOME_DELIVERY.csv`;
 	const metadata = await getFileInfo(filePath);
 	const lastModified = moment(metadata.LastModified);
 	console.log(`Last modified date ${lastModified.format('YYYY-MM-DD')}`);
 	const fileAge = today.diff(lastModified, 'days');
 	console.log(`File is ${fileAge} day(s) old`);
-	const tomorrowDayOfTheWeek = tomorrow.format('ddd');
+	const tomorrowDayOfTheWeek = tomorrow.format('ddd') as keyof typeof maxAgeFor;
 	const maxAllowedAge = maxAgeFor[tomorrowDayOfTheWeek];
 	console.log(
 		`Max allowed age for ${tomorrowDayOfTheWeek} files is ${maxAllowedAge}`,
