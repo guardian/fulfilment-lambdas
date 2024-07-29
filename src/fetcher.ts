@@ -38,7 +38,7 @@ export const handler: Handler<Input> = async (input, _, callback) => {
 			callback(e);
 		});
 
-	return null;
+	return undefined;
 };
 
 const asyncHandler = async (input: Input) => {

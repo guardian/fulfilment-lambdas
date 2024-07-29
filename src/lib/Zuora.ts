@@ -134,12 +134,6 @@ export class Zuora {
 		});
 	}
 
-	// export type FileData = {
-	//   batchName: string;
-	//   fileName: string;
-	//   data: Buffer;
-	// };
-
 	getJobResult(jobId: string): Promise<Array<Batch>> {
 		return new Promise((resolve, reject) => {
 			console.log(`getting job results for jobId=${jobId}`);
