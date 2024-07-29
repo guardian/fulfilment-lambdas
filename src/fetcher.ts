@@ -21,24 +21,24 @@ const uploadFile = async (fileData: {
 };
 
 export const handler: Handler<Input> = async (input, _, callback) => {
-	if (
-		input == null ||
-		input.jobId == null ||
-		typeof input.jobId !== 'string' ||
-		input.deliveryDate == null ||
-		typeof input.deliveryDate !== 'string'
-	) {
-		callback(new NamedError('inputerror', 'Input to fetcher was invalid'));
-		return null;
-	}
-	asyncHandler(input)
-		.then((res) => callback(null, { ...input, results: res }))
-		.catch((e) => {
-			console.log(e);
-			callback(e);
-		});
+	try {
+		if (
+			input == null ||
+			input.jobId == null ||
+			typeof input.jobId !== 'string' ||
+			input.deliveryDate == null ||
+			typeof input.deliveryDate !== 'string'
+		) {
+			callback(new NamedError('inputerror', 'Input to fetcher was invalid'));
+			return;
+		}
 
-	return undefined;
+		const results = await asyncHandler(input);
+		callback(null, { ...input, results });
+	} catch (err) {
+		console.log(err);
+		callback(JSON.stringify(err));
+	}
 };
 
 const asyncHandler = async (input: Input) => {
