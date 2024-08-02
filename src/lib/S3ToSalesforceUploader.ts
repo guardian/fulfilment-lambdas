@@ -1,7 +1,9 @@
+import { AWSError, S3 } from 'aws-sdk';
 import type { Salesforce, Folder } from './salesforceAuthenticator';
 import type { S3Folder } from './storage';
 import { getObject } from './storage';
 import util from 'util';
+import { PromiseResult } from 'aws-sdk/lib/request';
 
 export type sfDestination = {
 	sfDescription: string;
@@ -11,7 +13,7 @@ export type sfDestination = {
 
 export type FileUpload = {
 	destination: sfDestination;
-	fileData: any;
+	fileData: { file: PromiseResult<S3.GetObjectOutput, AWSError> };
 };
 export type UploadInfo = {
 	source: S3Folder;
