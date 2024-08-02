@@ -2,10 +2,10 @@
 
 import { handler, Input } from '../../src/querier';
 
-var MockDate = require('mockdate');
+import MockDate from 'mockdate';
 
-// mock current date
 MockDate.set('7/5/2017');
+
 jest.mock('../../src/lib/config', () => {
 	const fakeResponse = {
 		zuora: {
@@ -22,54 +22,58 @@ jest.mock('../../src/lib/config', () => {
 	};
 });
 
-jest.mock('request', () => {
-	return function (
-		options: unknown,
-		callback: (arg1: unknown, res: unknown, body: unknown) => void,
-	) {
-		const response = {
-			statusCode: 200,
+describe('Home delivery querier', () => {
+	beforeEach(() => {
+		const fetchResponse = new Response(JSON.stringify({ id: 'someId' }), {
+			status: 200,
+			headers: { 'Content-type': 'application/json' },
+		});
+
+		jest
+			.spyOn(global, 'fetch')
+			.mockResolvedValue(Promise.resolve(fetchResponse));
+	});
+
+	afterEach(() => {
+		jest.clearAllMocks();
+	});
+
+	it('should return error if missing delivery date and deliveryDateDaysFromNow ', async () => {
+		await expect(handler({ type: 'homedelivery' })).rejects.toThrow();
+	});
+
+	it('should return error if delivery date is in the wrong format', async () => {
+		const input: Input = {
+			deliveryDate: 'wrong format',
+			type: 'homedelivery',
 		};
-		const body = {
-			id: 'someId',
+
+		await expect(handler(input)).rejects.toThrow();
+	});
+
+	it('should query zuora for specific date', async () => {
+		const input: Input = {
+			deliveryDate: '2017-07-06',
+			type: 'homedelivery',
 		};
-		// TODO SEE IF WE CAN VERIFY SOMETHING ABOUT THE QUERIES HERE!
-		callback(null, response, body);
-	};
-});
 
-test('should return error if missing delivery date and deliveryDateDaysFromNow ', async () => {
-	await expect(handler({ type: 'homedelivery' })).rejects.toThrow();
-});
+		const expectedResponse = { ...input, jobId: 'someId' };
 
-test('should return error if delivery date is in the wrong format', async () => {
-	const input: Input = {
-		deliveryDate: 'wrong format',
-		type: 'homedelivery',
-	};
+		await expect(handler(input)).resolves.toEqual(expectedResponse);
+	});
 
-	await expect(handler(input)).rejects.toThrow();
-});
+	it('should query zuora for daysFromNow', async () => {
+		const input: Input = {
+			deliveryDateDaysFromNow: 5,
+			type: 'homedelivery',
+		};
 
-it('should query zuora for specific date', async () => {
-	const input: Input = {
-		deliveryDate: '2017-07-06',
-		type: 'homedelivery',
-	};
+		const expectedResponse = {
+			...input,
+			deliveryDate: '2017-07-10',
+			jobId: 'someId',
+		};
 
-	const expectedResponse = { ...input, jobId: 'someId' };
-	await expect(handler(input)).resolves.toEqual(expectedResponse);
-});
-
-it('should query zuora for daysFromNow', async () => {
-	const input: Input = {
-		deliveryDateDaysFromNow: 5,
-		type: 'homedelivery',
-	};
-	const expectedResponse = {
-		...input,
-		deliveryDate: '2017-07-10',
-		jobId: 'someId',
-	};
-	await expect(handler(input)).resolves.toEqual(expectedResponse);
+		await expect(handler(input)).resolves.toEqual(expectedResponse);
+	});
 });

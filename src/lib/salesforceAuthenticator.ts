@@ -1,5 +1,4 @@
-import request from 'request';
-import rp from 'request-promise-native';
+// import rp from 'request-promise-native';
 import type { Config } from './config';
 import NamedError from './NamedError';
 import { S3 } from 'aws-sdk';
@@ -27,29 +26,38 @@ export async function authenticate(config: Config) {
 
 export class Salesforce {
 	url: string;
-	headers: Object;
+	headers: Record<string, string>;
 	constructor(url: string, token: string) {
 		this.url = url;
 		this.headers = { Authorization: `Bearer ${token}` };
 	}
 
-	getStream(endpoint: string) {
-		return request.get({
-			uri: `${this.url}${endpoint}`,
+	async getStream(endpoint: string) {
+		const response = await fetch(`${this.url}${endpoint}`, {
+			method: 'GET',
 			headers: this.headers,
 		});
+
+		return response;
 	}
 
-	get(endpoint: string) {
-		return rp.get({ uri: `${this.url}${endpoint}`, headers: this.headers });
-	}
-
-	post(endpoint: string, form: { [key: string]: unknown }) {
-		return rp.post({
-			uri: `${this.url}${endpoint}`,
+	async get(endpoint: string) {
+		const response = await fetch(`${this.url}${endpoint}`, {
+			method: 'GET',
 			headers: this.headers,
-			formData: form,
 		});
+
+		return response;
+	}
+
+	async post(endpoint: string, form: { [key: string]: unknown }) {
+		const response = await fetch(`${this.url}${endpoint}`, {
+			method: 'POST',
+			headers: this.headers,
+			body: JSON.stringify(form),
+		});
+
+		return response;
 	}
 
 	async uploadDocument(
@@ -83,7 +91,7 @@ export class Salesforce {
 
 		const url = '/services/data/v54.0/sobjects/Document/'; // NOT FOR UPDATING
 		const uploadResult = await this.post(url, form);
-		const parsed = JSON.parse(uploadResult);
+		const parsed = (await uploadResult.json()) as { id: string };
 
 		if (parsed.id == null) {
 			throw new NamedError('Upload failed', 'Upload did not return an id');
@@ -104,11 +112,12 @@ export class Salesforce {
 				`Failed to parse salesforce attempt when listing folder ${folderId.name} (${folderId.folderId}) contents.`,
 			);
 		}
-		const j = JSON.parse(response);
-		console.log(j);
-		if (j == null || j.records == null) {
+		const json = (await response.json()) as { records: unknown[] };
+
+		console.log(json);
+		if (json == null || json.records == null) {
 			throw new Error('No records received from Salesforce');
 		}
-		return j.records; // Todo: make this return an [document]
+		return json.records; // Todo: make this return an [document]
 	}
 }
