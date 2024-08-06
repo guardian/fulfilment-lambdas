@@ -1,21 +1,21 @@
-import * as csv from 'fast-csv'
+import * as csv from 'fast-csv';
 
 // https://c2fo.github.io/fast-csv/docs/formatting/examples
-export function csvFormatterForSalesforce (headers: [string]) {
-  return csv.format({ headers: headers, quoteColumns: true })
+export function csvFormatterForSalesforce(headers) {
+	return csv.format({ headers: headers, quoteColumns: true });
 }
 
-export function formatPostCode (postCode: string) {
-  /**
-   * Supplier requirements:
-   * 1) all caps
-   * 2) space before final three chars
-   */
-  const normalised = postCode.replace(/ /g, '').toUpperCase()
-  const length = normalised.length
-  const outward = normalised.substring(0, length - 3)
-  const inward = normalised.substring(length - 3)
-  return `${outward} ${inward}`
+export function formatPostCode(postCode) {
+	/**
+	 * Supplier requirements:
+	 * 1) all caps
+	 * 2) space before final three chars
+	 */
+	const normalised = postCode.replace(/ /g, '').toUpperCase();
+	const length = normalised.length;
+	const outward = normalised.substring(0, length - 3);
+	const inward = normalised.substring(length - 3);
+	return `${outward} ${inward}`;
 }
 
 /**
@@ -33,6 +33,6 @@ export function formatPostCode (postCode: string) {
  *  "front door is on 'Foo's Drive ',Put though the letterbox, do not leave on door step."
  *
  */
-export function formatDeliveryInstructions (deliveryInstructions: string) {
-  return deliveryInstructions.replace(/"/g, '\'')
+export function formatDeliveryInstructions(deliveryInstructions) {
+	return deliveryInstructions.replace(/"/g, "'");
 }
