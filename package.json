@@ -37,7 +37,7 @@
 		"typescript": "^5.5.3"
 	},
 	"scripts": {
-		"build": "esbuild --bundle --platform=node --target=node20 --outdir=dist src/*.ts src/**/*.ts",
+		"build": "esbuild --bundle --platform=node --target=node20 --outdir=dist src/checker.ts src/querier.ts src/exporter.ts src/fetcher.ts src/salesforce_downloader.ts src/salesforce_uploader.ts src/weekly/salesforce_uploader.ts",
 		"package": "yarn type-check && yarn lint && yarn check-formatting && yarn test && yarn build && cd dist && zip -qr fulfilment-lambdas.zip ./*.js ./**/*.js",
 		"check-formatting": "prettier --check **/*.ts **.ts",
 		"fix-formatting": "prettier --write **/*.ts **.ts",
