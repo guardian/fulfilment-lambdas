@@ -35,7 +35,9 @@ function buildSourceAndDestination(
 export async function handler(input: WeeklyInput) {
 	console.log('Event: ', input);
 	const deliveryDate = getDeliveryDate(input);
+	console.log(deliveryDate);
 	const sfFormattedDeliveryDate = deliveryDate.format('DD_MM_YYYY');
+	console.log(sfFormattedDeliveryDate);
 	console.log(
 		`Uploading Guardian Weekly issue ${sfFormattedDeliveryDate} to Salesforce...`,
 	);
