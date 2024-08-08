@@ -1,27 +1,26 @@
-AWSTemplateFormatVersion: "2010-09-09"
-Description: "fulfilment step functions."
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'fulfilment step functions.'
 
 Parameters:
-    Stage:
-        Description: Stage name
-        Type: String
-        AllowedValues:
-            - PROD
-            - CODE
-        Default: CODE
+  Stage:
+    Description: Stage name
+    Type: String
+    AllowedValues:
+      - PROD
+      - CODE
+    Default: CODE
 
 Conditions:
-  CreateProdResources: !Equals [!Ref "Stage", "PROD"]
+  CreateProdResources: !Equals [!Ref 'Stage', 'PROD']
 
 Mappings:
-
   EnvironmentBucketMap:
     CODE:
-      "logs": "fulfilment-s3-logs-code"
-      "export": "fulfilment-export-code"
+      'logs': 'fulfilment-s3-logs-code'
+      'export': 'fulfilment-export-code'
     PROD:
-      "logs": "fulfilment-s3-logs-prod"
-      "export": "fulfilment-export-prod"
+      'logs': 'fulfilment-s3-logs-prod'
+      'export': 'fulfilment-export-prod'
 
   Constants:
     Alarm:
@@ -29,43 +28,42 @@ Mappings:
       Urgent: URGENT 9-5 -
 
 Resources:
-
   FulfilmentAccessLogBucket:
-    Type: "AWS::S3::Bucket"
+    Type: 'AWS::S3::Bucket'
     Properties:
       BucketName:
         Fn::FindInMap:
           - EnvironmentBucketMap
           - Ref: Stage
-          - "logs"
+          - 'logs'
       AccessControl: LogDeliveryWrite
       LoggingConfiguration:
         DestinationBucketName:
           Fn::FindInMap:
             - EnvironmentBucketMap
             - Ref: Stage
-            - "logs"
-        LogFilePrefix: "logs-logs/"
+            - 'logs'
+        LogFilePrefix: 'logs-logs/'
       VersioningConfiguration:
-        Status: "Enabled"
+        Status: 'Enabled'
 
   FulfilmentBucket:
-    Type: "AWS::S3::Bucket"
+    Type: 'AWS::S3::Bucket'
     Properties:
       BucketName:
         Fn::FindInMap:
           - EnvironmentBucketMap
           - Ref: Stage
-          - "export"
+          - 'export'
       AccessControl: Private
       LifecycleConfiguration:
         Rules:
           - Id: DeleteAllOldFiles
-            Prefix: ""
+            Prefix: ''
             Status: Enabled
             ExpirationInDays: 365
           - Id: DeleteOldFilesZuora
-            Prefix: "zuora"
+            Prefix: 'zuora'
             Status: Enabled
             ExpirationInDays: 14
       LoggingConfiguration:
@@ -73,10 +71,10 @@ Resources:
           Fn::FindInMap:
             - EnvironmentBucketMap
             - Ref: Stage
-            - "logs"
+            - 'logs'
         LogFilePrefix: !Sub fulfilment-salesforce-backup-_${Stage}/
       VersioningConfiguration:
-        Status: "Enabled"
+        Status: 'Enabled'
 
   EncryptBucketPolicy:
     Type: AWS::S3::BucketPolicy
@@ -86,87 +84,86 @@ Resources:
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
-        - Sid: DenyIncorrectEncryptionHeader
-          Effect: Deny
-          Principal: "*"
-          Action: s3:PutObject
-          Resource: !Sub arn:aws:s3:::${FulfilmentBucket}/*
-          Condition:
-            StringNotEquals:
-              s3:x-amz-server-side-encryption:
-              - AES256
-              - aws:kms
-        - Sid: DenyUnEncryptedObjectUploads
-          Effect: Deny
-          Principal: "*"
-          Action: s3:PutObject
-          Resource: !Sub arn:aws:s3:::${FulfilmentBucket}/*
-          Condition:
-            'Null':
-              s3:x-amz-server-side-encryption: 'true'
+          - Sid: DenyIncorrectEncryptionHeader
+            Effect: Deny
+            Principal: '*'
+            Action: s3:PutObject
+            Resource: !Sub arn:aws:s3:::${FulfilmentBucket}/*
+            Condition:
+              StringNotEquals:
+                s3:x-amz-server-side-encryption:
+                  - AES256
+                  - aws:kms
+          - Sid: DenyUnEncryptedObjectUploads
+            Effect: Deny
+            Principal: '*'
+            Action: s3:PutObject
+            Resource: !Sub arn:aws:s3:::${FulfilmentBucket}/*
+            Condition:
+              'Null':
+                s3:x-amz-server-side-encryption: 'true'
 
   FulfilmentWorkersLambdaRole:
-        Type: AWS::IAM::Role
-        DependsOn: FulfilmentBucket
-        Properties:
-            RoleName: !Sub FulfilmentWorkers-${Stage}
-            AssumeRolePolicyDocument:
-                Statement:
-                    - Effect: Allow
-                      Principal:
-                          Service:
-                             - lambda.amazonaws.com
-                      Action:
-                          - sts:AssumeRole
-            Path: /
-            Policies:
-                - PolicyName: LambdaPolicy
-                  PolicyDocument:
-                      Statement:
-                          - Effect: Allow
-                            Action:
-                            - logs:CreateLogGroup
-                            - logs:CreateLogStream
-                            - logs:PutLogEvents
-                            - lambda:InvokeFunction
-                            Resource: "*"
-                - PolicyName: PrivateBucket
-                  PolicyDocument:
-                      Statement:
-                          - Effect: Allow
-                            Action: s3:GetObject
-                            Resource: !Sub arn:aws:s3:::gu-reader-revenue-private/membership/fulfilment-lambdas/${Stage}/*
-                - PolicyName: WorkBucket
-                  PolicyDocument:
-                      Statement:
-                          - Effect: Allow
-                            Action:
-                            - s3:AbortMultipartUpload
-                            - s3:DeleteObject
-                            - s3:GetObject
-                            - s3:GetObjectAcl
-                            - s3:GetBucketAcl
-                            - s3:ListBucket
-                            - s3:PutObject
-                            - s3:GetObjectVersion
-                            - s3:DeleteObjectVersion
-                            Resource: !Sub arn:aws:s3:::${FulfilmentBucket}/*
-                - PolicyName: ListWorkBucket
-                  PolicyDocument:
-                      Statement:
-                         - Effect: Allow
-                           Action:
-                           - s3:ListBucket
-                           Resource: !Sub arn:aws:s3:::${FulfilmentBucket}
+    Type: AWS::IAM::Role
+    DependsOn: FulfilmentBucket
+    Properties:
+      RoleName: !Sub FulfilmentWorkers-${Stage}
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: LambdaPolicy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - lambda:InvokeFunction
+                Resource: '*'
+        - PolicyName: PrivateBucket
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action: s3:GetObject
+                Resource: !Sub arn:aws:s3:::gu-reader-revenue-private/membership/fulfilment-lambdas/${Stage}/*
+        - PolicyName: WorkBucket
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:AbortMultipartUpload
+                  - s3:DeleteObject
+                  - s3:GetObject
+                  - s3:GetObjectAcl
+                  - s3:GetBucketAcl
+                  - s3:ListBucket
+                  - s3:PutObject
+                  - s3:GetObjectVersion
+                  - s3:DeleteObjectVersion
+                Resource: !Sub arn:aws:s3:::${FulfilmentBucket}/*
+        - PolicyName: ListWorkBucket
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:ListBucket
+                Resource: !Sub arn:aws:s3:::${FulfilmentBucket}
 
   SalesforceUploaderLambda:
-    Type: "AWS::Lambda::Function"
+    Type: 'AWS::Lambda::Function'
     Properties:
-      FunctionName:
-          !Sub salesforce_uploader-${Stage}
-      Description: "Upload Home Delivery fulfilment files to Salesforce document Home_Delivery_Pipeline_Fulfilment"
-      Handler: "salesforceUploader.handler"
-      Role: !GetAtt [ FulfilmentWorkersLambdaRole, Arn ]
+      FunctionName: !Sub salesforce_uploader-${Stage}
+      Description: 'Upload Home Delivery fulfilment files to Salesforce document Home_Delivery_Pipeline_Fulfilment'
+      Handler: 'salesforceUploader.handler'
+      Role: !GetAtt [FulfilmentWorkersLambdaRole, Arn]
       Code:
         S3Bucket: fulfilment-lambdas-dist
         S3Key: !Sub membership/${Stage}/fulfilment-lambdas/fulfilment-lambdas.zip
@@ -175,18 +172,17 @@ Resources:
       Timeout: 300
       Environment:
         Variables:
-           'Stage': !Sub ${Stage}
-           'StateMachine': !Ref FulfilmentStateMachine
+          'Stage': !Sub ${Stage}
+          'StateMachine': !Ref FulfilmentStateMachine
     DependsOn: FulfilmentStateMachine
 
   ZuoraQuerierLambda:
-    Type: "AWS::Lambda::Function"
+    Type: 'AWS::Lambda::Function'
     Properties:
-      FunctionName:
-          !Sub zuora_fulfilment_querier-${Stage}
-      Description: "Trigger zuora export"
-      Handler: "querier.handler"
-      Role: !GetAtt [ FulfilmentWorkersLambdaRole, Arn ]
+      FunctionName: !Sub zuora_fulfilment_querier-${Stage}
+      Description: 'Trigger zuora export'
+      Handler: 'querier.handler'
+      Role: !GetAtt [FulfilmentWorkersLambdaRole, Arn]
       Code:
         S3Bucket: fulfilment-lambdas-dist
         S3Key: !Sub membership/${Stage}/fulfilment-lambdas/fulfilment-lambdas.zip
@@ -198,13 +194,12 @@ Resources:
           'Stage': !Sub ${Stage}
 
   ResultsFetcherLambda:
-    Type: "AWS::Lambda::Function"
+    Type: 'AWS::Lambda::Function'
     Properties:
-      FunctionName:
-          !Sub zuora_fulfilment_fetcher-${Stage}
-      Description: "Fetch zuora export results"
-      Handler: "fetcher.handler"
-      Role: !GetAtt [ FulfilmentWorkersLambdaRole, Arn ]
+      FunctionName: !Sub zuora_fulfilment_fetcher-${Stage}
+      Description: 'Fetch zuora export results'
+      Handler: 'fetcher.handler'
+      Role: !GetAtt [FulfilmentWorkersLambdaRole, Arn]
       Code:
         S3Bucket: fulfilment-lambdas-dist
         S3Key: !Sub membership/${Stage}/fulfilment-lambdas/fulfilment-lambdas.zip
@@ -216,13 +211,12 @@ Resources:
           'Stage': !Sub ${Stage}
 
   SalesforceDownloaderLambda:
-    Type: "AWS::Lambda::Function"
+    Type: 'AWS::Lambda::Function'
     Properties:
-      FunctionName:
-          !Sub zuora_fulfilment_salesforce_downloader-${Stage}
-      Description: "Fetch salesforce fulfilment files"
-      Handler: "salesforceDownloader.handler"
-      Role: !GetAtt [ FulfilmentWorkersLambdaRole, Arn ]
+      FunctionName: !Sub zuora_fulfilment_salesforce_downloader-${Stage}
+      Description: 'Fetch salesforce fulfilment files'
+      Handler: 'salesforceDownloader.handler'
+      Role: !GetAtt [FulfilmentWorkersLambdaRole, Arn]
       Code:
         S3Bucket: fulfilment-lambdas-dist
         S3Key: !Sub membership/${Stage}/fulfilment-lambdas/fulfilment-lambdas.zip
@@ -234,13 +228,12 @@ Resources:
           'Stage': !Sub ${Stage}
 
   WeeklyUploaderLambda:
-    Type: "AWS::Lambda::Function"
+    Type: 'AWS::Lambda::Function'
     Properties:
-      FunctionName:
-          !Sub weekly-fulfilmentUploader-${Stage}
-      Description: "upload Guardian Weekly fulfilment files to salesforce"
-      Handler: "weekly/salesforceUploader.handler"
-      Role: !GetAtt [ FulfilmentWorkersLambdaRole, Arn ]
+      FunctionName: !Sub weekly-fulfilmentUploader-${Stage}
+      Description: 'upload Guardian Weekly fulfilment files to salesforce'
+      Handler: 'weekly/weeklySalesforceUploader.handler'
+      Role: !GetAtt [FulfilmentWorkersLambdaRole, Arn]
       Code:
         S3Bucket: fulfilment-lambdas-dist
         S3Key: !Sub membership/${Stage}/fulfilment-lambdas/fulfilment-lambdas.zip
@@ -252,194 +245,188 @@ Resources:
           'Stage': !Sub ${Stage}
 
   FulfilmentExporterLambda:
-      Type: "AWS::Lambda::Function"
-      Properties:
-        FunctionName:
-            !Sub zuora_fulfilment_exporter-${Stage}
-        Description: "Fetch generate fulfilment file"
-        Handler: "exporter.handler"
-        Role: !GetAtt [ FulfilmentWorkersLambdaRole, Arn ]
-        Code:
-          S3Bucket: fulfilment-lambdas-dist
-          S3Key: !Sub membership/${Stage}/fulfilment-lambdas/fulfilment-lambdas.zip
-        MemorySize: 512
-        Runtime: nodejs20.x
-        Timeout: 300
-        Environment:
-          Variables:
-            'Stage': !Sub ${Stage}
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      FunctionName: !Sub zuora_fulfilment_exporter-${Stage}
+      Description: 'Fetch generate fulfilment file'
+      Handler: 'exporter.handler'
+      Role: !GetAtt [FulfilmentWorkersLambdaRole, Arn]
+      Code:
+        S3Bucket: fulfilment-lambdas-dist
+        S3Key: !Sub membership/${Stage}/fulfilment-lambdas/fulfilment-lambdas.zip
+      MemorySize: 512
+      Runtime: nodejs20.x
+      Timeout: 300
+      Environment:
+        Variables:
+          'Stage': !Sub ${Stage}
 
   StatesExecutionRole:
-    Type: "AWS::IAM::Role"
+    Type: 'AWS::IAM::Role'
     Properties:
       AssumeRolePolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
-          Effect: "Allow"
+          Effect: 'Allow'
           Principal:
             Service: !Sub states.${AWS::Region}.amazonaws.com
-          Action: "sts:AssumeRole"
-      Path: "/"
+          Action: 'sts:AssumeRole'
+      Path: '/'
       Policies:
         - PolicyName: StatesExecutionPolicy
           PolicyDocument:
-            Version: "2012-10-17"
+            Version: '2012-10-17'
             Statement:
               - Effect: Allow
                 Action:
-                  - "lambda:InvokeFunction"
-                Resource: "*"
+                  - 'lambda:InvokeFunction'
+                Resource: '*'
 
   FulfilmentStateMachine:
-    Type: "AWS::StepFunctions::StateMachine"
+    Type: 'AWS::StepFunctions::StateMachine'
     Properties:
       StateMachineName: !Sub 'fulfilment-state-machine-${Stage}'
-      DefinitionString:
-        !Sub
-          - |-
-           {
-             "Comment": "State machine for Fulfilment",
-             "TimeoutSeconds": 64800,
-             "StartAt": "QueryZuora",
-             "States": {
-               "QueryZuora": {
-                 "Type": "Task",
-                 "Resource": "${querierArn}",
-                 "Next": "WaitSomeTime",
-                 "Retry": [
-                    {
-                     "ErrorEquals": ["States.ALL"],
-                     "IntervalSeconds": 30,
-                     "MaxAttempts": 3
-                   }]
-               },
-               "WaitSomeTime": {
-                 "Type": "Wait",
-                 "Seconds": 180,
-                 "Next": "FetchResults"
-               },
-               "FetchResults": {
-                 "Type": "Task",
-                 "Resource": "${fetcherArn}",
-                 "Next": "GenerateFulfilmentFile",
-                 "Retry": [
-                    {
-                     "ErrorEquals": ["States.ALL"],
-                     "IntervalSeconds": 30,
-                     "MaxAttempts": 50,
-                     "BackoffRate": 1.15
-                   }]
-               },
-               "GenerateFulfilmentFile": {
-                 "Type": "Task",
-                 "Resource": "${exporterArn}",
-                 "End": true,
-                 "Retry": [
-                    {
-                     "ErrorEquals": ["States.ALL"],
-                     "IntervalSeconds": 30,
-                     "MaxAttempts": 3
-                   }]
-               }
-             }
-           }
-          - {
-            querierArn: !GetAtt [ ZuoraQuerierLambda, Arn ],
-            fetcherArn: !GetAtt [ ResultsFetcherLambda, Arn ],
-            exporterArn: !GetAtt [ FulfilmentExporterLambda, Arn ]
+      DefinitionString: !Sub
+        - |-
+          {
+            "Comment": "State machine for Fulfilment",
+            "TimeoutSeconds": 64800,
+            "StartAt": "QueryZuora",
+            "States": {
+              "QueryZuora": {
+                "Type": "Task",
+                "Resource": "${querierArn}",
+                "Next": "WaitSomeTime",
+                "Retry": [
+                   {
+                    "ErrorEquals": ["States.ALL"],
+                    "IntervalSeconds": 30,
+                    "MaxAttempts": 3
+                  }]
+              },
+              "WaitSomeTime": {
+                "Type": "Wait",
+                "Seconds": 180,
+                "Next": "FetchResults"
+              },
+              "FetchResults": {
+                "Type": "Task",
+                "Resource": "${fetcherArn}",
+                "Next": "GenerateFulfilmentFile",
+                "Retry": [
+                   {
+                    "ErrorEquals": ["States.ALL"],
+                    "IntervalSeconds": 30,
+                    "MaxAttempts": 50,
+                    "BackoffRate": 1.15
+                  }]
+              },
+              "GenerateFulfilmentFile": {
+                "Type": "Task",
+                "Resource": "${exporterArn}",
+                "End": true,
+                "Retry": [
+                   {
+                    "ErrorEquals": ["States.ALL"],
+                    "IntervalSeconds": 30,
+                    "MaxAttempts": 3
+                  }]
+              }
+            }
           }
-      RoleArn: !GetAtt [ StatesExecutionRole, Arn ]
+        - {
+            querierArn: !GetAtt [ZuoraQuerierLambda, Arn],
+            fetcherArn: !GetAtt [ResultsFetcherLambda, Arn],
+            exporterArn: !GetAtt [FulfilmentExporterLambda, Arn],
+          }
+      RoleArn: !GetAtt [StatesExecutionRole, Arn]
 
   FulfilmentAPIPermission:
-          Type: AWS::Lambda::Permission
-          Properties:
-              Action: lambda:invokeFunction
-              FunctionName: !Sub salesforce_uploader-${Stage}
-              Principal: apigateway.amazonaws.com
-          DependsOn: SalesforceUploaderLambda
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:invokeFunction
+      FunctionName: !Sub salesforce_uploader-${Stage}
+      Principal: apigateway.amazonaws.com
+    DependsOn: SalesforceUploaderLambda
 
   FulfilmentAPI:
-      Type: "AWS::ApiGateway::RestApi"
-      Properties:
-          Description: Upload Home Delivery fulfilment files to Salesforce document Home_Delivery_Pipeline_Fulfilment
-          Name: !Sub fulfilment-api-${Stage}
+    Type: 'AWS::ApiGateway::RestApi'
+    Properties:
+      Description: Upload Home Delivery fulfilment files to Salesforce document Home_Delivery_Pipeline_Fulfilment
+      Name: !Sub fulfilment-api-${Stage}
 
   FulfilmentProxyResource:
-      Type: AWS::ApiGateway::Resource
-      Properties:
-          RestApiId: !Ref FulfilmentAPI
-          ParentId: !GetAtt [FulfilmentAPI, RootResourceId]
-          PathPart: fulfilment
-      DependsOn: FulfilmentAPI
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref FulfilmentAPI
+      ParentId: !GetAtt [FulfilmentAPI, RootResourceId]
+      PathPart: fulfilment
+    DependsOn: FulfilmentAPI
 
   FulfilmentMethod:
-      Type: AWS::ApiGateway::Method
-      Properties:
-          AuthorizationType: NONE
-          RestApiId: !Ref FulfilmentAPI
-          ResourceId: !Ref FulfilmentProxyResource
-          HttpMethod: POST
-          Integration:
-            Type: AWS_PROXY
-            IntegrationHttpMethod: POST
-            Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${SalesforceUploaderLambda.Arn}/invocations
-      DependsOn:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      RestApiId: !Ref FulfilmentAPI
+      ResourceId: !Ref FulfilmentProxyResource
+      HttpMethod: POST
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${SalesforceUploaderLambda.Arn}/invocations
+    DependsOn:
       - FulfilmentAPI
       - SalesforceUploaderLambda
       - FulfilmentProxyResource
 
   FulfilmentAPIStage:
-      Type: AWS::ApiGateway::Stage
-      Properties:
-          Description: Stage for fulfilment-api
-          RestApiId: !Ref FulfilmentAPI
-          DeploymentId: !Ref FulfilmentAPIDeployment
-          StageName: !Sub ${Stage}
-      DependsOn: FulfilmentMethod
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      Description: Stage for fulfilment-api
+      RestApiId: !Ref FulfilmentAPI
+      DeploymentId: !Ref FulfilmentAPIDeployment
+      StageName: !Sub ${Stage}
+    DependsOn: FulfilmentMethod
 
   FulfilmentAPIDeployment:
-      Type: AWS::ApiGateway::Deployment
-      Properties:
-          Description: Deploys fulfilment-api into an environment/stage
-          RestApiId: !Ref FulfilmentAPI
-      DependsOn: FulfilmentMethod
+    Type: AWS::ApiGateway::Deployment
+    Properties:
+      Description: Deploys fulfilment-api into an environment/stage
+      RestApiId: !Ref FulfilmentAPI
+    DependsOn: FulfilmentMethod
 
   ScheduledRule:
-    Type: "AWS::Events::Rule"
+    Type: 'AWS::Events::Rule'
     Properties:
-      Description: "TriggerFulfilment"
-      ScheduleExpression: "cron(0 7 ? * mon-fri *)"
-      State: "ENABLED"
+      Description: 'TriggerFulfilment'
+      ScheduleExpression: 'cron(0 7 ? * mon-fri *)'
+      State: 'ENABLED'
       Targets:
-        -
-          Arn: !Ref FulfilmentStateMachine
+        - Arn: !Ref FulfilmentStateMachine
           Id: !Sub trigger_state_machine-${Stage}-1
           Input: |
             {
             "deliveryDateDaysFromNow": 1,
              "type":"homedelivery"
             }
-          RoleArn: !GetAtt [ fulfilmentTriggerRole, Arn ]
-        -
-          Arn: !Ref FulfilmentStateMachine
+          RoleArn: !GetAtt [fulfilmentTriggerRole, Arn]
+        - Arn: !Ref FulfilmentStateMachine
           Id: !Sub trigger_state_machine-${Stage}-2
           Input: |
             {
             "deliveryDateDaysFromNow": 2,
              "type":"homedelivery"
             }
-          RoleArn: !GetAtt [ fulfilmentTriggerRole, Arn ]
-        -
-          Arn: !Ref FulfilmentStateMachine
+          RoleArn: !GetAtt [fulfilmentTriggerRole, Arn]
+        - Arn: !Ref FulfilmentStateMachine
           Id: !Sub trigger_state_machine-${Stage}-3
           Input: |
             {
             "deliveryDateDaysFromNow": 3,
              "type":"homedelivery"
             }
-          RoleArn: !GetAtt [ fulfilmentTriggerRole, Arn ]
-        -
-          Arn: !Ref FulfilmentStateMachine
+          RoleArn: !GetAtt [fulfilmentTriggerRole, Arn]
+        - Arn: !Ref FulfilmentStateMachine
           Id: !Sub trigger_state_machine-${Stage}-4
           Input: |
             {
@@ -447,27 +434,25 @@ Resources:
              "type":"homedelivery"
             }
 
-          RoleArn: !GetAtt [ fulfilmentTriggerRole, Arn ]
-        -
-          Arn: !Ref FulfilmentStateMachine
+          RoleArn: !GetAtt [fulfilmentTriggerRole, Arn]
+        - Arn: !Ref FulfilmentStateMachine
           Id: !Sub trigger_state_machine-${Stage}-5
           Input: |
             {
             "deliveryDateDaysFromNow": 5,
              "type":"homedelivery"
             }
-          RoleArn: !GetAtt [ fulfilmentTriggerRole, Arn ]
+          RoleArn: !GetAtt [fulfilmentTriggerRole, Arn]
     DependsOn: FulfilmentStateMachine
 
   WeeklyScheduledRule:
-    Type: "AWS::Events::Rule"
+    Type: 'AWS::Events::Rule'
     Properties:
-      Description: "TriggerWeeklyFulfilment"
-      ScheduleExpression: "cron(00 2 ? * * *)"
-      State: "ENABLED"
+      Description: 'TriggerWeeklyFulfilment'
+      ScheduleExpression: 'cron(00 2 ? * * *)'
+      State: 'ENABLED'
       Targets:
-        -
-          Arn: !Ref FulfilmentStateMachine
+        - Arn: !Ref FulfilmentStateMachine
           Id: !Sub trigger_state_machine-${Stage}-1
           Input: |
             {
@@ -475,17 +460,16 @@ Resources:
             "deliveryDayOfWeek": "friday",
             "minDaysInAdvance" : 8
             }
-          RoleArn: !GetAtt [ fulfilmentTriggerRole, Arn ]
+          RoleArn: !GetAtt [fulfilmentTriggerRole, Arn]
 
   WeeklyScheduledUploadRule:
-    Type: "AWS::Events::Rule"
+    Type: 'AWS::Events::Rule'
     Properties:
-      Description: "TriggerWeeklyFulfilmentUpload"
-      ScheduleExpression: "cron(00 11 ? * THU *)"
-      State: "ENABLED"
+      Description: 'TriggerWeeklyFulfilmentUpload'
+      ScheduleExpression: 'cron(00 11 ? * THU *)'
+      State: 'ENABLED'
       Targets:
-        -
-          Arn: !GetAtt WeeklyUploaderLambda.Arn
+        - Arn: !GetAtt WeeklyUploaderLambda.Arn
           Id: !Sub weeklySfUploader
           Input: |
             {
@@ -495,46 +479,44 @@ Resources:
             }
 
   SFDownloadScheduledRule:
-    Type: "AWS::Events::Rule"
+    Type: 'AWS::Events::Rule'
     Properties:
-      Description: "Download fulfilment files from Salesforce"
-      ScheduleExpression: "cron(50 14 ? * mon-fri *)"
-      State: "ENABLED"
+      Description: 'Download fulfilment files from Salesforce'
+      ScheduleExpression: 'cron(50 14 ? * mon-fri *)'
+      State: 'ENABLED'
       Targets:
-        - 
-          Arn: !GetAtt SalesforceDownloaderLambda.Arn
+        - Arn: !GetAtt SalesforceDownloaderLambda.Arn
           Id: !Sub salesforceDownloader
     DependsOn: FulfilmentStateMachine
 
   fulfilmentTriggerRole:
     Type: AWS::IAM::Role
     Properties:
-        AssumeRolePolicyDocument:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - events.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: TriggerStateMchine
+          PolicyDocument:
+            Version: '2012-10-17'
             Statement:
-                - Effect: Allow
-                  Principal:
-                      Service:
-                         - events.amazonaws.com
-                  Action:
-                      - sts:AssumeRole
-        Policies:
-            - PolicyName: TriggerStateMchine
-              PolicyDocument:
-                  Version : "2012-10-17"
-                  Statement:
-                     - Effect: Allow
-                       Action:
-                       - states:StartExecution
-                       Resource: !Ref FulfilmentStateMachine
+              - Effect: Allow
+                Action:
+                  - states:StartExecution
+                Resource: !Ref FulfilmentStateMachine
 
   checkerLambda:
-    Type: "AWS::Lambda::Function"
+    Type: 'AWS::Lambda::Function'
     Properties:
-      FunctionName:
-          !Sub zuora_fulfilment_checker-${Stage}
-      Description: "daily check to verify fulfilment files have been generated"
-      Handler: "checker.handler"
-      Role: !GetAtt [ FulfilmentWorkersLambdaRole, Arn ]
+      FunctionName: !Sub zuora_fulfilment_checker-${Stage}
+      Description: 'daily check to verify fulfilment files have been generated'
+      Handler: 'checker.handler'
+      Role: !GetAtt [FulfilmentWorkersLambdaRole, Arn]
       Code:
         S3Bucket: fulfilment-lambdas-dist
         S3Key: !Sub membership/${Stage}/fulfilment-lambdas/fulfilment-lambdas.zip
@@ -548,23 +530,23 @@ Resources:
   fulfilmentCheckerMetricFilter:
     Type: AWS::Logs::MetricFilter
     Properties:
-      LogGroupName: !Sub "/aws/lambda/${checkerLambda}"
+      LogGroupName: !Sub '/aws/lambda/${checkerLambda}'
       FilterPattern: '"CHECK:PASSED"'
       MetricTransformations:
-        - MetricNamespace: !Sub "${Stage}/fulfilment"
-          MetricName: "fulfilmentFileUpdated"
+        - MetricNamespace: !Sub '${Stage}/fulfilment'
+          MetricName: 'fulfilmentFileUpdated'
           MetricValue: 1
     DependsOn: checkerLambda
 
   CheckerScheduledRule:
-    Type: "AWS::Events::Rule"
+    Type: 'AWS::Events::Rule'
     Properties:
-      Description: "trigger fulfilment file check"
-      ScheduleExpression: "cron(30 11 * * ? *)"
-      State: "ENABLED"
+      Description: 'trigger fulfilment file check'
+      ScheduleExpression: 'cron(30 11 * * ? *)'
+      State: 'ENABLED'
       Targets:
-            - Id: !Sub fulfilmentChecker_${Stage}
-              Arn: !GetAtt checkerLambda.Arn
+        - Id: !Sub fulfilmentChecker_${Stage}
+          Arn: !GetAtt checkerLambda.Arn
     DependsOn: fulfilmentCheckerMetricFilter
 
   checkerSchedulePermission:
@@ -592,13 +574,13 @@ Resources:
       SourceArn: !GetAtt SFDownloadScheduledRule.Arn
 
   CheckerAlarm:
-    Type: "AWS::CloudWatch::Alarm"
+    Type: 'AWS::CloudWatch::Alarm'
     Condition: CreateProdResources
     Properties:
-      AlarmDescription: "alarm when fulfilment file has not been generated"
-      AlarmName: !Sub "fulfilment_check_alarm_${Stage}"
+      AlarmDescription: 'alarm when fulfilment file has not been generated'
+      AlarmName: !Sub 'fulfilment_check_alarm_${Stage}'
       MetricName: fulfilmentFileUpdated
-      Namespace: !Sub "${Stage}/fulfilment"
+      Namespace: !Sub '${Stage}/fulfilment'
       TreatMissingData: breaching
       Statistic: Sum
       Period: 86400
@@ -612,16 +594,16 @@ Resources:
     Condition: CreateProdResources
     Properties:
       AlarmActions:
-      - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:alarms-handler-topic-${Stage}
+        - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:alarms-handler-topic-${Stage}
       AlarmName: !Join
         - ' '
-        - - !FindInMap [ Constants, Alarm, Urgent ]
+        - - !FindInMap [Constants, Alarm, Urgent]
           - !Ref 'Stage'
           - 'Failed to generate GW and HD fulfilment files'
       AlarmDescription: !Join
         - ' '
         - - 'Impact - Guardian Weekly and Home Delivery subscribes will not get their paper. Fix FulfilmentStateMachine ASAP!'
-          - !FindInMap [ Constants, Alarm, Process ]
+          - !FindInMap [Constants, Alarm, Process]
       MetricName: ExecutionsFailed
       Namespace: AWS/States
       Dimensions:
@@ -643,13 +625,13 @@ Resources:
         - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:alarms-handler-topic-${Stage}
       AlarmName: !Join
         - ' '
-        - - !FindInMap [ Constants, Alarm, Urgent ]
+        - - !FindInMap [Constants, Alarm, Urgent]
           - !Ref 'Stage'
           - 'Failed to upload Home Delivery fulfilment files to Salesforce'
       AlarmDescription: !Join
         - ' '
         - - 'Impact - Home Delivery subscribers will not get their paper. Investigate fulfilment-api Gateway ASAP! '
-          - !FindInMap [ Constants, Alarm, Process ]
+          - !FindInMap [Constants, Alarm, Process]
       MetricName: 5XXError
       Namespace: AWS/ApiGateway
       Dimensions:
@@ -673,13 +655,13 @@ Resources:
         - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:alarms-handler-topic-${Stage}
       AlarmName: !Join
         - ' '
-        - - !FindInMap [ Constants, Alarm, Urgent ]
+        - - !FindInMap [Constants, Alarm, Urgent]
           - !Ref 'Stage'
           - 'Failed to upload Guardian Weekly fulfilment files to Salesforce'
       AlarmDescription: !Join
         - ' '
         - - 'Impact - Guardian Weekly subscribers will not get their paper. Investigate weekly-fulfilmentUploader ASAP! '
-          - !FindInMap [ Constants, Alarm, Process ]
+          - !FindInMap [Constants, Alarm, Process]
       MetricName: Errors
       Namespace: AWS/Lambda
       Dimensions:
