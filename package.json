@@ -38,7 +38,7 @@
 	},
 	"scripts": {
 		"build": "esbuild --bundle --platform=node --target=node20 --outdir=dist src/*.ts src/**/*.ts",
-		"package": "yarn type-check && yarn lint && yarn check-formatting && yarn test && yarn build && cd dist && zip -qr fulfilment-lambdas.zip ./*.js",
+		"package": "yarn type-check && yarn lint && yarn check-formatting && yarn test && yarn build && cd dist && zip -qr fulfilment-lambdas.zip ./*.js ./**/*.js",
 		"check-formatting": "prettier --check **/*.ts **.ts",
 		"fix-formatting": "prettier --write **/*.ts **.ts",
 		"run:hd:exporter": "lambda-local -l dist/exporter.js -e __tests__/resources/input/homedelivery/exporter.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
