@@ -162,7 +162,7 @@ Resources:
     Properties:
       FunctionName: !Sub salesforce_uploader-${Stage}
       Description: 'Upload Home Delivery fulfilment files to Salesforce document Home_Delivery_Pipeline_Fulfilment'
-      Handler: 'salesforceUploader.handler'
+      Handler: 'salesforceUploader1.handler'
       Role: !GetAtt [FulfilmentWorkersLambdaRole, Arn]
       Code:
         S3Bucket: fulfilment-lambdas-dist

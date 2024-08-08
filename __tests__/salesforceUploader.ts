@@ -1,6 +1,6 @@
 /* eslint-env jest */
 
-import { handler } from '../src/salesforceUploader';
+import { handler } from '../src/salesforceUploader1';
 import moment from 'moment';
 
 const mockSalesForce = {
