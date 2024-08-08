@@ -239,7 +239,7 @@ Resources:
       FunctionName:
           !Sub weekly-fulfilmentUploader-${Stage}
       Description: "upload Guardian Weekly fulfilment files to salesforce"
-      Handler: "weekly/salesforce_uploader.handler"
+      Handler: "weekly_salesforce_uploader.handler"
       Role: !GetAtt [ FulfilmentWorkersLambdaRole, Arn ]
       Code:
         S3Bucket: fulfilment-lambdas-dist
