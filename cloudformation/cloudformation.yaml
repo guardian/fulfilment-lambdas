@@ -165,7 +165,7 @@ Resources:
       FunctionName:
           !Sub salesforce_uploader-${Stage}
       Description: "Upload Home Delivery fulfilment files to Salesforce document Home_Delivery_Pipeline_Fulfilment"
-      Handler: "salesforce_uploader.handler"
+      Handler: "salesforceUploader.handler"
       Role: !GetAtt [ FulfilmentWorkersLambdaRole, Arn ]
       Code:
         S3Bucket: fulfilment-lambdas-dist
@@ -221,7 +221,7 @@ Resources:
       FunctionName:
           !Sub zuora_fulfilment_salesforce_downloader-${Stage}
       Description: "Fetch salesforce fulfilment files"
-      Handler: "salesforce_downloader.handler"
+      Handler: "salesforceDownloader.handler"
       Role: !GetAtt [ FulfilmentWorkersLambdaRole, Arn ]
       Code:
         S3Bucket: fulfilment-lambdas-dist
@@ -239,7 +239,7 @@ Resources:
       FunctionName:
           !Sub weekly-fulfilmentUploader-${Stage}
       Description: "upload Guardian Weekly fulfilment files to salesforce"
-      Handler: "weekly/salesforce_uploader.handler"
+      Handler: "weekly/salesforceUploader.handler"
       Role: !GetAtt [ FulfilmentWorkersLambdaRole, Arn ]
       Code:
         S3Bucket: fulfilment-lambdas-dist
