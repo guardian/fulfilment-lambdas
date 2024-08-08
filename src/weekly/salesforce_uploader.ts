@@ -33,6 +33,7 @@ function buildSourceAndDestination(
  * separate step function. Upload is triggered automatically on schedule.
  */
 export async function handler(input: WeeklyInput) {
+	console.log('Event: ', input);
 	const deliveryDate = getDeliveryDate(input);
 	const sfFormattedDeliveryDate = deliveryDate.format('DD_MM_YYYY');
 	console.log(
