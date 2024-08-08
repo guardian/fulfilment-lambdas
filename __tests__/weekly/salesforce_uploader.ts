@@ -1,5 +1,5 @@
 /* eslint-env jest */
-import { handler } from '../../src/weekly/salesforce_uploader';
+// import { handler } from '../../src/weekly/salesforce_uploader';
 
 var MockDate = require('mockdate');
 // mock current date
