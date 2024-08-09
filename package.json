@@ -37,7 +37,7 @@
 		"typescript": "^5.5.3"
 	},
 	"scripts": {
-		"build": "esbuild --bundle --platform=node --target=node20 --outdir=dist src/*.ts src/**/*.ts",
+		"build": "esbuild --bundle --platform=node --target=node20 --outdir=dist src/*.ts",
 		"package": "yarn type-check && yarn lint && yarn check-formatting && yarn test && yarn build && cd dist && zip -qr fulfilment-lambdas.zip ./*.js",
 		"check-formatting": "prettier --check **/*.ts **.ts",
 		"fix-formatting": "prettier --write **/*.ts **.ts",
@@ -47,7 +47,7 @@
 		"run:weekly:querier": "lambda-local -l dist/querier.js -e __tests__/resources/input/weekly/querier.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
 		"run:hd:fetcher": "lambda-local -l dist/fetcher.js -e __tests__/resources/input/homedelivery/fetcher.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
 		"run:weekly:fetcher": "lambda-local -l dist/fetcher.js -e __tests__/resources/input/weekly/fetcher.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
-		"run:weekly:uploader": "lambda-local -l dist/weekly/salesforce_uploader.js -e __tests__/resources/input/weekly/salesforce_uploader.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
+		"run:weekly:uploader": "lambda-local -l dist/weekly_salesforce_uploader.js -e __tests__/resources/input/weekly_salesforce_uploader.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
 		"run:sf": "lambda-local -l dist/salesforce_downloader.js -e __tests__/resources/input/input.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
 		"run:sfup": "lambda-local -l dist/salesforce_uploader.js -e __tests__/resources/input/upload.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
 		"run:checker": "lambda-local -l dist/checker.js -e __tests__/resources/input/checker.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
