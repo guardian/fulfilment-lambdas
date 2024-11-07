@@ -38,6 +38,11 @@ Resources:
           - EnvironmentBucketMap
           - Ref: Stage
           - "logs"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
       AccessControl: LogDeliveryWrite
       LoggingConfiguration:
         DestinationBucketName:
@@ -57,6 +62,11 @@ Resources:
           - EnvironmentBucketMap
           - Ref: Stage
           - "export"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
       AccessControl: Private
       LifecycleConfiguration:
         Rules:
