@@ -23,7 +23,7 @@ export async function authenticate(config: Config) {
 		headers: {
 			'Content-Type': 'application/x-www-form-urlencoded',
 		},
-		body: new URLSearchParams(auth).toString(), // Convert the form data object to a URL-encoded string
+		body: new URLSearchParams(auth).toString(),
 	});
 
 	const data = (await response.json()) as {
