@@ -18,9 +18,19 @@ export async function authenticate(config: Config) {
 		username: config.salesforce.api.username,
 		password: `${config.salesforce.api.password}${config.salesforce.api.token}`,
 	};
-	const result = await rp.post(url, { form: auth });
-	const j = JSON.parse(result);
-	return new Salesforce(j.instance_url, j.access_token);
+	const response = await fetch(url, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/x-www-form-urlencoded',
+		},
+		body: new URLSearchParams(auth).toString(), // Convert the form data object to a URL-encoded string
+	});
+
+	const data = (await response.json()) as {
+		instance_url: string;
+		access_token: string;
+	};
+	return new Salesforce(data.instance_url, data.access_token);
 }
 
 export class Salesforce {
