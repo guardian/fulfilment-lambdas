@@ -1,4 +1,3 @@
-// import rp from 'request-promise-native';
 import type { Config } from './config';
 import NamedError from './NamedError';
 import { S3 } from 'aws-sdk';
