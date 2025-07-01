@@ -64,12 +64,12 @@ async function queryZuora(deliveryDate: Moment, config: Config) {
            ) OR
           (
             RatePlan.AmendmentType = 'RemoveProduct' AND 
-            Amendment.EffectiveDate > '${formattedDeliveryDate}' AND
-            EffectiveStartDate <= '${formattedDeliveryDate}' 
+            EffectiveStartDate <= '${formattedDeliveryDate}' AND
+            EffectiveEndDate > '${formattedDeliveryDate}'
             ) OR 
            (
             RatePlan.AmendmentType = 'NewProduct' AND 
-            Amendment.CustomerAcceptanceDate <= '${formattedDeliveryDate}' 
+            EffectiveStartDate <= '${formattedDeliveryDate}'
            )
         ) AND
         IsLastSegment = true AND
