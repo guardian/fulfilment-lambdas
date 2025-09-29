@@ -40,7 +40,7 @@ async function queryZuora(deliveryDate: Moment, config: Config) {
       ( 
         RatePlanCharge.EffectiveEndDate >= '${currentDate}' AND
         Subscription.Status = 'Active' AND Subscription.AutoRenew = true AND 
-        ( RatePlan.AmendmentType IS NULL OR RatePlan.AmendmentType != 'RemoveProduct' )
+        ( RatePlan.AmendmentType IS NULL OR RatePlan.AmendmentType NOT IN ('RemoveProduct', 'UpdateProduct') )
       )
      ) 
      AND
