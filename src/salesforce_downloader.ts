@@ -66,11 +66,11 @@ async function download(
 	const uploads = filtered.map(
 		async (doc: { Name: string; attributes: { url: string } }) => {
 			console.log('Starting download of ', doc.Name);
-			const dl = salesforce.getStream(`${doc.attributes.url}/Body`);
+			const dl = await salesforce.getStream(`${doc.attributes.url}/Body`);
 			const st = new stream.PassThrough();
 			dl.pipe(st);
 			console.log('Starting upload to S3 ');
-			const streamAsString = await getStream(new stream());
+			const streamAsString = await getStream(st);
 			return upload(streamAsString, doc.Name, folder);
 		},
 	);
