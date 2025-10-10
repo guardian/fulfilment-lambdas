@@ -24,12 +24,14 @@ jest.mock('../../src/lib/config', () => {
 
 jest.mock('axios', () => {
 	return {
-		post: jest.fn(() => Promise.resolve({
-			status: 200,
-			data: {
-				id: 'someId',
-			},
-		})),
+		post: jest.fn(() =>
+			Promise.resolve({
+				status: 200,
+				data: {
+					id: 'someId',
+				},
+			}),
+		),
 		isAxiosError: jest.fn(() => false),
 	};
 });

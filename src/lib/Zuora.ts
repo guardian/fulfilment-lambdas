@@ -54,13 +54,15 @@ export class Zuora {
 						...this.authorization,
 						'Content-Type': 'application/json',
 					},
-				}
+				},
 			);
 
 			console.log('statusCode:', response.status);
 
 			if (response.data.errorCode) {
-				console.log(`zuora error! code: ${response.data.errorCode} : ${response.data.message}`);
+				console.log(
+					`zuora error! code: ${response.data.errorCode} : ${response.data.message}`,
+				);
 				throw new NamedError(
 					'api_call_error',
 					`zuora error! code: ${response.data.errorCode} : ${response.data.message}`,
@@ -92,7 +94,7 @@ export class Zuora {
 						'Content-Type': 'application/json',
 					},
 					responseType: 'arraybuffer',
-				}
+				},
 			);
 
 			// TODO SEE HOW TO DETECT FAILURES OR ANY OTHER SPECIAL CASE HERE
@@ -123,7 +125,7 @@ export class Zuora {
 						...this.authorization,
 						'Content-Type': 'application/json',
 					},
-				}
+				},
 			);
 
 			console.log('Job result received.');
@@ -146,9 +148,7 @@ export class Zuora {
 			// TODO SEE HOW TO DETECT FAILURES OR ANY OTHER SPECIAL CASE HERE
 			const notCompleted = body.batches
 				.filter((batch: Batch) => batch.status !== 'completed')
-				.map(
-					(batch: Batch) => `${batch.name} is in status: ${batch.status}`,
-				);
+				.map((batch: Batch) => `${batch.name} is in status: ${batch.status}`);
 			if (notCompleted.length > 1) {
 				throw new NamedError('batch_not_completed', notCompleted.join());
 			}

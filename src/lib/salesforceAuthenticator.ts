@@ -33,10 +33,12 @@ export class Salesforce {
 	}
 
 	getStream(endpoint: string) {
-		return axios.get(`${this.url}${endpoint}`, {
-			headers: this.headers,
-			responseType: 'stream',
-		}).then(response => response.data);
+		return axios
+			.get(`${this.url}${endpoint}`, {
+				headers: this.headers,
+				responseType: 'stream',
+			})
+			.then((response) => response.data);
 	}
 
 	async get(endpoint: string) {
@@ -49,8 +51,16 @@ export class Salesforce {
 	async post(endpoint: string, form: { [key: string]: unknown }) {
 		const formData = new FormData();
 		for (const [key, value] of Object.entries(form)) {
-			if (typeof value === 'object' && value !== null && 'value' in value && 'options' in value) {
-				const v = value as { value: unknown; options: { contentType: string; filename?: string } };
+			if (
+				typeof value === 'object' &&
+				value !== null &&
+				'value' in value &&
+				'options' in value
+			) {
+				const v = value as {
+					value: unknown;
+					options: { contentType: string; filename?: string };
+				};
 				formData.append(key, v.value as any, v.options);
 			} else {
 				formData.append(key, value as any);
