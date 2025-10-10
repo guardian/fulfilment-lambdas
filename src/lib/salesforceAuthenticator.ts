@@ -1,5 +1,5 @@
-import request from 'request';
-import rp from 'request-promise-native';
+import axios from 'axios';
+import FormData from 'form-data';
 import type { Config } from './config';
 import NamedError from './NamedError';
 import { S3 } from 'aws-sdk';
@@ -13,16 +13,15 @@ export async function authenticate(config: Config) {
 	console.log('Authenticating with Salesforce.');
 
 	const url = `https://${config.salesforce.api.salesforceUrl}/services/oauth2/token`;
-	const auth = {
+	const params = new URLSearchParams({
 		grant_type: 'password',
 		client_id: config.salesforce.api.consumer_key,
 		client_secret: config.salesforce.api.consumer_secret,
 		username: config.salesforce.api.username,
 		password: `${config.salesforce.api.password}${config.salesforce.api.token}`,
-	};
-	const result = await rp.post(url, { form: auth });
-	const j = JSON.parse(result);
-	return new Salesforce(j.instance_url, j.access_token);
+	});
+	const response = await axios.post(url, params);
+	return new Salesforce(response.data.instance_url, response.data.access_token);
 }
 
 export class Salesforce {
@@ -34,22 +33,36 @@ export class Salesforce {
 	}
 
 	getStream(endpoint: string) {
-		return request.get({
-			uri: `${this.url}${endpoint}`,
+		return axios.get(`${this.url}${endpoint}`, {
 			headers: this.headers,
-		});
+			responseType: 'stream',
+		}).then(response => response.data);
 	}
 
-	get(endpoint: string) {
-		return rp.get({ uri: `${this.url}${endpoint}`, headers: this.headers });
+	async get(endpoint: string) {
+		const response = await axios.get(`${this.url}${endpoint}`, {
+			headers: this.headers,
+		});
+		return JSON.stringify(response.data);
 	}
 
-	post(endpoint: string, form: { [key: string]: unknown }) {
-		return rp.post({
-			uri: `${this.url}${endpoint}`,
-			headers: this.headers,
-			formData: form,
+	async post(endpoint: string, form: { [key: string]: unknown }) {
+		const formData = new FormData();
+		for (const [key, value] of Object.entries(form)) {
+			if (typeof value === 'object' && value !== null && 'value' in value && 'options' in value) {
+				const v = value as { value: unknown; options: { contentType: string; filename?: string } };
+				formData.append(key, v.value as any, v.options);
+			} else {
+				formData.append(key, value as any);
+			}
+		}
+		const response = await axios.post(`${this.url}${endpoint}`, formData, {
+			headers: {
+				...this.headers,
+				...formData.getHeaders(),
+			},
 		});
+		return JSON.stringify(response.data);
 	}
 
 	async uploadDocument(

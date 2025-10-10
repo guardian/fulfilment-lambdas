@@ -22,19 +22,15 @@ jest.mock('../../src/lib/config', () => {
 	};
 });
 
-jest.mock('request', () => {
-	return function (
-		options: unknown,
-		callback: (arg1: unknown, res: unknown, body: unknown) => void,
-	) {
-		const response = {
-			statusCode: 200,
-		};
-		const body = {
-			id: 'someId',
-		};
-		// TODO SEE IF WE CAN VERIFY SOMETHING ABOUT THE QUERIES HERE!
-		callback(null, response, body);
+jest.mock('axios', () => {
+	return {
+		post: jest.fn(() => Promise.resolve({
+			status: 200,
+			data: {
+				id: 'someId',
+			},
+		})),
+		isAxiosError: jest.fn(() => false),
 	};
 });
 

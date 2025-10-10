@@ -1,5 +1,5 @@
 import type { Config } from './config';
-import request from 'request';
+import axios from 'axios';
 import NamedError from './NamedError';
 
 export type Query = {
@@ -37,167 +37,130 @@ export class Zuora {
 		const exportQueries = queries.map((q) => {
 			return { ...q, type: 'zoqlexport' };
 		});
-		const options = {
-			method: 'POST',
-
-			uri: `${this.config.zuora.api.url}/apps/api/batch-query/`,
-			json: true,
-			body: {
-				format: 'csv',
-				version: '1.0',
-				name: 'Fulfilment-Queries',
-				encrypted: 'none',
-				useQueryLabels: 'true',
-				dateTimeUtc: 'true',
-				queries: exportQueries,
-			},
-			headers: {
-				...this.authorization,
-				'Content-Type': 'application/json',
-			},
-		};
-		const promise = new Promise((resolve, reject) => {
-			request(options, function (error, response, body) {
-				if (error) {
-					reject(error);
-					return;
+		try {
+			const response = await axios.post(
+				`${this.config.zuora.api.url}/apps/api/batch-query/`,
+				{
+					format: 'csv',
+					version: '1.0',
+					name: 'Fulfilment-Queries',
+					encrypted: 'none',
+					useQueryLabels: 'true',
+					dateTimeUtc: 'true',
+					queries: exportQueries,
+				},
+				{
+					headers: {
+						...this.authorization,
+						'Content-Type': 'application/json',
+					},
 				}
+			);
 
-				console.log('statusCode:', response && response.statusCode);
+			console.log('statusCode:', response.status);
 
-				if (response.statusCode !== 200) {
-					console.log(`error response status ${response.statusCode}`);
-					reject(
-						new NamedError(
-							'api_call_error',
-							`error response status ${response.statusCode}`,
-						),
-					);
-				} else if (body.errorCode) {
-					console.log(`zuora error! code: ${body.errorCode} : ${body.message}`);
-					reject(
-						new NamedError(
-							'api_call_error',
-							`zuora error! code: ${body.errorCode} : ${body.message}`,
-						),
+			if (response.data.errorCode) {
+				console.log(`zuora error! code: ${response.data.errorCode} : ${response.data.message}`);
+				throw new NamedError(
+					'api_call_error',
+					`zuora error! code: ${response.data.errorCode} : ${response.data.message}`,
+				);
+			}
+
+			console.log('jobId: ', response.data.id);
+			return response.data.id;
+		} catch (error) {
+			if (axios.isAxiosError(error) && error.response) {
+				console.log(`error response status ${error.response.status}`);
+				throw new NamedError(
+					'api_call_error',
+					`error response status ${error.response.status}`,
+				);
+			}
+			throw error;
+		}
+	}
+
+	async fetchFile(batch: Batch, deliveryDate: string): Promise<FileData> {
+		console.log(`fetching file from zuora with id ${batch.fileId}`);
+		try {
+			const response = await axios.get(
+				`${this.config.zuora.api.url}/apps/api/batch-query/file/${batch.fileId}`,
+				{
+					headers: {
+						...this.authorization,
+						'Content-Type': 'application/json',
+					},
+					responseType: 'arraybuffer',
+				}
+			);
+
+			// TODO SEE HOW TO DETECT FAILURES OR ANY OTHER SPECIAL CASE HERE
+			const fileData = {
+				batchName: batch.name,
+				fileName: `${batch.name}_${deliveryDate}_${batch.fileId}.csv`,
+				data: Buffer.from(response.data),
+			};
+			return fileData;
+		} catch (error) {
+			if (axios.isAxiosError(error) && error.response) {
+				throw new NamedError(
+					'api_call_error',
+					`error response status ${error.response.status} when getting batch ${batch.name}`,
+				);
+			}
+			throw new NamedError('api_call_error', JSON.stringify(error));
+		}
+	}
+
+	async getJobResult(jobId: string): Promise<Array<Batch>> {
+		console.log(`getting job results for jobId=${jobId}`);
+		try {
+			const response = await axios.get(
+				`${this.config.zuora.api.url}/apps/api/batch-query/jobs/${jobId}`,
+				{
+					headers: {
+						...this.authorization,
+						'Content-Type': 'application/json',
+					},
+				}
+			);
+
+			console.log('Job result received.');
+			const body = response.data;
+
+			if (body.status !== 'completed') {
+				if (body.status !== 'error' && body.status !== 'aborted') {
+					throw new NamedError(
+						'zuora_job_pending',
+						`job status was ${body.status} api call should be retried later`,
 					);
 				} else {
-					console.log('jobId: ', body.id);
-					resolve(body.id);
+					throw new NamedError(
+						'api_call_error',
+						`job status was ${body.status} expected completed`,
+					);
 				}
-			});
-		});
-		return promise;
-	}
+			}
 
-	fetchFile(batch: Batch, deliveryDate: string): Promise<FileData> {
-		return new Promise((resolve, reject) => {
-			console.log(`fetching file from zuora with id ${batch.fileId}`);
-			const options = {
-				method: 'GET',
-				uri: `${this.config.zuora.api.url}/apps/api/batch-query/file/${batch.fileId}`,
-				json: true,
-				headers: {
-					...this.authorization,
-					'Content-Type': 'application/json',
-				},
-			};
-			request(
-				options,
-				function (
-					error: unknown,
-					response: { statusCode: number },
-					body: Buffer,
-				) {
-					if (error) {
-						reject(new NamedError('api_call_error', JSON.stringify(error)));
-						return;
-					}
-					if (response.statusCode !== 200) {
-						reject(
-							new NamedError(
-								'api_call_error',
-								`error response status ${response.statusCode} when getting batch ${batch.name}`,
-							),
-						);
-					} else {
-						// TODO SEE HOW TO DETECT FAILURES OR ANY OTHER SPECIAL CASE HERE
-						const fileData = {
-							batchName: batch.name,
-							fileName: `${batch.name}_${deliveryDate}_${batch.fileId}.csv`,
-							data: body,
-						};
-						resolve(fileData);
-					}
-				},
-			);
-		});
-	}
-
-	getJobResult(jobId: string): Promise<Array<Batch>> {
-		return new Promise((resolve, reject) => {
-			console.log(`getting job results for jobId=${jobId}`);
-			const options = {
-				method: 'GET',
-				uri: `${this.config.zuora.api.url}/apps/api/batch-query/jobs/${jobId}`,
-				json: true,
-				headers: {
-					...this.authorization,
-					'Content-Type': 'application/json',
-				},
-			};
-			request(
-				options,
-				(
-					error: unknown,
-					response: { statusCode: number },
-					body: { status: string; batches: Batch[] },
-				) => {
-					console.log('Job result received.');
-					if (error) {
-						reject(new NamedError('api_call_error', JSON.stringify(error)));
-						return;
-					}
-
-					if (response.statusCode !== 200) {
-						reject(
-							new NamedError(
-								'api_call_error',
-								`error response status ${response.statusCode} while getting job result`,
-							),
-						);
-					} else if (body.status !== 'completed') {
-						if (body.status !== 'error' && body.status !== 'aborted') {
-							reject(
-								new NamedError(
-									'zuora_job_pending',
-									`job status was ${body.status} api call should be retried later`,
-								),
-							);
-						} else {
-							reject(
-								new NamedError(
-									'api_call_error',
-									`job status was ${body.status} expected completed`,
-								),
-							);
-						}
-					} else {
-						// TODO SEE HOW TO DETECT FAILURES OR ANY OTHER SPECIAL CASE HERE
-						const notCompleted = body.batches
-							.filter((batch: Batch) => batch.status !== 'completed')
-							.map(
-								(batch: Batch) => `${batch.name} is in status: ${batch.status}`,
-							);
-						if (notCompleted.length > 1) {
-							reject(
-								new NamedError('batch_not_completed', notCompleted.join()),
-							);
-						}
-						resolve(body.batches);
-					}
-				},
-			);
-		});
+			// TODO SEE HOW TO DETECT FAILURES OR ANY OTHER SPECIAL CASE HERE
+			const notCompleted = body.batches
+				.filter((batch: Batch) => batch.status !== 'completed')
+				.map(
+					(batch: Batch) => `${batch.name} is in status: ${batch.status}`,
+				);
+			if (notCompleted.length > 1) {
+				throw new NamedError('batch_not_completed', notCompleted.join());
+			}
+			return body.batches;
+		} catch (error) {
+			if (axios.isAxiosError(error) && error.response) {
+				throw new NamedError(
+					'api_call_error',
+					`error response status ${error.response.status} while getting job result`,
+				);
+			}
+			throw error;
+		}
 	}
 }
