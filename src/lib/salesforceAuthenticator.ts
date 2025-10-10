@@ -26,7 +26,7 @@ export async function authenticate(config: Config) {
 
 export class Salesforce {
 	url: string;
-	headers: Object;
+	headers: Record<string, string>;
 	constructor(url: string, token: string) {
 		this.url = url;
 		this.headers = { Authorization: `Bearer ${token}` };
