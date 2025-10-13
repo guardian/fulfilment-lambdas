@@ -22,19 +22,17 @@ jest.mock('../../src/lib/config', () => {
 	};
 });
 
-jest.mock('axios', () => {
-	return {
-		post: jest.fn(() =>
+// Mock fetch
+global.fetch = jest.fn(() =>
+	Promise.resolve({
+		ok: true,
+		status: 200,
+		json: () =>
 			Promise.resolve({
-				status: 200,
-				data: {
-					id: 'someId',
-				},
+				id: 'someId',
 			}),
-		),
-		isAxiosError: jest.fn(() => false),
-	};
-});
+	}),
+) as jest.Mock;
 
 test('should return error if missing delivery date and deliveryDateDaysFromNow ', async () => {
 	await expect(handler({ type: 'homedelivery' })).rejects.toThrow();

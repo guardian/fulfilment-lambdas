@@ -1,8 +1,8 @@
-import axios from 'axios';
 import FormData from 'form-data';
 import type { Config } from './config';
 import NamedError from './NamedError';
 import { S3 } from 'aws-sdk';
+import { Readable } from 'stream';
 
 export type Folder = {
 	folderId: string;
@@ -20,8 +20,20 @@ export async function authenticate(config: Config) {
 		username: config.salesforce.api.username,
 		password: `${config.salesforce.api.password}${config.salesforce.api.token}`,
 	});
-	const response = await axios.post(url, params);
-	return new Salesforce(response.data.instance_url, response.data.access_token);
+	const response = await fetch(url, {
+		method: 'POST',
+		body: params,
+	});
+
+	if (!response.ok) {
+		throw new Error(`Authentication failed with status ${response.status}`);
+	}
+
+	const data = (await response.json()) as {
+		instance_url: string;
+		access_token: string;
+	};
+	return new Salesforce(data.instance_url, data.access_token);
 }
 
 export class Salesforce {
@@ -32,20 +44,36 @@ export class Salesforce {
 		this.headers = { Authorization: `Bearer ${token}` };
 	}
 
-	getStream(endpoint: string) {
-		return axios
-			.get(`${this.url}${endpoint}`, {
-				headers: this.headers,
-				responseType: 'stream',
-			})
-			.then((response) => response.data);
+	async getStream(endpoint: string) {
+		const response = await fetch(`${this.url}${endpoint}`, {
+			headers: this.headers,
+		});
+
+		if (!response.ok) {
+			throw new Error(
+				`Failed to get stream from ${endpoint}: ${response.status}`,
+			);
+		}
+
+		if (!response.body) {
+			throw new Error(`No response body from ${endpoint}`);
+		}
+
+		// Convert Web ReadableStream to Node.js Readable stream
+		return Readable.fromWeb(response.body as any);
 	}
 
 	async get(endpoint: string) {
-		const response = await axios.get(`${this.url}${endpoint}`, {
+		const response = await fetch(`${this.url}${endpoint}`, {
 			headers: this.headers,
 		});
-		return JSON.stringify(response.data);
+
+		if (!response.ok) {
+			throw new Error(`GET request failed: ${response.status}`);
+		}
+
+		const data = await response.json();
+		return JSON.stringify(data);
 	}
 
 	async post(endpoint: string, form: { [key: string]: unknown }) {
@@ -66,13 +94,21 @@ export class Salesforce {
 				formData.append(key, value as any);
 			}
 		}
-		const response = await axios.post(`${this.url}${endpoint}`, formData, {
+		const response = await fetch(`${this.url}${endpoint}`, {
+			method: 'POST',
 			headers: {
 				...this.headers,
 				...formData.getHeaders(),
 			},
+			body: formData as any,
 		});
-		return JSON.stringify(response.data);
+
+		if (!response.ok) {
+			throw new Error(`POST request failed: ${response.status}`);
+		}
+
+		const data = await response.json();
+		return JSON.stringify(data);
 	}
 
 	async uploadDocument(
