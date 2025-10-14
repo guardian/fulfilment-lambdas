@@ -143,13 +143,8 @@ or
 
 ## Skipping TeamCity for quicker development feedback loop in CODE
 
-1. Set `"uploadArtefact": false,` at the root of `package.json` which disables automatic upload of the zipped artefact
-1. Simulate TC build by creating yarn script which
-   ```
-   "mario": "yarn install && yarn check && yarn flow && yarn compile && yarn dist && yarn riffraff"
-   ```
-1. Execute with `yarn mario`
-1. Artefact is created under `fulfilment-lambdas/target/riffraff/fulfilment-lambdas/fulfilment-lambdas.zip`
+1. Run the package command: `pnpm package`
+1. Artefact is created under `dist/fulfilment-lambdas.zip`
 1. Manually upload lambda function code to CODE via AWS Console
 1. Run step function
 1. Check S3 bucket
@@ -218,22 +213,34 @@ Revert
 
 ## Running Locally
 
-FIXME: Is this still working?
+### Setup
 
-Each lambda can be run locally using the appropriate `yarn run:` command. This uses [lambda-local](https://github.com/ashiina/lambda-local) to emulate the AWS environment.
-_Note: A specific build is referenced in package.json as there is a bug in lambda-local regarding aws credentials that hasn't been fixed in the main branch_
-
-To install dependencies for running locally:
+Enable corepack (one-time setup):
 
 ```bash
-yarn install
-yarn dist
+corepack enable
 ```
 
-And to transpile the lambdas:
+Install dependencies:
 
 ```bash
-yarn compile
+pnpm install
 ```
 
-This will transpile any ES6/7 into javascript which will run on the Node environment of AWS.
+### Running Lambdas Locally
+
+Each lambda can be run locally using the appropriate `pnpm run:` command. This uses [lambda-local](https://github.com/ashiina/lambda-local) to emulate the AWS environment.
+
+Build the lambdas:
+
+```bash
+pnpm build
+```
+
+Run a specific lambda (examples):
+
+```bash
+pnpm run:hd:querier
+pnpm run:weekly:querier
+pnpm run:sf
+```
