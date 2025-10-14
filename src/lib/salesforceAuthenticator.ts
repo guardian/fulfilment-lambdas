@@ -2,7 +2,7 @@ import FormData from 'form-data';
 import type { Config } from './config';
 import NamedError from './NamedError';
 import { S3 } from 'aws-sdk';
-import { Readable } from 'stream';
+import { Readable, PassThrough } from 'stream';
 
 export type Folder = {
 	folderId: string;
@@ -94,13 +94,26 @@ export class Salesforce {
 				formData.append(key, value as any);
 			}
 		}
+
+		// Convert FormData stream to Buffer for fetch (form-data npm package is stream-based)
+		// Pipe through PassThrough to properly consume the stream
+		const passthrough = new PassThrough();
+		formData.pipe(passthrough);
+
+		const buffer = await new Promise<Buffer>((resolve, reject) => {
+			const chunks: Buffer[] = [];
+			passthrough.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
+			passthrough.on('end', () => resolve(Buffer.concat(chunks)));
+			passthrough.on('error', reject);
+		});
+
 		const response = await fetch(`${this.url}${endpoint}`, {
 			method: 'POST',
 			headers: {
 				...this.headers,
 				...formData.getHeaders(),
 			},
-			body: formData as any,
+			body: buffer,
 		});
 
 		if (!response.ok) {
