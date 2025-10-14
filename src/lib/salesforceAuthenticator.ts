@@ -95,14 +95,12 @@ export class Salesforce {
 			}
 		}
 
-		// Convert FormData to Buffer for fetch (form-data npm package is stream-based)
-		const buffer = await new Promise<Buffer>((resolve, reject) => {
-			// @ts-expect-error - form-data types don't include getBuffer but it exists
-			formData.getBuffer((err: Error | null, buffer: Buffer) => {
-				if (err) reject(err);
-				else resolve(buffer);
-			});
-		});
+		// Convert FormData stream to Buffer for fetch (form-data npm package is stream-based)
+		const chunks: Buffer[] = [];
+		for await (const chunk of formData as any) {
+			chunks.push(Buffer.from(chunk));
+		}
+		const buffer = Buffer.concat(chunks);
 
 		const response = await fetch(`${this.url}${endpoint}`, {
 			method: 'POST',
