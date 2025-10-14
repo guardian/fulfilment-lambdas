@@ -96,11 +96,12 @@ export class Salesforce {
 		}
 
 		// Convert FormData stream to Buffer for fetch (form-data npm package is stream-based)
-		const chunks: Buffer[] = [];
-		for await (const chunk of formData as any) {
-			chunks.push(Buffer.from(chunk));
-		}
-		const buffer = Buffer.concat(chunks);
+		const buffer = await new Promise<Buffer>((resolve, reject) => {
+			const chunks: Buffer[] = [];
+			formData.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
+			formData.on('end', () => resolve(Buffer.concat(chunks)));
+			formData.on('error', reject);
+		});
 
 		const response = await fetch(`${this.url}${endpoint}`, {
 			method: 'POST',
