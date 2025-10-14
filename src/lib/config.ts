@@ -87,7 +87,7 @@ function fetchConfigForStage(stage: Stage): Promise<Config> {
 					),
 				);
 			} else {
-				const json = JSON.parse(Buffer.from(data.Body as Buffer).toString());
+				const json = JSON.parse((data.Body as Buffer).toString());
 				console.log('Config succesfully downloaded and parsed.');
 				resolve({
 					stage: stage,

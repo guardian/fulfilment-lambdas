@@ -8,4 +8,5 @@ jsconfig.json
 .vscode/
 *.csv
 .DS_Store
-yarn-error.log
+pnpm-debug.log
+.pnpm-store

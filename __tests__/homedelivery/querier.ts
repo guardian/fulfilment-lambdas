@@ -22,21 +22,17 @@ jest.mock('../../src/lib/config', () => {
 	};
 });
 
-jest.mock('request', () => {
-	return function (
-		options: unknown,
-		callback: (arg1: unknown, res: unknown, body: unknown) => void,
-	) {
-		const response = {
-			statusCode: 200,
-		};
-		const body = {
-			id: 'someId',
-		};
-		// TODO SEE IF WE CAN VERIFY SOMETHING ABOUT THE QUERIES HERE!
-		callback(null, response, body);
-	};
-});
+// Mock fetch
+global.fetch = jest.fn(() =>
+	Promise.resolve({
+		ok: true,
+		status: 200,
+		json: () =>
+			Promise.resolve({
+				id: 'someId',
+			}),
+	}),
+) as jest.Mock;
 
 test('should return error if missing delivery date and deliveryDateDaysFromNow ', async () => {
 	await expect(handler({ type: 'homedelivery' })).rejects.toThrow();

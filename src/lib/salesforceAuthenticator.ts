@@ -1,8 +1,8 @@
-import request from 'request';
-import rp from 'request-promise-native';
+import FormData from 'form-data';
 import type { Config } from './config';
 import NamedError from './NamedError';
 import { S3 } from 'aws-sdk';
+import { Readable } from 'stream';
 
 export type Folder = {
 	folderId: string;
@@ -13,43 +13,102 @@ export async function authenticate(config: Config) {
 	console.log('Authenticating with Salesforce.');
 
 	const url = `https://${config.salesforce.api.salesforceUrl}/services/oauth2/token`;
-	const auth = {
+	const params = new URLSearchParams({
 		grant_type: 'password',
 		client_id: config.salesforce.api.consumer_key,
 		client_secret: config.salesforce.api.consumer_secret,
 		username: config.salesforce.api.username,
 		password: `${config.salesforce.api.password}${config.salesforce.api.token}`,
+	});
+	const response = await fetch(url, {
+		method: 'POST',
+		body: params,
+	});
+
+	if (!response.ok) {
+		throw new Error(`Authentication failed with status ${response.status}`);
+	}
+
+	const data = (await response.json()) as {
+		instance_url: string;
+		access_token: string;
 	};
-	const result = await rp.post(url, { form: auth });
-	const j = JSON.parse(result);
-	return new Salesforce(j.instance_url, j.access_token);
+	return new Salesforce(data.instance_url, data.access_token);
 }
 
 export class Salesforce {
 	url: string;
-	headers: Object;
+	headers: Record<string, string>;
 	constructor(url: string, token: string) {
 		this.url = url;
 		this.headers = { Authorization: `Bearer ${token}` };
 	}
 
-	getStream(endpoint: string) {
-		return request.get({
-			uri: `${this.url}${endpoint}`,
+	async getStream(endpoint: string) {
+		const response = await fetch(`${this.url}${endpoint}`, {
 			headers: this.headers,
 		});
+
+		if (!response.ok) {
+			throw new Error(
+				`Failed to get stream from ${endpoint}: ${response.status}`,
+			);
+		}
+
+		if (!response.body) {
+			throw new Error(`No response body from ${endpoint}`);
+		}
+
+		// Convert Web ReadableStream to Node.js Readable stream
+		return Readable.fromWeb(response.body as any);
 	}
 
-	get(endpoint: string) {
-		return rp.get({ uri: `${this.url}${endpoint}`, headers: this.headers });
-	}
-
-	post(endpoint: string, form: { [key: string]: unknown }) {
-		return rp.post({
-			uri: `${this.url}${endpoint}`,
+	async get(endpoint: string) {
+		const response = await fetch(`${this.url}${endpoint}`, {
 			headers: this.headers,
-			formData: form,
 		});
+
+		if (!response.ok) {
+			throw new Error(`GET request failed: ${response.status}`);
+		}
+
+		const data = await response.json();
+		return JSON.stringify(data);
+	}
+
+	async post(endpoint: string, form: { [key: string]: unknown }) {
+		const formData = new FormData();
+		for (const [key, value] of Object.entries(form)) {
+			if (
+				typeof value === 'object' &&
+				value !== null &&
+				'value' in value &&
+				'options' in value
+			) {
+				const v = value as {
+					value: unknown;
+					options: { contentType: string; filename?: string };
+				};
+				formData.append(key, v.value as any, v.options);
+			} else {
+				formData.append(key, value as any);
+			}
+		}
+		const response = await fetch(`${this.url}${endpoint}`, {
+			method: 'POST',
+			headers: {
+				...this.headers,
+				...formData.getHeaders(),
+			},
+			body: formData as any,
+		});
+
+		if (!response.ok) {
+			throw new Error(`POST request failed: ${response.status}`);
+		}
+
+		const data = await response.json();
+		return JSON.stringify(data);
 	}
 
 	async uploadDocument(
