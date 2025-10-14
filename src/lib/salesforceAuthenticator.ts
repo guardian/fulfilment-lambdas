@@ -94,13 +94,23 @@ export class Salesforce {
 				formData.append(key, value as any);
 			}
 		}
+
+		// Convert FormData to Buffer for fetch (form-data npm package is stream-based)
+		const buffer = await new Promise<Buffer>((resolve, reject) => {
+			// @ts-expect-error - form-data types don't include getBuffer but it exists
+			formData.getBuffer((err: Error | null, buffer: Buffer) => {
+				if (err) reject(err);
+				else resolve(buffer);
+			});
+		});
+
 		const response = await fetch(`${this.url}${endpoint}`, {
 			method: 'POST',
 			headers: {
 				...this.headers,
 				...formData.getHeaders(),
 			},
-			body: formData as any,
+			body: buffer,
 		});
 
 		if (!response.ok) {
