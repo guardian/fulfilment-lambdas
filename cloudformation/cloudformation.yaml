@@ -711,6 +711,107 @@ Resources:
     DependsOn: WeeklyUploaderLambda
 
   # Data Quality Alarms - Incident-driven validation (July 2025)
+  # Composite alarm that triggers on ANY data quality issue for Home Delivery
+  HomeDeliveryDataQualityCompositeAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions:
+        - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:alarms-handler-topic-${Stage}
+      AlarmName: !Join
+        - ' '
+        - - !FindInMap [ Constants, Alarm, Urgent ]
+          - !Ref 'Stage'
+          - 'Home Delivery Data Quality Issues Detected'
+      AlarmDescription: !Sub
+        - |
+          CRITICAL: Home Delivery fulfilment data has quality issues that may prevent newspaper delivery!
+
+          To investigate:
+          1. Check CloudWatch Metrics to see error counts:
+             - Go to: https://console.aws.amazon.com/cloudwatch/home?region=${AWS::Region}#metricsV2:graph=~();query=~'*7bfulfilment-lambdas*2cStage*2cFulfilmentType*2cErrorType*7d*20homedelivery
+
+          2. Find affected subscriptions in CloudWatch Logs:
+             - Log Group: /aws/lambda/zuora_fulfilment_exporter-${Stage}
+             - Search: "VALIDATION ERROR" to see all issues with subscription details
+             - AWS CLI: aws logs filter-log-events --log-group-name /aws/lambda/zuora_fulfilment_exporter-${Stage} --filter-pattern "VALIDATION ERROR" --profile membership --start-time $(($(echo $(date +%s) - 3600 | bc)))000
+
+          3. Fix in Zuora:
+             - Search for subscription ID (A-S########)
+             - Update missing fields (address, city, postcode, etc.)
+
+          ${Process}
+        - Stage: !Ref 'Stage'
+          Process: !FindInMap [ Constants, Alarm, Process ]
+      Metrics:
+        - Id: m1
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: fulfilment-lambdas
+              MetricName: ValidationError
+              Dimensions:
+                - Name: Stage
+                  Value: !Ref Stage
+                - Name: FulfilmentType
+                  Value: homedelivery
+                - Name: ErrorType
+                  Value: MissingAddress
+            Period: 300
+            Stat: Sum
+        - Id: m2
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: fulfilment-lambdas
+              MetricName: ValidationError
+              Dimensions:
+                - Name: Stage
+                  Value: !Ref Stage
+                - Name: FulfilmentType
+                  Value: homedelivery
+                - Name: ErrorType
+                  Value: MissingCity
+            Period: 300
+            Stat: Sum
+        - Id: m3
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: fulfilment-lambdas
+              MetricName: ValidationError
+              Dimensions:
+                - Name: Stage
+                  Value: !Ref Stage
+                - Name: FulfilmentType
+                  Value: homedelivery
+                - Name: ErrorType
+                  Value: MissingPostcode
+            Period: 300
+            Stat: Sum
+        - Id: m4
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: fulfilment-lambdas
+              MetricName: ValidationError
+              Dimensions:
+                - Name: Stage
+                  Value: !Ref Stage
+                - Name: FulfilmentType
+                  Value: homedelivery
+                - Name: ErrorType
+                  Value: MissingName
+            Period: 300
+            Stat: Sum
+        - Id: e1
+          Expression: "m1+m2+m3+m4"
+          Label: "Total Data Quality Errors"
+          ReturnData: true
+      ComparisonOperator: GreaterThanThreshold
+      Threshold: 0
+      EvaluationPeriods: 1
+      TreatMissingData: notBreaching
+
   MissingDeliveryAgentAlarm:
     Type: AWS::CloudWatch::Alarm
     Condition: CreateProdResources
@@ -866,6 +967,107 @@ Resources:
       TreatMissingData: notBreaching
 
   # Guardian Weekly Data Quality Alarms
+  # Composite alarm that triggers on ANY data quality issue for Guardian Weekly
+  GuardianWeeklyDataQualityCompositeAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions:
+        - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:alarms-handler-topic-${Stage}
+      AlarmName: !Join
+        - ' '
+        - - !FindInMap [ Constants, Alarm, Urgent ]
+          - !Ref 'Stage'
+          - 'Guardian Weekly Data Quality Issues Detected'
+      AlarmDescription: !Sub
+        - |
+          CRITICAL: Guardian Weekly fulfilment data has quality issues that may prevent newspaper delivery!
+
+          To investigate:
+          1. Check CloudWatch Metrics to see error counts:
+             - Go to: https://console.aws.amazon.com/cloudwatch/home?region=${AWS::Region}#metricsV2:graph=~();query=~'*7bfulfilment-lambdas*2cStage*2cFulfilmentType*2cErrorType*7d*20weekly
+
+          2. Find affected subscriptions in CloudWatch Logs:
+             - Log Group: /aws/lambda/zuora_fulfilment_exporter-${Stage}
+             - Search: "VALIDATION ERROR" to see all issues with subscription details
+             - AWS CLI: aws logs filter-log-events --log-group-name /aws/lambda/zuora_fulfilment_exporter-${Stage} --filter-pattern "VALIDATION ERROR" --profile membership --start-time $(($(echo $(date +%s) - 3600 | bc)))000
+
+          3. Fix in Zuora:
+             - Search for subscription ID (A-S########)
+             - Update missing fields (address, city, country, postcode, etc.)
+
+          ${Process}
+        - Stage: !Ref 'Stage'
+          Process: !FindInMap [ Constants, Alarm, Process ]
+      Metrics:
+        - Id: m1
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: fulfilment-lambdas
+              MetricName: ValidationError
+              Dimensions:
+                - Name: Stage
+                  Value: !Ref Stage
+                - Name: FulfilmentType
+                  Value: weekly
+                - Name: ErrorType
+                  Value: MissingAddress
+            Period: 300
+            Stat: Sum
+        - Id: m2
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: fulfilment-lambdas
+              MetricName: ValidationError
+              Dimensions:
+                - Name: Stage
+                  Value: !Ref Stage
+                - Name: FulfilmentType
+                  Value: weekly
+                - Name: ErrorType
+                  Value: MissingCity
+            Period: 300
+            Stat: Sum
+        - Id: m3
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: fulfilment-lambdas
+              MetricName: ValidationError
+              Dimensions:
+                - Name: Stage
+                  Value: !Ref Stage
+                - Name: FulfilmentType
+                  Value: weekly
+                - Name: ErrorType
+                  Value: MissingCountry
+            Period: 300
+            Stat: Sum
+        - Id: m4
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: fulfilment-lambdas
+              MetricName: ValidationError
+              Dimensions:
+                - Name: Stage
+                  Value: !Ref Stage
+                - Name: FulfilmentType
+                  Value: weekly
+                - Name: ErrorType
+                  Value: MissingPostcode
+            Period: 300
+            Stat: Sum
+        - Id: e1
+          Expression: "m1+m2+m3+m4"
+          Label: "Total Data Quality Errors"
+          ReturnData: true
+      ComparisonOperator: GreaterThanThreshold
+      Threshold: 0
+      EvaluationPeriods: 1
+      TreatMissingData: notBreaching
+
   MissingAddressWeeklyAlarm:
     Type: AWS::CloudWatch::Alarm
     Properties:
