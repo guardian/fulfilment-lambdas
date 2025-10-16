@@ -22,6 +22,8 @@ const ADDRESS_1 = 'SoldToContact.Address1';
 const CITY = 'SoldToContact.City';
 const COUNTRY = 'SoldToContact.Country';
 const POSTAL_CODE = 'SoldToContact.PostalCode';
+const FIRST_NAME = 'SoldToContact.FirstName';
+const LAST_NAME = 'SoldToContact.LastName';
 const HOLIDAYS_QUERY_NAME = 'WeeklyHolidaySuspensions';
 const SUBSCRIPTIONS_QUERY_NAME = 'WeeklySubscriptions';
 const INTRODUCTORY_QUERY_NAME = 'WeeklyIntroductoryPeriods';
@@ -86,6 +88,14 @@ const australiaFulfilmentCountries = [
 	'Singapore',
 	'Thailand',
 ];
+
+function getFullName(zFirstName: string, zLastName: string) {
+	let firstName = zFirstName;
+	if (firstName.trim() === '.') {
+		firstName = '';
+	}
+	return [firstName, zLastName].join(' ').trim();
+}
 
 /**
  * Transfroms raw CSV from Zuora to expected CSV format, splits it per regions, and uploads it to S3 fulfilments folder.
@@ -177,31 +187,36 @@ async function processSubs(
 				totalRowsProcessed++;
 
 				// Validate critical fields (incident-driven)
+				const customerName = getFullName(
+					row[FIRST_NAME] || '',
+					row[LAST_NAME] || '',
+				);
+
 				if (!row[ADDRESS_1] || row[ADDRESS_1]?.trim() === '') {
 					missingAddressCount++;
 					console.warn(
-						`VALIDATION ERROR: Missing address for subscription ${subscriptionName}`,
+						`VALIDATION ERROR: Missing address | Subscription: ${subscriptionName} | Customer: ${customerName} | City: ${row[CITY] || 'N/A'} | Country: ${row[COUNTRY] || 'N/A'} | Postcode: ${row[POSTAL_CODE] || 'N/A'}`,
 					);
 				}
 
 				if (!row[CITY] || row[CITY]?.trim() === '') {
 					missingCityCount++;
 					console.warn(
-						`VALIDATION ERROR: Missing city for subscription ${subscriptionName}`,
+						`VALIDATION ERROR: Missing city | Subscription: ${subscriptionName} | Customer: ${customerName} | Address: ${row[ADDRESS_1] || 'N/A'} | Country: ${row[COUNTRY] || 'N/A'} | Postcode: ${row[POSTAL_CODE] || 'N/A'}`,
 					);
 				}
 
 				if (!row[COUNTRY] || row[COUNTRY]?.trim() === '') {
 					missingCountryCount++;
 					console.warn(
-						`VALIDATION ERROR: Missing country for subscription ${subscriptionName}`,
+						`VALIDATION ERROR: Missing country | Subscription: ${subscriptionName} | Customer: ${customerName} | Address: ${row[ADDRESS_1] || 'N/A'} | City: ${row[CITY] || 'N/A'} | Postcode: ${row[POSTAL_CODE] || 'N/A'}`,
 					);
 				}
 
 				if (!row[POSTAL_CODE] || row[POSTAL_CODE]?.trim() === '') {
 					missingPostcodeCount++;
 					console.warn(
-						`VALIDATION ERROR: Missing postcode for subscription ${subscriptionName}`,
+						`VALIDATION ERROR: Missing postcode | Subscription: ${subscriptionName} | Customer: ${customerName} | Address: ${row[ADDRESS_1] || 'N/A'} | City: ${row[CITY] || 'N/A'} | Country: ${row[COUNTRY] || 'N/A'}`,
 					);
 				}
 

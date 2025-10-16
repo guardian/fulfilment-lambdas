@@ -211,22 +211,34 @@ async function processSubs(
 
 			if (!row[ADDRESS_1] || row[ADDRESS_1]?.trim() === '') {
 				missingAddressCount++;
+				const customerName = getFullName(
+					row[FIRST_NAME] || '',
+					row[LAST_NAME] || '',
+				);
 				console.warn(
-					`VALIDATION ERROR: Missing address for subscription ${subscriptionName}`,
+					`VALIDATION ERROR: Missing address | Subscription: ${subscriptionName} | Customer: ${customerName} | City: ${row[CITY] || 'N/A'} | Postcode: ${row[POSTAL_CODE] || 'N/A'}`,
 				);
 			}
 
 			if (!row[CITY] || row[CITY]?.trim() === '') {
 				missingCityCount++;
+				const customerName = getFullName(
+					row[FIRST_NAME] || '',
+					row[LAST_NAME] || '',
+				);
 				console.warn(
-					`VALIDATION ERROR: Missing city for subscription ${subscriptionName}`,
+					`VALIDATION ERROR: Missing city | Subscription: ${subscriptionName} | Customer: ${customerName} | Address: ${row[ADDRESS_1] || 'N/A'} | Postcode: ${row[POSTAL_CODE] || 'N/A'}`,
 				);
 			}
 
 			if (!row[POSTAL_CODE] || row[POSTAL_CODE]?.trim() === '') {
 				missingPostcodeCount++;
+				const customerName = getFullName(
+					row[FIRST_NAME] || '',
+					row[LAST_NAME] || '',
+				);
 				console.warn(
-					`VALIDATION ERROR: Missing postcode for subscription ${subscriptionName}`,
+					`VALIDATION ERROR: Missing postcode | Subscription: ${subscriptionName} | Customer: ${customerName} | Address: ${row[ADDRESS_1] || 'N/A'} | City: ${row[CITY] || 'N/A'}`,
 				);
 			}
 
