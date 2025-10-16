@@ -837,7 +837,6 @@ Resources:
 
   MissingCityHomeDeliveryAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: CreateProdResources
     Properties:
       AlarmActions:
         - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:alarms-handler-topic-${Stage}
@@ -869,7 +868,6 @@ Resources:
   # Guardian Weekly Data Quality Alarms
   MissingAddressWeeklyAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: CreateProdResources
     Properties:
       AlarmActions:
         - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:alarms-handler-topic-${Stage}
@@ -900,7 +898,6 @@ Resources:
 
   MissingCityWeeklyAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: CreateProdResources
     Properties:
       AlarmActions:
         - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:alarms-handler-topic-${Stage}
@@ -931,7 +928,6 @@ Resources:
 
   MissingCountryWeeklyAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: CreateProdResources
     Properties:
       AlarmActions:
         - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:alarms-handler-topic-${Stage}
@@ -962,7 +958,6 @@ Resources:
 
   MissingPostcodeWeeklyAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: CreateProdResources
     Properties:
       AlarmActions:
         - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:alarms-handler-topic-${Stage}
