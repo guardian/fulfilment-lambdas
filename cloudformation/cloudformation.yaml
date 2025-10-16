@@ -845,12 +845,10 @@ Resources:
         - - !FindInMap [ Constants, Alarm, Urgent ]
           - !Ref 'Stage'
           - 'Home Delivery files have missing city information'
-      AlarmDescription: !Join
-        - ' '
-        - - 'Impact - Home Delivery customers may not receive their newspapers due to missing city. Investigate fulfilment data ASAP! Check CloudWatch Logs for subscription details: search for "VALIDATION ERROR: Missing city" in /aws/lambda/fulfilment-lambdas-'
-          - !Ref 'Stage'
-          - '-exporter to find affected subscriptions.'
-          - !FindInMap [ Constants, Alarm, Process ]
+      AlarmDescription: !Sub
+        - 'Impact - Home Delivery customers may not receive their newspapers due to missing city. Investigate fulfilment data ASAP! Check CloudWatch Logs for subscription details: search for "VALIDATION ERROR: Missing city" in /aws/lambda/fulfilment-lambdas-${Stage}-exporter to find affected subscriptions. ${Process}'
+        - Stage: !Ref 'Stage'
+          Process: !FindInMap [ Constants, Alarm, Process ]
       MetricName: ValidationError
       Namespace: fulfilment-lambdas
       Dimensions:
@@ -878,12 +876,10 @@ Resources:
         - - !FindInMap [ Constants, Alarm, Urgent ]
           - !Ref 'Stage'
           - 'Guardian Weekly files have missing address information'
-      AlarmDescription: !Join
-        - ' '
-        - - 'Impact - Guardian Weekly subscribers may not receive their paper due to missing address. Investigate fulfilment data ASAP! Check CloudWatch Logs for subscription details: search for "VALIDATION ERROR: Missing address" in /aws/lambda/fulfilment-lambdas-'
-          - !Ref 'Stage'
-          - '-exporter to find affected subscriptions.'
-          - !FindInMap [ Constants, Alarm, Process ]
+      AlarmDescription: !Sub
+        - 'Impact - Guardian Weekly subscribers may not receive their paper due to missing address. Investigate fulfilment data ASAP! Check CloudWatch Logs for subscription details: search for "VALIDATION ERROR: Missing address" in /aws/lambda/fulfilment-lambdas-${Stage}-exporter to find affected subscriptions. ${Process}'
+        - Stage: !Ref 'Stage'
+          Process: !FindInMap [ Constants, Alarm, Process ]
       MetricName: ValidationError
       Namespace: fulfilment-lambdas
       Dimensions:
@@ -910,12 +906,10 @@ Resources:
         - - !FindInMap [ Constants, Alarm, Urgent ]
           - !Ref 'Stage'
           - 'Guardian Weekly files have missing city information'
-      AlarmDescription: !Join
-        - ' '
-        - - 'Impact - Guardian Weekly subscribers may not receive their paper due to missing city. Investigate fulfilment data ASAP! Check CloudWatch Logs for subscription details: search for "VALIDATION ERROR: Missing city" in /aws/lambda/fulfilment-lambdas-'
-          - !Ref 'Stage'
-          - '-exporter to find affected subscriptions.'
-          - !FindInMap [ Constants, Alarm, Process ]
+      AlarmDescription: !Sub
+        - 'Impact - Guardian Weekly subscribers may not receive their paper due to missing city. Investigate fulfilment data ASAP! Check CloudWatch Logs for subscription details: search for "VALIDATION ERROR: Missing city" in /aws/lambda/fulfilment-lambdas-${Stage}-exporter to find affected subscriptions. ${Process}'
+        - Stage: !Ref 'Stage'
+          Process: !FindInMap [ Constants, Alarm, Process ]
       MetricName: ValidationError
       Namespace: fulfilment-lambdas
       Dimensions:
@@ -942,12 +936,10 @@ Resources:
         - - !FindInMap [ Constants, Alarm, Urgent ]
           - !Ref 'Stage'
           - 'Guardian Weekly files have missing country information'
-      AlarmDescription: !Join
-        - ' '
-        - - 'Impact - Guardian Weekly subscribers may not receive their paper due to missing country. Investigate fulfilment data ASAP! Check CloudWatch Logs for subscription details: search for "VALIDATION ERROR: Missing country" in /aws/lambda/fulfilment-lambdas-'
-          - !Ref 'Stage'
-          - '-exporter to find affected subscriptions.'
-          - !FindInMap [ Constants, Alarm, Process ]
+      AlarmDescription: !Sub
+        - 'Impact - Guardian Weekly subscribers may not receive their paper due to missing country. Investigate fulfilment data ASAP! Check CloudWatch Logs for subscription details: search for "VALIDATION ERROR: Missing country" in /aws/lambda/fulfilment-lambdas-${Stage}-exporter to find affected subscriptions. ${Process}'
+        - Stage: !Ref 'Stage'
+          Process: !FindInMap [ Constants, Alarm, Process ]
       MetricName: ValidationError
       Namespace: fulfilment-lambdas
       Dimensions:
@@ -974,12 +966,10 @@ Resources:
         - - !FindInMap [ Constants, Alarm, Urgent ]
           - !Ref 'Stage'
           - 'Guardian Weekly files have missing postcode information'
-      AlarmDescription: !Join
-        - ' '
-        - - 'Impact - Guardian Weekly subscribers may not receive their paper due to missing postcode. Investigate fulfilment data ASAP! Check CloudWatch Logs for subscription details: search for "VALIDATION ERROR: Missing postcode" in /aws/lambda/fulfilment-lambdas-'
-          - !Ref 'Stage'
-          - '-exporter to find affected subscriptions.'
-          - !FindInMap [ Constants, Alarm, Process ]
+      AlarmDescription: !Sub
+        - 'Impact - Guardian Weekly subscribers may not receive their paper due to missing postcode. Investigate fulfilment data ASAP! Check CloudWatch Logs for subscription details: search for "VALIDATION ERROR: Missing postcode" in /aws/lambda/fulfilment-lambdas-${Stage}-exporter to find affected subscriptions. ${Process}'
+        - Stage: !Ref 'Stage'
+          Process: !FindInMap [ Constants, Alarm, Process ]
       MetricName: ValidationError
       Namespace: fulfilment-lambdas
       Dimensions:
