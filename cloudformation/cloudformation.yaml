@@ -168,6 +168,13 @@ Resources:
                            Action:
                            - s3:ListBucket
                            Resource: !Sub arn:aws:s3:::${FulfilmentBucket}
+                - PolicyName: CloudWatchMetrics
+                  PolicyDocument:
+                      Statement:
+                          - Effect: Allow
+                            Action:
+                            - cloudwatch:PutMetricData
+                            Resource: "*"
 
   SalesforceUploaderLambda:
     Type: "AWS::Lambda::Function"
@@ -702,3 +709,128 @@ Resources:
       Statistic: Sum
       TreatMissingData: notBreaching
     DependsOn: WeeklyUploaderLambda
+
+  # Data Quality Alarms - Incident-driven validation (July 2025)
+  MissingDeliveryAgentAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: CreateProdResources
+    Properties:
+      AlarmActions:
+        - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:alarms-handler-topic-${Stage}
+      AlarmName: !Join
+        - ' '
+        - - !FindInMap [ Constants, Alarm, Urgent ]
+          - !Ref 'Stage'
+          - 'Fulfilment files have missing delivery agent information'
+      AlarmDescription: !Join
+        - ' '
+        - - 'Impact - Customers may not receive their newspapers due to missing delivery agent. Investigate fulfilment data ASAP!'
+          - !FindInMap [ Constants, Alarm, Process ]
+      MetricName: ValidationError
+      Namespace: fulfilment-lambdas
+      Dimensions:
+        - Name: Stage
+          Value: !Ref Stage
+        - Name: FulfilmentType
+          Value: homedelivery
+        - Name: ErrorType
+          Value: MissingDeliveryAgent
+      ComparisonOperator: GreaterThanThreshold
+      Threshold: 0
+      Period: 300
+      EvaluationPeriods: 1
+      Statistic: Sum
+      TreatMissingData: notBreaching
+
+  MissingAddressAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: CreateProdResources
+    Properties:
+      AlarmActions:
+        - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:alarms-handler-topic-${Stage}
+      AlarmName: !Join
+        - ' '
+        - - !FindInMap [ Constants, Alarm, Urgent ]
+          - !Ref 'Stage'
+          - 'Fulfilment files have missing address information'
+      AlarmDescription: !Join
+        - ' '
+        - - 'Impact - Customers may not receive their newspapers due to missing address. Investigate fulfilment data ASAP!'
+          - !FindInMap [ Constants, Alarm, Process ]
+      MetricName: ValidationError
+      Namespace: fulfilment-lambdas
+      Dimensions:
+        - Name: Stage
+          Value: !Ref Stage
+        - Name: FulfilmentType
+          Value: homedelivery
+        - Name: ErrorType
+          Value: MissingAddress
+      ComparisonOperator: GreaterThanThreshold
+      Threshold: 0
+      Period: 300
+      EvaluationPeriods: 1
+      Statistic: Sum
+      TreatMissingData: notBreaching
+
+  MissingPostcodeAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: CreateProdResources
+    Properties:
+      AlarmActions:
+        - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:alarms-handler-topic-${Stage}
+      AlarmName: !Join
+        - ' '
+        - - !FindInMap [ Constants, Alarm, Urgent ]
+          - !Ref 'Stage'
+          - 'Fulfilment files have missing postcode information'
+      AlarmDescription: !Join
+        - ' '
+        - - 'Impact - Customers may not receive their newspapers due to missing postcode. Investigate fulfilment data ASAP!'
+          - !FindInMap [ Constants, Alarm, Process ]
+      MetricName: ValidationError
+      Namespace: fulfilment-lambdas
+      Dimensions:
+        - Name: Stage
+          Value: !Ref Stage
+        - Name: FulfilmentType
+          Value: homedelivery
+        - Name: ErrorType
+          Value: MissingPostcode
+      ComparisonOperator: GreaterThanThreshold
+      Threshold: 0
+      Period: 300
+      EvaluationPeriods: 1
+      Statistic: Sum
+      TreatMissingData: notBreaching
+
+  MissingNameAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: CreateProdResources
+    Properties:
+      AlarmActions:
+        - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:alarms-handler-topic-${Stage}
+      AlarmName: !Join
+        - ' '
+        - - !FindInMap [ Constants, Alarm, Urgent ]
+          - !Ref 'Stage'
+          - 'Fulfilment files have missing customer name information'
+      AlarmDescription: !Join
+        - ' '
+        - - 'Impact - Customers may not receive their newspapers due to missing name. Investigate fulfilment data ASAP!'
+          - !FindInMap [ Constants, Alarm, Process ]
+      MetricName: ValidationError
+      Namespace: fulfilment-lambdas
+      Dimensions:
+        - Name: Stage
+          Value: !Ref Stage
+        - Name: FulfilmentType
+          Value: homedelivery
+        - Name: ErrorType
+          Value: MissingName
+      ComparisonOperator: GreaterThanThreshold
+      Threshold: 0
+      Period: 300
+      EvaluationPeriods: 1
+      Statistic: Sum
+      TreatMissingData: notBreaching

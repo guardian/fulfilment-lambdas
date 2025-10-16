@@ -27,7 +27,8 @@ async function queryZuora(deliveryDate: Moment, config: Config) {
         SoldToContact.PostalCode,
         SoldToContact.State,
         SoldToContact.workPhone,
-        SoldToContact.SpecialDeliveryInstructions__c
+        SoldToContact.SpecialDeliveryInstructions__c,
+        SoldToContact.DeliveryAgent__c
     FROM
       rateplancharge
     WHERE
