@@ -189,6 +189,7 @@ async function processSubs(
 	let totalRowsProcessed = 0;
 	let missingDeliveryAgentCount = 0;
 	let missingAddressCount = 0;
+	let missingCityCount = 0;
 	let missingPostcodeCount = 0;
 	let missingNameCount = 0;
 
@@ -212,6 +213,13 @@ async function processSubs(
 				missingAddressCount++;
 				console.warn(
 					`VALIDATION ERROR: Missing address for subscription ${subscriptionName}`,
+				);
+			}
+
+			if (!row[CITY] || row[CITY]?.trim() === '') {
+				missingCityCount++;
+				console.warn(
+					`VALIDATION ERROR: Missing city for subscription ${subscriptionName}`,
 				);
 			}
 
@@ -284,6 +292,7 @@ async function processSubs(
 		`Publishing metrics: ${totalRowsProcessed} rows processed, ` +
 			`${missingDeliveryAgentCount} missing agents, ` +
 			`${missingAddressCount} missing addresses, ` +
+			`${missingCityCount} missing cities, ` +
 			`${missingPostcodeCount} missing postcodes, ` +
 			`${missingNameCount} missing names`,
 	);
@@ -303,6 +312,9 @@ async function processSubs(
 			missingAddressCount,
 		);
 	}
+	if (missingCityCount > 0) {
+		await putValidationError('MissingCity', 'homedelivery', missingCityCount);
+	}
 	if (missingPostcodeCount > 0) {
 		await putValidationError(
 			'MissingPostcode',
@@ -311,11 +323,7 @@ async function processSubs(
 		);
 	}
 	if (missingNameCount > 0) {
-		await putValidationError(
-			'MissingName',
-			'homedelivery',
-			missingNameCount,
-		);
+		await putValidationError('MissingName', 'homedelivery', missingNameCount);
 	}
 
 	return outputFileName.filename;

@@ -834,3 +834,159 @@ Resources:
       EvaluationPeriods: 1
       Statistic: Sum
       TreatMissingData: notBreaching
+
+  MissingCityHomeDeliveryAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: CreateProdResources
+    Properties:
+      AlarmActions:
+        - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:alarms-handler-topic-${Stage}
+      AlarmName: !Join
+        - ' '
+        - - !FindInMap [ Constants, Alarm, Urgent ]
+          - !Ref 'Stage'
+          - 'Home Delivery files have missing city information'
+      AlarmDescription: !Join
+        - ' '
+        - - 'Impact - Home Delivery customers may not receive their newspapers due to missing city. Investigate fulfilment data ASAP!'
+          - !FindInMap [ Constants, Alarm, Process ]
+      MetricName: ValidationError
+      Namespace: fulfilment-lambdas
+      Dimensions:
+        - Name: Stage
+          Value: !Ref Stage
+        - Name: FulfilmentType
+          Value: homedelivery
+        - Name: ErrorType
+          Value: MissingCity
+      ComparisonOperator: GreaterThanThreshold
+      Threshold: 0
+      Period: 300
+      EvaluationPeriods: 1
+      Statistic: Sum
+      TreatMissingData: notBreaching
+
+  # Guardian Weekly Data Quality Alarms
+  MissingAddressWeeklyAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: CreateProdResources
+    Properties:
+      AlarmActions:
+        - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:alarms-handler-topic-${Stage}
+      AlarmName: !Join
+        - ' '
+        - - !FindInMap [ Constants, Alarm, Urgent ]
+          - !Ref 'Stage'
+          - 'Guardian Weekly files have missing address information'
+      AlarmDescription: !Join
+        - ' '
+        - - 'Impact - Guardian Weekly subscribers may not receive their paper due to missing address. Investigate fulfilment data ASAP!'
+          - !FindInMap [ Constants, Alarm, Process ]
+      MetricName: ValidationError
+      Namespace: fulfilment-lambdas
+      Dimensions:
+        - Name: Stage
+          Value: !Ref Stage
+        - Name: FulfilmentType
+          Value: weekly
+        - Name: ErrorType
+          Value: MissingAddress
+      ComparisonOperator: GreaterThanThreshold
+      Threshold: 0
+      Period: 300
+      EvaluationPeriods: 1
+      Statistic: Sum
+      TreatMissingData: notBreaching
+
+  MissingCityWeeklyAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: CreateProdResources
+    Properties:
+      AlarmActions:
+        - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:alarms-handler-topic-${Stage}
+      AlarmName: !Join
+        - ' '
+        - - !FindInMap [ Constants, Alarm, Urgent ]
+          - !Ref 'Stage'
+          - 'Guardian Weekly files have missing city information'
+      AlarmDescription: !Join
+        - ' '
+        - - 'Impact - Guardian Weekly subscribers may not receive their paper due to missing city. Investigate fulfilment data ASAP!'
+          - !FindInMap [ Constants, Alarm, Process ]
+      MetricName: ValidationError
+      Namespace: fulfilment-lambdas
+      Dimensions:
+        - Name: Stage
+          Value: !Ref Stage
+        - Name: FulfilmentType
+          Value: weekly
+        - Name: ErrorType
+          Value: MissingCity
+      ComparisonOperator: GreaterThanThreshold
+      Threshold: 0
+      Period: 300
+      EvaluationPeriods: 1
+      Statistic: Sum
+      TreatMissingData: notBreaching
+
+  MissingCountryWeeklyAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: CreateProdResources
+    Properties:
+      AlarmActions:
+        - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:alarms-handler-topic-${Stage}
+      AlarmName: !Join
+        - ' '
+        - - !FindInMap [ Constants, Alarm, Urgent ]
+          - !Ref 'Stage'
+          - 'Guardian Weekly files have missing country information'
+      AlarmDescription: !Join
+        - ' '
+        - - 'Impact - Guardian Weekly subscribers may not receive their paper due to missing country. Investigate fulfilment data ASAP!'
+          - !FindInMap [ Constants, Alarm, Process ]
+      MetricName: ValidationError
+      Namespace: fulfilment-lambdas
+      Dimensions:
+        - Name: Stage
+          Value: !Ref Stage
+        - Name: FulfilmentType
+          Value: weekly
+        - Name: ErrorType
+          Value: MissingCountry
+      ComparisonOperator: GreaterThanThreshold
+      Threshold: 0
+      Period: 300
+      EvaluationPeriods: 1
+      Statistic: Sum
+      TreatMissingData: notBreaching
+
+  MissingPostcodeWeeklyAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: CreateProdResources
+    Properties:
+      AlarmActions:
+        - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:alarms-handler-topic-${Stage}
+      AlarmName: !Join
+        - ' '
+        - - !FindInMap [ Constants, Alarm, Urgent ]
+          - !Ref 'Stage'
+          - 'Guardian Weekly files have missing postcode information'
+      AlarmDescription: !Join
+        - ' '
+        - - 'Impact - Guardian Weekly subscribers may not receive their paper due to missing postcode. Investigate fulfilment data ASAP!'
+          - !FindInMap [ Constants, Alarm, Process ]
+      MetricName: ValidationError
+      Namespace: fulfilment-lambdas
+      Dimensions:
+        - Name: Stage
+          Value: !Ref Stage
+        - Name: FulfilmentType
+          Value: weekly
+        - Name: ErrorType
+          Value: MissingPostcode
+      ComparisonOperator: GreaterThanThreshold
+      Threshold: 0
+      Period: 300
+      EvaluationPeriods: 1
+      Statistic: Sum
+      TreatMissingData: notBreaching

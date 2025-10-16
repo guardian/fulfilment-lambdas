@@ -15,8 +15,13 @@ import {
 } from './WeeklyExporter';
 import type { result, Input } from '../exporter';
 import getStream from 'get-stream';
+import { putValidationError, putRowsProcessed } from '../lib/cloudwatch';
 
 const SUBSCRIPTION_NAME = 'Subscription.Name';
+const ADDRESS_1 = 'SoldToContact.Address1';
+const CITY = 'SoldToContact.City';
+const COUNTRY = 'SoldToContact.Country';
+const POSTAL_CODE = 'SoldToContact.PostalCode';
 const HOLIDAYS_QUERY_NAME = 'WeeklyHolidaySuspensions';
 const SUBSCRIPTIONS_QUERY_NAME = 'WeeklySubscriptions';
 const INTRODUCTORY_QUERY_NAME = 'WeeklyIntroductoryPeriods';
@@ -151,6 +156,13 @@ async function processSubs(
 		rowExporter,
 	];
 
+	// Validation counters for CloudWatch metrics
+	let totalRowsProcessed = 0;
+	let missingAddressCount = 0;
+	let missingCityCount = 0;
+	let missingCountryCount = 0;
+	let missingPostcodeCount = 0;
+
 	const writableCsvPromise: Promise<void> = new Promise((resolve, reject) => {
 		downloadStream
 			.pipe(csv.parse({ headers: true }))
@@ -161,6 +173,38 @@ async function processSubs(
 			.on('data', (row) => {
 				const subscriptionName = row[SUBSCRIPTION_NAME];
 				if (holidaySuspensions.has(subscriptionName)) return;
+
+				totalRowsProcessed++;
+
+				// Validate critical fields (incident-driven)
+				if (!row[ADDRESS_1] || row[ADDRESS_1]?.trim() === '') {
+					missingAddressCount++;
+					console.warn(
+						`VALIDATION ERROR: Missing address for subscription ${subscriptionName}`,
+					);
+				}
+
+				if (!row[CITY] || row[CITY]?.trim() === '') {
+					missingCityCount++;
+					console.warn(
+						`VALIDATION ERROR: Missing city for subscription ${subscriptionName}`,
+					);
+				}
+
+				if (!row[COUNTRY] || row[COUNTRY]?.trim() === '') {
+					missingCountryCount++;
+					console.warn(
+						`VALIDATION ERROR: Missing country for subscription ${subscriptionName}`,
+					);
+				}
+
+				if (!row[POSTAL_CODE] || row[POSTAL_CODE]?.trim() === '') {
+					missingPostcodeCount++;
+					console.warn(
+						`VALIDATION ERROR: Missing postcode for subscription ${subscriptionName}`,
+					);
+				}
+
 				const selectedExporter =
 					exporters.find((exporter) => exporter.useForRow(row)) || rowExporter;
 				selectedExporter.processRow(row);
@@ -186,7 +230,32 @@ async function processSubs(
 		await upload(streamAsString, outputFileName, exporter.folder);
 		return outputFileName;
 	});
-	return Promise.all(uploads);
+	const filenames = await Promise.all(uploads);
+
+	// Publish CloudWatch metrics
+	console.log(
+		`Publishing metrics: ${totalRowsProcessed} rows processed, ` +
+			`${missingAddressCount} missing addresses, ` +
+			`${missingCityCount} missing cities, ` +
+			`${missingCountryCount} missing countries, ` +
+			`${missingPostcodeCount} missing postcodes`,
+	);
+	await putRowsProcessed('weekly', totalRowsProcessed);
+
+	if (missingAddressCount > 0) {
+		await putValidationError('MissingAddress', 'weekly', missingAddressCount);
+	}
+	if (missingCityCount > 0) {
+		await putValidationError('MissingCity', 'weekly', missingCityCount);
+	}
+	if (missingCountryCount > 0) {
+		await putValidationError('MissingCountry', 'weekly', missingCountryCount);
+	}
+	if (missingPostcodeCount > 0) {
+		await putValidationError('MissingPostcode', 'weekly', missingPostcodeCount);
+	}
+
+	return filenames;
 }
 
 function getDeliveryDate(input: Input): Promise<Moment> {
