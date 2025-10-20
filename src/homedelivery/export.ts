@@ -185,7 +185,7 @@ async function processSubs(
 
 	// Validation counters for CloudWatch metrics
 	let totalRowsProcessed = 0;
-	let missingAddressCount = 0;
+	let missingStreetAddressCount = 0;
 	let missingPostcodeCount = 0;
 	let missingNameCount = 0;
 
@@ -199,7 +199,7 @@ async function processSubs(
 
 			// Validate critical fields (incident-driven)
 			if (!row[ADDRESS_1] || row[ADDRESS_1]?.trim() === '') {
-				missingAddressCount++;
+				missingStreetAddressCount++;
 				const customerName = getFullName(
 					row[FIRST_NAME] || '',
 					row[LAST_NAME] || '',
@@ -277,17 +277,17 @@ async function processSubs(
 	// Publish CloudWatch metrics
 	console.log(
 		`Publishing metrics: ${totalRowsProcessed} rows processed, ` +
-			`${missingAddressCount} missing addresses, ` +
+			`${missingStreetAddressCount} missing addresses, ` +
 			`${missingPostcodeCount} missing postcodes, ` +
 			`${missingNameCount} missing names`,
 	);
 	await putRowsProcessed('homedelivery', totalRowsProcessed);
 
-	if (missingAddressCount > 0) {
+	if (missingStreetAddressCount > 0) {
 		await putValidationError(
 			'MissingStreetAddress',
 			'homedelivery',
-			missingAddressCount,
+			missingStreetAddressCount,
 		);
 	}
 	if (missingPostcodeCount > 0) {
