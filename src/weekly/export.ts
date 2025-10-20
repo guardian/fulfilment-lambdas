@@ -169,7 +169,6 @@ async function processSubs(
 	// Validation counters for CloudWatch metrics
 	let totalRowsProcessed = 0;
 	let missingAddressCount = 0;
-	let missingCityCount = 0;
 	let missingCountryCount = 0;
 	let missingPostcodeCount = 0;
 
@@ -196,13 +195,6 @@ async function processSubs(
 					missingAddressCount++;
 					console.warn(
 						`VALIDATION ERROR: Missing address | Subscription: ${subscriptionName} | Customer: ${customerName} | City: ${row[CITY] || 'N/A'} | Country: ${row[COUNTRY] || 'N/A'} | Postcode: ${row[POSTAL_CODE] || 'N/A'}`,
-					);
-				}
-
-				if (!row[CITY] || row[CITY]?.trim() === '') {
-					missingCityCount++;
-					console.warn(
-						`VALIDATION ERROR: Missing city | Subscription: ${subscriptionName} | Customer: ${customerName} | Address: ${row[ADDRESS_1] || 'N/A'} | Country: ${row[COUNTRY] || 'N/A'} | Postcode: ${row[POSTAL_CODE] || 'N/A'}`,
 					);
 				}
 
@@ -251,17 +243,13 @@ async function processSubs(
 	console.log(
 		`Publishing metrics: ${totalRowsProcessed} rows processed, ` +
 			`${missingAddressCount} missing addresses, ` +
-			`${missingCityCount} missing cities, ` +
 			`${missingCountryCount} missing countries, ` +
 			`${missingPostcodeCount} missing postcodes`,
 	);
 	await putRowsProcessed('weekly', totalRowsProcessed);
 
 	if (missingAddressCount > 0) {
-		await putValidationError('MissingAddress', 'weekly', missingAddressCount);
-	}
-	if (missingCityCount > 0) {
-		await putValidationError('MissingCity', 'weekly', missingCityCount);
+		await putValidationError('MissingStreetAddress', 'weekly', missingAddressCount);
 	}
 	if (missingCountryCount > 0) {
 		await putValidationError('MissingCountry', 'weekly', missingCountryCount);

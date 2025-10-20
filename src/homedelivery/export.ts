@@ -23,7 +23,6 @@ const POSTAL_CODE = 'SoldToContact.PostalCode';
 const SUBSCRIPTION_NAME = 'Subscription.Name';
 const QUANTITY = 'RatePlanCharge.Quantity';
 const DELIVERY_INSTRUCTIONS = 'SoldToContact.SpecialDeliveryInstructions__c';
-const DELIVERY_AGENT = 'SoldToContact.DeliveryAgent__c';
 
 const inputHeaders = [
 	ADDRESS_1,
@@ -35,7 +34,6 @@ const inputHeaders = [
 	SUBSCRIPTION_NAME,
 	QUANTITY,
 	DELIVERY_INSTRUCTIONS,
-	DELIVERY_AGENT,
 ];
 
 type InputHeader = (typeof inputHeaders)[number];
@@ -187,9 +185,7 @@ async function processSubs(
 
 	// Validation counters for CloudWatch metrics
 	let totalRowsProcessed = 0;
-	let missingDeliveryAgentCount = 0;
 	let missingAddressCount = 0;
-	let missingCityCount = 0;
 	let missingPostcodeCount = 0;
 	let missingNameCount = 0;
 
@@ -202,13 +198,6 @@ async function processSubs(
 			totalRowsProcessed++;
 
 			// Validate critical fields (incident-driven)
-			if (!row[DELIVERY_AGENT] || row[DELIVERY_AGENT]?.trim() === '') {
-				missingDeliveryAgentCount++;
-				console.warn(
-					`VALIDATION ERROR: Missing delivery agent for subscription ${subscriptionName}`,
-				);
-			}
-
 			if (!row[ADDRESS_1] || row[ADDRESS_1]?.trim() === '') {
 				missingAddressCount++;
 				const customerName = getFullName(
@@ -217,17 +206,6 @@ async function processSubs(
 				);
 				console.warn(
 					`VALIDATION ERROR: Missing address | Subscription: ${subscriptionName} | Customer: ${customerName} | City: ${row[CITY] || 'N/A'} | Postcode: ${row[POSTAL_CODE] || 'N/A'}`,
-				);
-			}
-
-			if (!row[CITY] || row[CITY]?.trim() === '') {
-				missingCityCount++;
-				const customerName = getFullName(
-					row[FIRST_NAME] || '',
-					row[LAST_NAME] || '',
-				);
-				console.warn(
-					`VALIDATION ERROR: Missing city | Subscription: ${subscriptionName} | Customer: ${customerName} | Address: ${row[ADDRESS_1] || 'N/A'} | Postcode: ${row[POSTAL_CODE] || 'N/A'}`,
 				);
 			}
 
@@ -242,10 +220,7 @@ async function processSubs(
 				);
 			}
 
-			if (
-				(!row[FIRST_NAME] || row[FIRST_NAME]?.trim() === '') &&
-				(!row[LAST_NAME] || row[LAST_NAME]?.trim() === '')
-			) {
+			if (!row[LAST_NAME] || row[LAST_NAME]?.trim() === '') {
 				missingNameCount++;
 				console.warn(
 					`VALIDATION ERROR: Missing customer name for subscription ${subscriptionName}`,
@@ -302,30 +277,18 @@ async function processSubs(
 	// Publish CloudWatch metrics
 	console.log(
 		`Publishing metrics: ${totalRowsProcessed} rows processed, ` +
-			`${missingDeliveryAgentCount} missing agents, ` +
 			`${missingAddressCount} missing addresses, ` +
-			`${missingCityCount} missing cities, ` +
 			`${missingPostcodeCount} missing postcodes, ` +
 			`${missingNameCount} missing names`,
 	);
 	await putRowsProcessed('homedelivery', totalRowsProcessed);
 
-	if (missingDeliveryAgentCount > 0) {
-		await putValidationError(
-			'MissingDeliveryAgent',
-			'homedelivery',
-			missingDeliveryAgentCount,
-		);
-	}
 	if (missingAddressCount > 0) {
 		await putValidationError(
-			'MissingAddress',
+			'MissingStreetAddress',
 			'homedelivery',
 			missingAddressCount,
 		);
-	}
-	if (missingCityCount > 0) {
-		await putValidationError('MissingCity', 'homedelivery', missingCityCount);
 	}
 	if (missingPostcodeCount > 0) {
 		await putValidationError(
