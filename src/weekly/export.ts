@@ -249,7 +249,11 @@ async function processSubs(
 	await putRowsProcessed('weekly', totalRowsProcessed);
 
 	if (missingAddressCount > 0) {
-		await putValidationError('MissingStreetAddress', 'weekly', missingAddressCount);
+		await putValidationError(
+			'MissingStreetAddress',
+			'weekly',
+			missingAddressCount,
+		);
 	}
 	if (missingCountryCount > 0) {
 		await putValidationError('MissingCountry', 'weekly', missingCountryCount);
