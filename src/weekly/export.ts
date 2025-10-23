@@ -15,8 +15,15 @@ import {
 } from './WeeklyExporter';
 import type { result, Input } from '../exporter';
 import getStream from 'get-stream';
+import { putValidationError, putRowsProcessed } from '../lib/cloudwatch';
 
 const SUBSCRIPTION_NAME = 'Subscription.Name';
+const ADDRESS_1 = 'SoldToContact.Address1';
+const CITY = 'SoldToContact.City';
+const COUNTRY = 'SoldToContact.Country';
+const POSTAL_CODE = 'SoldToContact.PostalCode';
+const FIRST_NAME = 'SoldToContact.FirstName';
+const LAST_NAME = 'SoldToContact.LastName';
 const HOLIDAYS_QUERY_NAME = 'WeeklyHolidaySuspensions';
 const SUBSCRIPTIONS_QUERY_NAME = 'WeeklySubscriptions';
 const INTRODUCTORY_QUERY_NAME = 'WeeklyIntroductoryPeriods';
@@ -81,6 +88,14 @@ const australiaFulfilmentCountries = [
 	'Singapore',
 	'Thailand',
 ];
+
+function getFullName(zFirstName: string, zLastName: string) {
+	let firstName = zFirstName;
+	if (firstName.trim() === '.') {
+		firstName = '';
+	}
+	return [firstName, zLastName].join(' ').trim();
+}
 
 /**
  * Transfroms raw CSV from Zuora to expected CSV format, splits it per regions, and uploads it to S3 fulfilments folder.
@@ -151,6 +166,12 @@ async function processSubs(
 		rowExporter,
 	];
 
+	// Validation counters for CloudWatch metrics
+	let totalRowsProcessed = 0;
+	let missingAddressCount = 0;
+	let missingCountryCount = 0;
+	let missingPostcodeCount = 0;
+
 	const writableCsvPromise: Promise<void> = new Promise((resolve, reject) => {
 		downloadStream
 			.pipe(csv.parse({ headers: true }))
@@ -161,6 +182,36 @@ async function processSubs(
 			.on('data', (row) => {
 				const subscriptionName = row[SUBSCRIPTION_NAME];
 				if (holidaySuspensions.has(subscriptionName)) return;
+
+				totalRowsProcessed++;
+
+				// Validate critical fields (incident-driven)
+				const customerName = getFullName(
+					row[FIRST_NAME] || '',
+					row[LAST_NAME] || '',
+				);
+
+				if (!row[ADDRESS_1] || row[ADDRESS_1]?.trim() === '') {
+					missingAddressCount++;
+					console.warn(
+						`VALIDATION ERROR: Missing address | Subscription: ${subscriptionName} | Customer: ${customerName} | City: ${row[CITY] || 'N/A'} | Country: ${row[COUNTRY] || 'N/A'} | Postcode: ${row[POSTAL_CODE] || 'N/A'}`,
+					);
+				}
+
+				if (!row[COUNTRY] || row[COUNTRY]?.trim() === '') {
+					missingCountryCount++;
+					console.warn(
+						`VALIDATION ERROR: Missing country | Subscription: ${subscriptionName} | Customer: ${customerName} | Address: ${row[ADDRESS_1] || 'N/A'} | City: ${row[CITY] || 'N/A'} | Postcode: ${row[POSTAL_CODE] || 'N/A'}`,
+					);
+				}
+
+				if (!row[POSTAL_CODE] || row[POSTAL_CODE]?.trim() === '') {
+					missingPostcodeCount++;
+					console.warn(
+						`VALIDATION ERROR: Missing postcode | Subscription: ${subscriptionName} | Customer: ${customerName} | Address: ${row[ADDRESS_1] || 'N/A'} | City: ${row[CITY] || 'N/A'} | Country: ${row[COUNTRY] || 'N/A'}`,
+					);
+				}
+
 				const selectedExporter =
 					exporters.find((exporter) => exporter.useForRow(row)) || rowExporter;
 				selectedExporter.processRow(row);
@@ -186,7 +237,32 @@ async function processSubs(
 		await upload(streamAsString, outputFileName, exporter.folder);
 		return outputFileName;
 	});
-	return Promise.all(uploads);
+	const filenames = await Promise.all(uploads);
+
+	// Publish CloudWatch metrics
+	console.log(
+		`Publishing metrics: ${totalRowsProcessed} rows processed, ` +
+			`${missingAddressCount} missing addresses, ` +
+			`${missingCountryCount} missing countries, ` +
+			`${missingPostcodeCount} missing postcodes`,
+	);
+	await putRowsProcessed('weekly', totalRowsProcessed);
+
+	if (missingAddressCount > 0) {
+		await putValidationError(
+			'MissingStreetAddress',
+			'weekly',
+			missingAddressCount,
+		);
+	}
+	if (missingCountryCount > 0) {
+		await putValidationError('MissingCountry', 'weekly', missingCountryCount);
+	}
+	if (missingPostcodeCount > 0) {
+		await putValidationError('MissingPostcode', 'weekly', missingPostcodeCount);
+	}
+
+	return filenames;
 }
 
 function getDeliveryDate(input: Input): Promise<Moment> {

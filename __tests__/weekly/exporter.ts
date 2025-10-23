@@ -169,6 +169,11 @@ jest.mock('../../src/lib/config', () => ({
 	}),
 }));
 
+jest.mock('../../src/lib/cloudwatch', () => ({
+	putValidationError: jest.fn().mockResolvedValue(undefined),
+	putRowsProcessed: jest.fn().mockResolvedValue(undefined),
+}));
+
 beforeEach(() => {
 	process.env.Stage = 'CODE';
 });

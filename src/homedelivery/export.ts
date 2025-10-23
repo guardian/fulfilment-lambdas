@@ -11,6 +11,7 @@ import { getStage, fetchConfig } from '../lib/config';
 import { generateFilename } from '../lib/Filename';
 import getStream from 'get-stream';
 import type { result, Input } from '../exporter';
+import { putValidationError, putRowsProcessed } from '../lib/cloudwatch';
 
 // input headers
 const ADDRESS_1 = 'SoldToContact.Address1';
@@ -182,12 +183,50 @@ async function processSubs(
 	console.log('loaded ' + holidaySuspensions.size + ' holiday suspensions');
 	const csvFormatterStream = csvFormatterForSalesforce(outputHeaders);
 
+	// Validation counters for CloudWatch metrics
+	let totalRowsProcessed = 0;
+	let missingStreetAddressCount = 0;
+	let missingPostcodeCount = 0;
+	let missingNameCount = 0;
+
 	const writeRowToCsvStream = (
 		row: Partial<InputRow>,
 		csvStream: csv.CsvFormatterStream<csv.FormatterRow, csv.FormatterRow>,
 	) => {
 		const subscriptionName = row[SUBSCRIPTION_NAME];
 		if (!holidaySuspensions.has(subscriptionName || '')) {
+			totalRowsProcessed++;
+
+			// Validate critical fields (incident-driven)
+			if (!row[ADDRESS_1] || row[ADDRESS_1]?.trim() === '') {
+				missingStreetAddressCount++;
+				const customerName = getFullName(
+					row[FIRST_NAME] || '',
+					row[LAST_NAME] || '',
+				);
+				console.warn(
+					`VALIDATION ERROR: Missing address | Subscription: ${subscriptionName} | Customer: ${customerName} | City: ${row[CITY] || 'N/A'} | Postcode: ${row[POSTAL_CODE] || 'N/A'}`,
+				);
+			}
+
+			if (!row[POSTAL_CODE] || row[POSTAL_CODE]?.trim() === '') {
+				missingPostcodeCount++;
+				const customerName = getFullName(
+					row[FIRST_NAME] || '',
+					row[LAST_NAME] || '',
+				);
+				console.warn(
+					`VALIDATION ERROR: Missing postcode | Subscription: ${subscriptionName} | Customer: ${customerName} | Address: ${row[ADDRESS_1] || 'N/A'} | City: ${row[CITY] || 'N/A'}`,
+				);
+			}
+
+			if (!row[LAST_NAME] || row[LAST_NAME]?.trim() === '') {
+				missingNameCount++;
+				console.warn(
+					`VALIDATION ERROR: Missing customer name for subscription ${subscriptionName}`,
+				);
+			}
+
 			const outputCsvRow: Partial<OutputRow> = {};
 			outputCsvRow[CUSTOMER_REFERENCE] = subscriptionName;
 			outputCsvRow[CUSTOMER_TOWN] = row[CITY];
@@ -234,6 +273,34 @@ async function processSubs(
 	 */
 	const streamAsString = await getStream(stream as ReadStream);
 	await upload(streamAsString, outputFileName, folder);
+
+	// Publish CloudWatch metrics
+	console.log(
+		`Publishing metrics: ${totalRowsProcessed} rows processed, ` +
+			`${missingStreetAddressCount} missing addresses, ` +
+			`${missingPostcodeCount} missing postcodes, ` +
+			`${missingNameCount} missing names`,
+	);
+	await putRowsProcessed('homedelivery', totalRowsProcessed);
+
+	if (missingStreetAddressCount > 0) {
+		await putValidationError(
+			'MissingStreetAddress',
+			'homedelivery',
+			missingStreetAddressCount,
+		);
+	}
+	if (missingPostcodeCount > 0) {
+		await putValidationError(
+			'MissingPostcode',
+			'homedelivery',
+			missingPostcodeCount,
+		);
+	}
+	if (missingNameCount > 0) {
+		await putValidationError('MissingName', 'homedelivery', missingNameCount);
+	}
+
 	return outputFileName.filename;
 }
 
