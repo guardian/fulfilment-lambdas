@@ -205,13 +205,6 @@ async function processSubs(
 					);
 				}
 
-				if (!row[POSTAL_CODE] || row[POSTAL_CODE]?.trim() === '') {
-					missingPostcodeCount++;
-					console.warn(
-						`VALIDATION ERROR: Missing postcode | Subscription: ${subscriptionName} | Customer: ${customerName} | Address: ${row[ADDRESS_1] || 'N/A'} | City: ${row[CITY] || 'N/A'} | Country: ${row[COUNTRY] || 'N/A'}`,
-					);
-				}
-
 				const selectedExporter =
 					exporters.find((exporter) => exporter.useForRow(row)) || rowExporter;
 				selectedExporter.processRow(row);
