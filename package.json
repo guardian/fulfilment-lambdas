@@ -69,5 +69,10 @@
 	"jest": {
 		"verbose": false,
 		"testEnvironment": "node"
+	},
+	"pnpm": {
+	  "overrides": {
+	    "minimatch": "3.1.3"
+	  }
 	}
 }
