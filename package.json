@@ -2,7 +2,7 @@
 	"name": "fulfilment-lambdas",
 	"version": "0.0.1",
 	"description": "Lambdas to fulfil guardian subscriptions",
-	"packageManager": "pnpm@9.12.3",
+	"packageManager": "pnpm@10.33.4",
 	"buildDir": "dist",
 	"devDependencies": {
 		"@babel/cli": "^7.7.7",
