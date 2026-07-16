@@ -21,6 +21,11 @@ jobs:
         run: |
           pnpm install --frozen-lockfile
           pnpm package
+      - name: Build and synth CDK
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm package
+        working-directory: cdk
       - name: AWS Auth
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -34,6 +39,7 @@ jobs:
           buildNumberOffset: 755 # This is the last build number from TeamCity
           contentDirectories: |
             cloudformation:
-              - cloudformation/cloudformation.yaml
+              - cdk/cdk.out/fulfilment-lambdas-CODE.template.json
+              - cdk/cdk.out/fulfilment-lambdas-PROD.template.json
             fulfilment-lambdas:
               - dist/fulfilment-lambdas.zip
