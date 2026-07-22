@@ -68,7 +68,14 @@
 	},
 	"jest": {
 		"verbose": false,
-		"testEnvironment": "node"
+		"testEnvironment": "node",
+		"testPathIgnorePatterns": [
+			"/node_modules/",
+			"<rootDir>/cdk/"
+		],
+		"modulePathIgnorePatterns": [
+			"<rootDir>/cdk/"
+		]
 	},
 	"pnpm": {
 	  "overrides": {

@@ -11,11 +11,13 @@ deployments:
       appendStageToCloudFormationStackName: true
       prependStackToCloudFormationStackName: false
       cloudFormationStackByTags: false
-      templatePath: cloudformation.yaml
+      templateStagePaths:
+        CODE: fulfilment-lambdas-CODE.template.json
+        PROD: fulfilment-lambdas-PROD.template.json
   fulfilment-lambdas:
     type: aws-lambda
     parameters:
-      bucket: fulfilment-lambdas-dist
+      bucketSsmLookup: true
       prefixStack: false
       fileName: fulfilment-lambdas.zip
       functionNames:

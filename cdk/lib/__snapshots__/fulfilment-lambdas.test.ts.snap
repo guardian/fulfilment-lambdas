@@ -1,0 +1,4267 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`The fulfilment-lambdas stack matches the snapshot 1`] = `
+{
+  "Metadata": {
+    "gu:cdk:constructs": [
+      "GuS3Bucket",
+      "GuS3Bucket",
+      "GuDistributionBucketParameter",
+      "GuLambdaFunction",
+      "GuLambdaFunction",
+      "GuLambdaFunction",
+      "GuLambdaFunction",
+      "GuLambdaFunction",
+      "GuLambdaFunction",
+      "GuLambdaFunction",
+      "GuApiGatewayWithLambdaByPath",
+      "GuAlarm",
+      "GuAlarm",
+    ],
+    "gu:cdk:version": "TEST",
+  },
+  "Outputs": {
+    "RestApiEndpoint0551178A": {
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "https://",
+            {
+              "Ref": "FulfilmentAPI",
+            },
+            ".execute-api.eu-west-1.",
+            {
+              "Ref": "AWS::URLSuffix",
+            },
+            "/",
+            {
+              "Ref": "FulfilmentAPIStage",
+            },
+            "/",
+          ],
+        ],
+      },
+    },
+  },
+  "Parameters": {
+    "DistributionBucketName": {
+      "Default": "/account/services/artifact.bucket",
+      "Description": "SSM parameter containing the S3 bucket name holding distribution artifacts",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+  },
+  "Resources": {
+    "CheckerScheduledRule": {
+      "Properties": {
+        "Description": "trigger fulfilment file check",
+        "ScheduleExpression": "cron(30 11 * * ? *)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "checkerLambda",
+                "Arn",
+              ],
+            },
+            "Id": "Target0",
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
+    "CheckerScheduledRuleAllowEventRulefulfilmentlambdasCODEcheckerLambdaDF824911D541924A": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "checkerLambda",
+            "Arn",
+          ],
+        },
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Fn::GetAtt": [
+            "CheckerScheduledRule",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "EncryptBucketPolicy": {
+      "Properties": {
+        "Bucket": {
+          "Ref": "FulfilmentBucket",
+        },
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "s3:PutObject",
+              "Condition": {
+                "StringNotEquals": {
+                  "s3:x-amz-server-side-encryption": [
+                    "AES256",
+                    "aws:kms",
+                  ],
+                },
+              },
+              "Effect": "Deny",
+              "Principal": {
+                "AWS": "*",
+              },
+              "Resource": "arn:aws:s3:::fulfilment-export-code/*",
+              "Sid": "DenyIncorrectEncryptionHeader",
+            },
+            {
+              "Action": "s3:PutObject",
+              "Condition": {
+                "Null": {
+                  "s3:x-amz-server-side-encryption": "true",
+                },
+              },
+              "Effect": "Deny",
+              "Principal": {
+                "AWS": "*",
+              },
+              "Resource": "arn:aws:s3:::fulfilment-export-code/*",
+              "Sid": "DenyUnEncryptedObjectUploads",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::S3::BucketPolicy",
+    },
+    "FulfilmentAPI": {
+      "Properties": {
+        "Description": "Upload Home Delivery fulfilment files to Salesforce document Home_Delivery_Pipeline_Fulfilment",
+        "Name": "fulfilment-api-CODE",
+        "Tags": [
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "CODE",
+          },
+        ],
+      },
+      "Type": "AWS::ApiGateway::RestApi",
+    },
+    "FulfilmentAPIStage": {
+      "DependsOn": [
+        "RestApiAccount7C83CF5A",
+      ],
+      "Properties": {
+        "DeploymentId": {
+          "Ref": "RestApiDeployment180EC50397d7a05aab4c721e0ee021115d45f306",
+        },
+        "RestApiId": {
+          "Ref": "FulfilmentAPI",
+        },
+        "StageName": "CODE",
+        "Tags": [
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "CODE",
+          },
+        ],
+      },
+      "Type": "AWS::ApiGateway::Stage",
+    },
+    "FulfilmentAccessLogBucket": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "AccessControl": "LogDeliveryWrite",
+        "BucketName": "fulfilment-s3-logs-code",
+        "OwnershipControls": {
+          "Rules": [
+            {
+              "ObjectOwnership": "ObjectWriter",
+            },
+          ],
+        },
+        "PublicAccessBlockConfiguration": {
+          "BlockPublicAcls": true,
+          "BlockPublicPolicy": true,
+          "IgnorePublicAcls": true,
+          "RestrictPublicBuckets": true,
+        },
+        "Tags": [
+          {
+            "Key": "App",
+            "Value": "fulfilment-lambdas",
+          },
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "CODE",
+          },
+        ],
+        "VersioningConfiguration": {
+          "Status": "Enabled",
+        },
+      },
+      "Type": "AWS::S3::Bucket",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "FulfilmentBucket": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "BucketName": "fulfilment-export-code",
+        "LifecycleConfiguration": {
+          "Rules": [
+            {
+              "ExpirationInDays": 365,
+              "Id": "DeleteAllOldFiles",
+              "Prefix": "",
+              "Status": "Enabled",
+            },
+            {
+              "ExpirationInDays": 14,
+              "Id": "DeleteOldFilesZuora",
+              "Prefix": "zuora",
+              "Status": "Enabled",
+            },
+          ],
+        },
+        "LoggingConfiguration": {
+          "DestinationBucketName": {
+            "Ref": "FulfilmentAccessLogBucket",
+          },
+          "LogFilePrefix": "fulfilment-salesforce-backup-_CODE/",
+        },
+        "PublicAccessBlockConfiguration": {
+          "BlockPublicAcls": true,
+          "BlockPublicPolicy": true,
+          "IgnorePublicAcls": true,
+          "RestrictPublicBuckets": true,
+        },
+        "Tags": [
+          {
+            "Key": "App",
+            "Value": "fulfilment-lambdas",
+          },
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "CODE",
+          },
+        ],
+        "VersioningConfiguration": {
+          "Status": "Enabled",
+        },
+      },
+      "Type": "AWS::S3::Bucket",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "FulfilmentExporterLambda": {
+      "DependsOn": [
+        "FulfilmentWorkersLambdaRoleDefaultPolicy4697D31E",
+        "FulfilmentWorkersLambdaRole",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "DistributionBucketName",
+          },
+          "S3Key": "membership/CODE/fulfilment-lambdas/fulfilment-lambdas.zip",
+        },
+        "Description": "Fetch generate fulfilment file",
+        "Environment": {
+          "Variables": {
+            "APP": "fulfilment-lambdas",
+            "STACK": "membership",
+            "STAGE": "CODE",
+            "Stage": "CODE",
+          },
+        },
+        "FunctionName": "zuora_fulfilment_exporter-CODE",
+        "Handler": "exporter.handler",
+        "LoggingConfig": {
+          "LogFormat": "Text",
+        },
+        "MemorySize": 512,
+        "Role": {
+          "Fn::GetAtt": [
+            "FulfilmentWorkersLambdaRole",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Tags": [
+          {
+            "Key": "App",
+            "Value": "fulfilment-lambdas",
+          },
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "CODE",
+          },
+        ],
+        "Timeout": 300,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "FulfilmentMethod": {
+      "Properties": {
+        "AuthorizationType": "NONE",
+        "HttpMethod": "POST",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":apigateway:eu-west-1:lambda:path/2015-03-31/functions/",
+                {
+                  "Fn::GetAtt": [
+                    "SalesforceUploaderLambda",
+                    "Arn",
+                  ],
+                },
+                "/invocations",
+              ],
+            ],
+          },
+        },
+        "ResourceId": {
+          "Ref": "FulfilmentProxyResource",
+        },
+        "RestApiId": {
+          "Ref": "FulfilmentAPI",
+        },
+      },
+      "Type": "AWS::ApiGateway::Method",
+    },
+    "FulfilmentProxyResource": {
+      "Properties": {
+        "ParentId": {
+          "Fn::GetAtt": [
+            "FulfilmentAPI",
+            "RootResourceId",
+          ],
+        },
+        "PathPart": "fulfilment",
+        "RestApiId": {
+          "Ref": "FulfilmentAPI",
+        },
+      },
+      "Type": "AWS::ApiGateway::Resource",
+    },
+    "FulfilmentStateMachine": {
+      "DeletionPolicy": "Delete",
+      "DependsOn": [
+        "FulfilmentStateMachineRoleDefaultPolicyCD2815C9",
+        "FulfilmentStateMachineRoleF40DFD27",
+      ],
+      "Properties": {
+        "DefinitionString": {
+          "Fn::Sub": [
+            "{"Comment":"State machine for Fulfilment","TimeoutSeconds":64800,"StartAt":"QueryZuora","States":{"QueryZuora":{"Type":"Task","Resource":"\${querierArn}","Next":"WaitSomeTime","Retry":[{"ErrorEquals":["States.ALL"],"IntervalSeconds":30,"MaxAttempts":3}]},"WaitSomeTime":{"Type":"Wait","Seconds":180,"Next":"FetchResults"},"FetchResults":{"Type":"Task","Resource":"\${fetcherArn}","Next":"GenerateFulfilmentFile","Retry":[{"ErrorEquals":["States.ALL"],"IntervalSeconds":30,"MaxAttempts":50,"BackoffRate":1.15}]},"GenerateFulfilmentFile":{"Type":"Task","Resource":"\${exporterArn}","End":true,"Retry":[{"ErrorEquals":["States.ALL"],"IntervalSeconds":30,"MaxAttempts":3}]}}}",
+            {
+              "exporterArn": {
+                "Fn::GetAtt": [
+                  "FulfilmentExporterLambda",
+                  "Arn",
+                ],
+              },
+              "fetcherArn": {
+                "Fn::GetAtt": [
+                  "ResultsFetcherLambda",
+                  "Arn",
+                ],
+              },
+              "querierArn": {
+                "Fn::GetAtt": [
+                  "ZuoraQuerierLambda",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+        },
+        "RoleArn": {
+          "Fn::GetAtt": [
+            "FulfilmentStateMachineRoleF40DFD27",
+            "Arn",
+          ],
+        },
+        "StateMachineName": "fulfilment-state-machine-CODE",
+        "Tags": [
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "CODE",
+          },
+        ],
+      },
+      "Type": "AWS::StepFunctions::StateMachine",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "FulfilmentStateMachineEventsRoleBFB43A69": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "events.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Tags": [
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "CODE",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "FulfilmentStateMachineEventsRoleDefaultPolicy98A9C459": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "states:StartExecution",
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "FulfilmentStateMachine",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "FulfilmentStateMachineEventsRoleDefaultPolicy98A9C459",
+        "Roles": [
+          {
+            "Ref": "FulfilmentStateMachineEventsRoleBFB43A69",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "FulfilmentStateMachineRoleDefaultPolicyCD2815C9": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "ZuoraQuerierLambda",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "ZuoraQuerierLambda",
+                          "Arn",
+                        ],
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "ResultsFetcherLambda",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "ResultsFetcherLambda",
+                          "Arn",
+                        ],
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "FulfilmentExporterLambda",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "FulfilmentExporterLambda",
+                          "Arn",
+                        ],
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "FulfilmentStateMachineRoleDefaultPolicyCD2815C9",
+        "Roles": [
+          {
+            "Ref": "FulfilmentStateMachineRoleF40DFD27",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "FulfilmentStateMachineRoleF40DFD27": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "states.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Tags": [
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "CODE",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "FulfilmentWorkersLambdaRole": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Path": "/",
+        "Policies": [
+          {
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Action": [
+                    "logs:CreateLogGroup",
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents",
+                    "lambda:InvokeFunction",
+                  ],
+                  "Effect": "Allow",
+                  "Resource": "*",
+                },
+              ],
+              "Version": "2012-10-17",
+            },
+            "PolicyName": "LambdaPolicy",
+          },
+          {
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Action": "s3:GetObject",
+                  "Effect": "Allow",
+                  "Resource": "arn:aws:s3:::gu-reader-revenue-private/membership/fulfilment-lambdas/CODE/*",
+                },
+              ],
+              "Version": "2012-10-17",
+            },
+            "PolicyName": "PrivateBucket",
+          },
+          {
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Action": [
+                    "s3:AbortMultipartUpload",
+                    "s3:DeleteObject",
+                    "s3:GetObject",
+                    "s3:GetObjectAcl",
+                    "s3:GetBucketAcl",
+                    "s3:ListBucket",
+                    "s3:PutObject",
+                    "s3:GetObjectVersion",
+                    "s3:DeleteObjectVersion",
+                  ],
+                  "Effect": "Allow",
+                  "Resource": "arn:aws:s3:::fulfilment-export-code/*",
+                },
+              ],
+              "Version": "2012-10-17",
+            },
+            "PolicyName": "WorkBucket",
+          },
+          {
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Action": "s3:ListBucket",
+                  "Effect": "Allow",
+                  "Resource": "arn:aws:s3:::fulfilment-export-code",
+                },
+              ],
+              "Version": "2012-10-17",
+            },
+            "PolicyName": "ListWorkBucket",
+          },
+          {
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Action": "cloudwatch:PutMetricData",
+                  "Effect": "Allow",
+                  "Resource": "*",
+                },
+              ],
+              "Version": "2012-10-17",
+            },
+            "PolicyName": "CloudWatchMetrics",
+          },
+        ],
+        "RoleName": "FulfilmentWorkers-CODE",
+        "Tags": [
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "CODE",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "FulfilmentWorkersLambdaRoleDefaultPolicy4697D31E": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "s3:GetObject*",
+                "s3:GetBucket*",
+                "s3:List*",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":s3:::",
+                      {
+                        "Ref": "DistributionBucketName",
+                      },
+                    ],
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":s3:::",
+                      {
+                        "Ref": "DistributionBucketName",
+                      },
+                      "/membership/CODE/fulfilment-lambdas/fulfilment-lambdas.zip",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": "ssm:GetParametersByPath",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:ssm:eu-west-1:",
+                    {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":parameter/CODE/membership/fulfilment-lambdas",
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": [
+                "ssm:GetParameters",
+                "ssm:GetParameter",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:ssm:eu-west-1:",
+                    {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":parameter/CODE/membership/fulfilment-lambdas/*",
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "FulfilmentWorkersLambdaRoleDefaultPolicy4697D31E",
+        "Roles": [
+          {
+            "Ref": "FulfilmentWorkersLambdaRole",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "GuardianWeeklyDataQualityCompositeAlarm": {
+      "Properties": {
+        "ActionsEnabled": true,
+        "AlarmActions": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:aws:sns:eu-west-1:",
+                {
+                  "Ref": "AWS::AccountId",
+                },
+                ":alarms-handler-topic-CODE",
+              ],
+            ],
+          },
+        ],
+        "AlarmDescription": "Guardian Weekly fulfilment data has quality issues that may prevent newspaper delivery. Check the ValidationError metrics and the exporter logs. Follow the process in https://docs.google.com/document/d/1_3El3cly9d7u_jPgTcRjLxmdG2e919zCLvmcFCLOYAk/edit",
+        "AlarmName": "URGENT 9-5 - CODE Guardian Weekly Data Quality Issues Detected",
+        "ComparisonOperator": "GreaterThanThreshold",
+        "EvaluationPeriods": 1,
+        "Metrics": [
+          {
+            "Expression": "m1+m2+m3+m4",
+            "Id": "expr_1",
+            "Label": "Total Data Quality Errors",
+          },
+          {
+            "Id": "m1",
+            "MetricStat": {
+              "Metric": {
+                "Dimensions": [
+                  {
+                    "Name": "ErrorType",
+                    "Value": "MissingAddress",
+                  },
+                  {
+                    "Name": "FulfilmentType",
+                    "Value": "weekly",
+                  },
+                  {
+                    "Name": "Stage",
+                    "Value": "CODE",
+                  },
+                ],
+                "MetricName": "ValidationError",
+                "Namespace": "fulfilment-lambdas",
+              },
+              "Period": 300,
+              "Stat": "Sum",
+            },
+            "ReturnData": false,
+          },
+          {
+            "Id": "m2",
+            "MetricStat": {
+              "Metric": {
+                "Dimensions": [
+                  {
+                    "Name": "ErrorType",
+                    "Value": "MissingCity",
+                  },
+                  {
+                    "Name": "FulfilmentType",
+                    "Value": "weekly",
+                  },
+                  {
+                    "Name": "Stage",
+                    "Value": "CODE",
+                  },
+                ],
+                "MetricName": "ValidationError",
+                "Namespace": "fulfilment-lambdas",
+              },
+              "Period": 300,
+              "Stat": "Sum",
+            },
+            "ReturnData": false,
+          },
+          {
+            "Id": "m3",
+            "MetricStat": {
+              "Metric": {
+                "Dimensions": [
+                  {
+                    "Name": "ErrorType",
+                    "Value": "MissingCountry",
+                  },
+                  {
+                    "Name": "FulfilmentType",
+                    "Value": "weekly",
+                  },
+                  {
+                    "Name": "Stage",
+                    "Value": "CODE",
+                  },
+                ],
+                "MetricName": "ValidationError",
+                "Namespace": "fulfilment-lambdas",
+              },
+              "Period": 300,
+              "Stat": "Sum",
+            },
+            "ReturnData": false,
+          },
+          {
+            "Id": "m4",
+            "MetricStat": {
+              "Metric": {
+                "Dimensions": [
+                  {
+                    "Name": "ErrorType",
+                    "Value": "MissingPostcode",
+                  },
+                  {
+                    "Name": "FulfilmentType",
+                    "Value": "weekly",
+                  },
+                  {
+                    "Name": "Stage",
+                    "Value": "CODE",
+                  },
+                ],
+                "MetricName": "ValidationError",
+                "Namespace": "fulfilment-lambdas",
+              },
+              "Period": 300,
+              "Stat": "Sum",
+            },
+            "ReturnData": false,
+          },
+        ],
+        "Tags": [
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "CODE",
+          },
+        ],
+        "Threshold": 0,
+        "TreatMissingData": "notBreaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "HomeDeliveryDataQualityCompositeAlarm": {
+      "Properties": {
+        "ActionsEnabled": true,
+        "AlarmActions": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:aws:sns:eu-west-1:",
+                {
+                  "Ref": "AWS::AccountId",
+                },
+                ":alarms-handler-topic-CODE",
+              ],
+            ],
+          },
+        ],
+        "AlarmDescription": "Home Delivery fulfilment data has quality issues that may prevent newspaper delivery. Check the ValidationError metrics and the exporter logs. Follow the process in https://docs.google.com/document/d/1_3El3cly9d7u_jPgTcRjLxmdG2e919zCLvmcFCLOYAk/edit",
+        "AlarmName": "URGENT 9-5 - CODE Home Delivery Data Quality Issues Detected",
+        "ComparisonOperator": "GreaterThanThreshold",
+        "EvaluationPeriods": 1,
+        "Metrics": [
+          {
+            "Expression": "m1+m2+m3+m4",
+            "Id": "expr_1",
+            "Label": "Total Data Quality Errors",
+          },
+          {
+            "Id": "m1",
+            "MetricStat": {
+              "Metric": {
+                "Dimensions": [
+                  {
+                    "Name": "ErrorType",
+                    "Value": "MissingAddress",
+                  },
+                  {
+                    "Name": "FulfilmentType",
+                    "Value": "homedelivery",
+                  },
+                  {
+                    "Name": "Stage",
+                    "Value": "CODE",
+                  },
+                ],
+                "MetricName": "ValidationError",
+                "Namespace": "fulfilment-lambdas",
+              },
+              "Period": 300,
+              "Stat": "Sum",
+            },
+            "ReturnData": false,
+          },
+          {
+            "Id": "m2",
+            "MetricStat": {
+              "Metric": {
+                "Dimensions": [
+                  {
+                    "Name": "ErrorType",
+                    "Value": "MissingCity",
+                  },
+                  {
+                    "Name": "FulfilmentType",
+                    "Value": "homedelivery",
+                  },
+                  {
+                    "Name": "Stage",
+                    "Value": "CODE",
+                  },
+                ],
+                "MetricName": "ValidationError",
+                "Namespace": "fulfilment-lambdas",
+              },
+              "Period": 300,
+              "Stat": "Sum",
+            },
+            "ReturnData": false,
+          },
+          {
+            "Id": "m3",
+            "MetricStat": {
+              "Metric": {
+                "Dimensions": [
+                  {
+                    "Name": "ErrorType",
+                    "Value": "MissingPostcode",
+                  },
+                  {
+                    "Name": "FulfilmentType",
+                    "Value": "homedelivery",
+                  },
+                  {
+                    "Name": "Stage",
+                    "Value": "CODE",
+                  },
+                ],
+                "MetricName": "ValidationError",
+                "Namespace": "fulfilment-lambdas",
+              },
+              "Period": 300,
+              "Stat": "Sum",
+            },
+            "ReturnData": false,
+          },
+          {
+            "Id": "m4",
+            "MetricStat": {
+              "Metric": {
+                "Dimensions": [
+                  {
+                    "Name": "ErrorType",
+                    "Value": "MissingName",
+                  },
+                  {
+                    "Name": "FulfilmentType",
+                    "Value": "homedelivery",
+                  },
+                  {
+                    "Name": "Stage",
+                    "Value": "CODE",
+                  },
+                ],
+                "MetricName": "ValidationError",
+                "Namespace": "fulfilment-lambdas",
+              },
+              "Period": 300,
+              "Stat": "Sum",
+            },
+            "ReturnData": false,
+          },
+        ],
+        "Tags": [
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "CODE",
+          },
+        ],
+        "Threshold": 0,
+        "TreatMissingData": "notBreaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "RestApiAccount7C83CF5A": {
+      "DeletionPolicy": "Retain",
+      "DependsOn": [
+        "FulfilmentAPI",
+      ],
+      "Properties": {
+        "CloudWatchRoleArn": {
+          "Fn::GetAtt": [
+            "RestApiCloudWatchRoleE3ED6605",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::ApiGateway::Account",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "RestApiCloudWatchRoleE3ED6605": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "apigateway.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs",
+              ],
+            ],
+          },
+        ],
+        "Tags": [
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "CODE",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "RestApiDeployment180EC50397d7a05aab4c721e0ee021115d45f306": {
+      "DependsOn": [
+        "FulfilmentMethod",
+        "FulfilmentProxyResource",
+      ],
+      "Properties": {
+        "Description": "Upload Home Delivery fulfilment files to Salesforce document Home_Delivery_Pipeline_Fulfilment",
+        "RestApiId": {
+          "Ref": "FulfilmentAPI",
+        },
+      },
+      "Type": "AWS::ApiGateway::Deployment",
+    },
+    "RestApifulfilmentPOSTApiPermissionTestfulfilmentlambdasCODERestApiD342044CPOSTfulfilment6372F609": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "SalesforceUploaderLambda",
+            "Arn",
+          ],
+        },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition",
+              },
+              ":execute-api:eu-west-1:",
+              {
+                "Ref": "AWS::AccountId",
+              },
+              ":",
+              {
+                "Ref": "FulfilmentAPI",
+              },
+              "/test-invoke-stage/POST/fulfilment",
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "RestApifulfilmentPOSTApiPermissionfulfilmentlambdasCODERestApiD342044CPOSTfulfilment373E8393": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "SalesforceUploaderLambda",
+            "Arn",
+          ],
+        },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition",
+              },
+              ":execute-api:eu-west-1:",
+              {
+                "Ref": "AWS::AccountId",
+              },
+              ":",
+              {
+                "Ref": "FulfilmentAPI",
+              },
+              "/",
+              {
+                "Ref": "FulfilmentAPIStage",
+              },
+              "/POST/fulfilment",
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "ResultsFetcherLambda": {
+      "DependsOn": [
+        "FulfilmentWorkersLambdaRoleDefaultPolicy4697D31E",
+        "FulfilmentWorkersLambdaRole",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "DistributionBucketName",
+          },
+          "S3Key": "membership/CODE/fulfilment-lambdas/fulfilment-lambdas.zip",
+        },
+        "Description": "Fetch zuora export results",
+        "Environment": {
+          "Variables": {
+            "APP": "fulfilment-lambdas",
+            "STACK": "membership",
+            "STAGE": "CODE",
+            "Stage": "CODE",
+          },
+        },
+        "FunctionName": "zuora_fulfilment_fetcher-CODE",
+        "Handler": "fetcher.handler",
+        "LoggingConfig": {
+          "LogFormat": "Text",
+        },
+        "MemorySize": 512,
+        "Role": {
+          "Fn::GetAtt": [
+            "FulfilmentWorkersLambdaRole",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Tags": [
+          {
+            "Key": "App",
+            "Value": "fulfilment-lambdas",
+          },
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "CODE",
+          },
+        ],
+        "Timeout": 300,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "SFDownloadScheduledRule": {
+      "Properties": {
+        "Description": "Download fulfilment files from Salesforce",
+        "ScheduleExpression": "cron(50 14 ? * mon-fri *)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "SalesforceDownloaderLambda",
+                "Arn",
+              ],
+            },
+            "Id": "Target0",
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
+    "SFDownloadScheduledRuleAllowEventRulefulfilmentlambdasCODESalesforceDownloaderLambda0174A2C02E40B0B4": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "SalesforceDownloaderLambda",
+            "Arn",
+          ],
+        },
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Fn::GetAtt": [
+            "SFDownloadScheduledRule",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "SalesforceDownloaderLambda": {
+      "DependsOn": [
+        "FulfilmentWorkersLambdaRoleDefaultPolicy4697D31E",
+        "FulfilmentWorkersLambdaRole",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "DistributionBucketName",
+          },
+          "S3Key": "membership/CODE/fulfilment-lambdas/fulfilment-lambdas.zip",
+        },
+        "Description": "Fetch salesforce fulfilment files",
+        "Environment": {
+          "Variables": {
+            "APP": "fulfilment-lambdas",
+            "STACK": "membership",
+            "STAGE": "CODE",
+            "Stage": "CODE",
+          },
+        },
+        "FunctionName": "zuora_fulfilment_salesforce_downloader-CODE",
+        "Handler": "salesforce_downloader.handler",
+        "LoggingConfig": {
+          "LogFormat": "Text",
+        },
+        "MemorySize": 512,
+        "Role": {
+          "Fn::GetAtt": [
+            "FulfilmentWorkersLambdaRole",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Tags": [
+          {
+            "Key": "App",
+            "Value": "fulfilment-lambdas",
+          },
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "CODE",
+          },
+        ],
+        "Timeout": 300,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "SalesforceUploaderLambda": {
+      "DependsOn": [
+        "FulfilmentWorkersLambdaRoleDefaultPolicy4697D31E",
+        "FulfilmentWorkersLambdaRole",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "DistributionBucketName",
+          },
+          "S3Key": "membership/CODE/fulfilment-lambdas/fulfilment-lambdas.zip",
+        },
+        "Description": "Upload Home Delivery fulfilment files to Salesforce document Home_Delivery_Pipeline_Fulfilment",
+        "Environment": {
+          "Variables": {
+            "APP": "fulfilment-lambdas",
+            "STACK": "membership",
+            "STAGE": "CODE",
+            "Stage": "CODE",
+            "StateMachine": {
+              "Ref": "FulfilmentStateMachine",
+            },
+          },
+        },
+        "FunctionName": "salesforce_uploader-CODE",
+        "Handler": "salesforce_uploader.handler",
+        "LoggingConfig": {
+          "LogFormat": "Text",
+        },
+        "MemorySize": 512,
+        "Role": {
+          "Fn::GetAtt": [
+            "FulfilmentWorkersLambdaRole",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Tags": [
+          {
+            "Key": "App",
+            "Value": "fulfilment-lambdas",
+          },
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "CODE",
+          },
+        ],
+        "Timeout": 300,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "ScheduledRule": {
+      "Properties": {
+        "Description": "TriggerFulfilment",
+        "ScheduleExpression": "cron(0 7 ? * mon-fri *)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Ref": "FulfilmentStateMachine",
+            },
+            "Id": "Target0",
+            "Input": "{"deliveryDateDaysFromNow":1,"type":"homedelivery"}",
+            "RoleArn": {
+              "Fn::GetAtt": [
+                "FulfilmentStateMachineEventsRoleBFB43A69",
+                "Arn",
+              ],
+            },
+          },
+          {
+            "Arn": {
+              "Ref": "FulfilmentStateMachine",
+            },
+            "Id": "Target1",
+            "Input": "{"deliveryDateDaysFromNow":2,"type":"homedelivery"}",
+            "RoleArn": {
+              "Fn::GetAtt": [
+                "FulfilmentStateMachineEventsRoleBFB43A69",
+                "Arn",
+              ],
+            },
+          },
+          {
+            "Arn": {
+              "Ref": "FulfilmentStateMachine",
+            },
+            "Id": "Target2",
+            "Input": "{"deliveryDateDaysFromNow":3,"type":"homedelivery"}",
+            "RoleArn": {
+              "Fn::GetAtt": [
+                "FulfilmentStateMachineEventsRoleBFB43A69",
+                "Arn",
+              ],
+            },
+          },
+          {
+            "Arn": {
+              "Ref": "FulfilmentStateMachine",
+            },
+            "Id": "Target3",
+            "Input": "{"deliveryDateDaysFromNow":4,"type":"homedelivery"}",
+            "RoleArn": {
+              "Fn::GetAtt": [
+                "FulfilmentStateMachineEventsRoleBFB43A69",
+                "Arn",
+              ],
+            },
+          },
+          {
+            "Arn": {
+              "Ref": "FulfilmentStateMachine",
+            },
+            "Id": "Target4",
+            "Input": "{"deliveryDateDaysFromNow":5,"type":"homedelivery"}",
+            "RoleArn": {
+              "Fn::GetAtt": [
+                "FulfilmentStateMachineEventsRoleBFB43A69",
+                "Arn",
+              ],
+            },
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
+    "WeeklyScheduledRule": {
+      "Properties": {
+        "Description": "TriggerWeeklyFulfilment",
+        "ScheduleExpression": "cron(00 2 ? * * *)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Ref": "FulfilmentStateMachine",
+            },
+            "Id": "Target0",
+            "Input": "{"type":"weekly","deliveryDayOfWeek":"friday","minDaysInAdvance":8}",
+            "RoleArn": {
+              "Fn::GetAtt": [
+                "FulfilmentStateMachineEventsRoleBFB43A69",
+                "Arn",
+              ],
+            },
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
+    "WeeklyScheduledUploadRule": {
+      "Properties": {
+        "Description": "TriggerWeeklyFulfilmentUpload",
+        "ScheduleExpression": "cron(00 11 ? * THU *)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "WeeklyUploaderLambda",
+                "Arn",
+              ],
+            },
+            "Id": "Target0",
+            "Input": "{"type":"weekly","deliveryDayOfWeek":"friday","minDaysInAdvance":8}",
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
+    "WeeklyScheduledUploadRuleAllowEventRulefulfilmentlambdasCODEWeeklyUploaderLambda0186A8138DEDA9AF": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "WeeklyUploaderLambda",
+            "Arn",
+          ],
+        },
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Fn::GetAtt": [
+            "WeeklyScheduledUploadRule",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "WeeklyUploaderLambda": {
+      "DependsOn": [
+        "FulfilmentWorkersLambdaRoleDefaultPolicy4697D31E",
+        "FulfilmentWorkersLambdaRole",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "DistributionBucketName",
+          },
+          "S3Key": "membership/CODE/fulfilment-lambdas/fulfilment-lambdas.zip",
+        },
+        "Description": "upload Guardian Weekly fulfilment files to salesforce",
+        "Environment": {
+          "Variables": {
+            "APP": "fulfilment-lambdas",
+            "STACK": "membership",
+            "STAGE": "CODE",
+            "Stage": "CODE",
+          },
+        },
+        "FunctionName": "weekly-fulfilmentUploader-CODE",
+        "Handler": "weekly_salesforce_uploader.handler",
+        "LoggingConfig": {
+          "LogFormat": "Text",
+        },
+        "MemorySize": 512,
+        "Role": {
+          "Fn::GetAtt": [
+            "FulfilmentWorkersLambdaRole",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Tags": [
+          {
+            "Key": "App",
+            "Value": "fulfilment-lambdas",
+          },
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "CODE",
+          },
+        ],
+        "Timeout": 300,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "ZuoraQuerierLambda": {
+      "DependsOn": [
+        "FulfilmentWorkersLambdaRoleDefaultPolicy4697D31E",
+        "FulfilmentWorkersLambdaRole",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "DistributionBucketName",
+          },
+          "S3Key": "membership/CODE/fulfilment-lambdas/fulfilment-lambdas.zip",
+        },
+        "Description": "Trigger zuora export",
+        "Environment": {
+          "Variables": {
+            "APP": "fulfilment-lambdas",
+            "STACK": "membership",
+            "STAGE": "CODE",
+            "Stage": "CODE",
+          },
+        },
+        "FunctionName": "zuora_fulfilment_querier-CODE",
+        "Handler": "querier.handler",
+        "LoggingConfig": {
+          "LogFormat": "Text",
+        },
+        "MemorySize": 512,
+        "Role": {
+          "Fn::GetAtt": [
+            "FulfilmentWorkersLambdaRole",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Tags": [
+          {
+            "Key": "App",
+            "Value": "fulfilment-lambdas",
+          },
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "CODE",
+          },
+        ],
+        "Timeout": 300,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "checkerLambda": {
+      "DependsOn": [
+        "FulfilmentWorkersLambdaRoleDefaultPolicy4697D31E",
+        "FulfilmentWorkersLambdaRole",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "DistributionBucketName",
+          },
+          "S3Key": "membership/CODE/fulfilment-lambdas/fulfilment-lambdas.zip",
+        },
+        "Description": "daily check to verify fulfilment files have been generated",
+        "Environment": {
+          "Variables": {
+            "APP": "fulfilment-lambdas",
+            "STACK": "membership",
+            "STAGE": "CODE",
+            "Stage": "CODE",
+          },
+        },
+        "FunctionName": "zuora_fulfilment_checker-CODE",
+        "Handler": "checker.handler",
+        "LoggingConfig": {
+          "LogFormat": "Text",
+        },
+        "MemorySize": 128,
+        "Role": {
+          "Fn::GetAtt": [
+            "FulfilmentWorkersLambdaRole",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Tags": [
+          {
+            "Key": "App",
+            "Value": "fulfilment-lambdas",
+          },
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "CODE",
+          },
+        ],
+        "Timeout": 300,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "fulfilmentCheckerMetricFilter": {
+      "Properties": {
+        "FilterPattern": ""CHECK:PASSED"",
+        "LogGroupName": {
+          "Fn::Join": [
+            "",
+            [
+              "/aws/lambda/",
+              {
+                "Ref": "checkerLambda",
+              },
+            ],
+          ],
+        },
+        "MetricTransformations": [
+          {
+            "MetricName": "fulfilmentFileUpdated",
+            "MetricNamespace": "CODE/fulfilment",
+            "MetricValue": "1",
+          },
+        ],
+      },
+      "Type": "AWS::Logs::MetricFilter",
+    },
+  },
+}
+`;
+
+exports[`The fulfilment-lambdas stack matches the snapshot 2`] = `
+{
+  "Metadata": {
+    "gu:cdk:constructs": [
+      "GuS3Bucket",
+      "GuS3Bucket",
+      "GuDistributionBucketParameter",
+      "GuLambdaFunction",
+      "GuLambdaFunction",
+      "GuLambdaFunction",
+      "GuLambdaFunction",
+      "GuLambdaFunction",
+      "GuLambdaFunction",
+      "GuLambdaFunction",
+      "GuApiGatewayWithLambdaByPath",
+      "GuAlarm",
+      "GuAlarm",
+      "GuAlarm",
+      "GuAlarm",
+      "GuAlarm",
+      "GuAlarm",
+      "GuAlarm",
+      "GuAlarm",
+      "GuAlarm",
+      "GuAlarm",
+    ],
+    "gu:cdk:version": "TEST",
+  },
+  "Outputs": {
+    "RestApiEndpoint0551178A": {
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "https://",
+            {
+              "Ref": "FulfilmentAPI",
+            },
+            ".execute-api.eu-west-1.",
+            {
+              "Ref": "AWS::URLSuffix",
+            },
+            "/",
+            {
+              "Ref": "FulfilmentAPIStage",
+            },
+            "/",
+          ],
+        ],
+      },
+    },
+  },
+  "Parameters": {
+    "DistributionBucketName": {
+      "Default": "/account/services/artifact.bucket",
+      "Description": "SSM parameter containing the S3 bucket name holding distribution artifacts",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+  },
+  "Resources": {
+    "CheckerAlarm": {
+      "Properties": {
+        "ActionsEnabled": false,
+        "AlarmActions": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:aws:sns:eu-west-1:",
+                {
+                  "Ref": "AWS::AccountId",
+                },
+                ":alarms-handler-topic-PROD",
+              ],
+            ],
+          },
+        ],
+        "AlarmDescription": "alarm when fulfilment file has not been generated",
+        "AlarmName": "fulfilment_check_alarm_PROD",
+        "ComparisonOperator": "LessThanThreshold",
+        "EvaluationPeriods": 1,
+        "MetricName": "fulfilmentFileUpdated",
+        "Namespace": "PROD/fulfilment",
+        "Period": 86400,
+        "Statistic": "Sum",
+        "Tags": [
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "PROD",
+          },
+        ],
+        "Threshold": 1,
+        "TreatMissingData": "breaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "CheckerScheduledRule": {
+      "Properties": {
+        "Description": "trigger fulfilment file check",
+        "ScheduleExpression": "cron(30 11 * * ? *)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "checkerLambda",
+                "Arn",
+              ],
+            },
+            "Id": "Target0",
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
+    "CheckerScheduledRuleAllowEventRulefulfilmentlambdasPRODcheckerLambdaC8AB11FAB5F0EE61": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "checkerLambda",
+            "Arn",
+          ],
+        },
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Fn::GetAtt": [
+            "CheckerScheduledRule",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "EncryptBucketPolicy": {
+      "Properties": {
+        "Bucket": {
+          "Ref": "FulfilmentBucket",
+        },
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "s3:PutObject",
+              "Condition": {
+                "StringNotEquals": {
+                  "s3:x-amz-server-side-encryption": [
+                    "AES256",
+                    "aws:kms",
+                  ],
+                },
+              },
+              "Effect": "Deny",
+              "Principal": {
+                "AWS": "*",
+              },
+              "Resource": "arn:aws:s3:::fulfilment-export-prod/*",
+              "Sid": "DenyIncorrectEncryptionHeader",
+            },
+            {
+              "Action": "s3:PutObject",
+              "Condition": {
+                "Null": {
+                  "s3:x-amz-server-side-encryption": "true",
+                },
+              },
+              "Effect": "Deny",
+              "Principal": {
+                "AWS": "*",
+              },
+              "Resource": "arn:aws:s3:::fulfilment-export-prod/*",
+              "Sid": "DenyUnEncryptedObjectUploads",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::S3::BucketPolicy",
+    },
+    "FulfilmentAPI": {
+      "Properties": {
+        "Description": "Upload Home Delivery fulfilment files to Salesforce document Home_Delivery_Pipeline_Fulfilment",
+        "Name": "fulfilment-api-PROD",
+        "Tags": [
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "PROD",
+          },
+        ],
+      },
+      "Type": "AWS::ApiGateway::RestApi",
+    },
+    "FulfilmentAPIStage": {
+      "DependsOn": [
+        "RestApiAccount7C83CF5A",
+      ],
+      "Properties": {
+        "DeploymentId": {
+          "Ref": "RestApiDeployment180EC5036d1971fecbf3c58a7bde3cfc6f017dfa",
+        },
+        "RestApiId": {
+          "Ref": "FulfilmentAPI",
+        },
+        "StageName": "PROD",
+        "Tags": [
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "PROD",
+          },
+        ],
+      },
+      "Type": "AWS::ApiGateway::Stage",
+    },
+    "FulfilmentAccessLogBucket": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "AccessControl": "LogDeliveryWrite",
+        "BucketName": "fulfilment-s3-logs-prod",
+        "OwnershipControls": {
+          "Rules": [
+            {
+              "ObjectOwnership": "ObjectWriter",
+            },
+          ],
+        },
+        "PublicAccessBlockConfiguration": {
+          "BlockPublicAcls": true,
+          "BlockPublicPolicy": true,
+          "IgnorePublicAcls": true,
+          "RestrictPublicBuckets": true,
+        },
+        "Tags": [
+          {
+            "Key": "App",
+            "Value": "fulfilment-lambdas",
+          },
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "PROD",
+          },
+        ],
+        "VersioningConfiguration": {
+          "Status": "Enabled",
+        },
+      },
+      "Type": "AWS::S3::Bucket",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "FulfilmentBucket": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "BucketName": "fulfilment-export-prod",
+        "LifecycleConfiguration": {
+          "Rules": [
+            {
+              "ExpirationInDays": 365,
+              "Id": "DeleteAllOldFiles",
+              "Prefix": "",
+              "Status": "Enabled",
+            },
+            {
+              "ExpirationInDays": 14,
+              "Id": "DeleteOldFilesZuora",
+              "Prefix": "zuora",
+              "Status": "Enabled",
+            },
+          ],
+        },
+        "LoggingConfiguration": {
+          "DestinationBucketName": {
+            "Ref": "FulfilmentAccessLogBucket",
+          },
+          "LogFilePrefix": "fulfilment-salesforce-backup-_PROD/",
+        },
+        "PublicAccessBlockConfiguration": {
+          "BlockPublicAcls": true,
+          "BlockPublicPolicy": true,
+          "IgnorePublicAcls": true,
+          "RestrictPublicBuckets": true,
+        },
+        "Tags": [
+          {
+            "Key": "App",
+            "Value": "fulfilment-lambdas",
+          },
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "PROD",
+          },
+        ],
+        "VersioningConfiguration": {
+          "Status": "Enabled",
+        },
+      },
+      "Type": "AWS::S3::Bucket",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "FulfilmentExporterLambda": {
+      "DependsOn": [
+        "FulfilmentWorkersLambdaRoleDefaultPolicy4697D31E",
+        "FulfilmentWorkersLambdaRole",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "DistributionBucketName",
+          },
+          "S3Key": "membership/PROD/fulfilment-lambdas/fulfilment-lambdas.zip",
+        },
+        "Description": "Fetch generate fulfilment file",
+        "Environment": {
+          "Variables": {
+            "APP": "fulfilment-lambdas",
+            "STACK": "membership",
+            "STAGE": "PROD",
+            "Stage": "PROD",
+          },
+        },
+        "FunctionName": "zuora_fulfilment_exporter-PROD",
+        "Handler": "exporter.handler",
+        "LoggingConfig": {
+          "LogFormat": "Text",
+        },
+        "MemorySize": 512,
+        "Role": {
+          "Fn::GetAtt": [
+            "FulfilmentWorkersLambdaRole",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Tags": [
+          {
+            "Key": "App",
+            "Value": "fulfilment-lambdas",
+          },
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "PROD",
+          },
+        ],
+        "Timeout": 300,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "FulfilmentMethod": {
+      "Properties": {
+        "AuthorizationType": "NONE",
+        "HttpMethod": "POST",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":apigateway:eu-west-1:lambda:path/2015-03-31/functions/",
+                {
+                  "Fn::GetAtt": [
+                    "SalesforceUploaderLambda",
+                    "Arn",
+                  ],
+                },
+                "/invocations",
+              ],
+            ],
+          },
+        },
+        "ResourceId": {
+          "Ref": "FulfilmentProxyResource",
+        },
+        "RestApiId": {
+          "Ref": "FulfilmentAPI",
+        },
+      },
+      "Type": "AWS::ApiGateway::Method",
+    },
+    "FulfilmentProxyResource": {
+      "Properties": {
+        "ParentId": {
+          "Fn::GetAtt": [
+            "FulfilmentAPI",
+            "RootResourceId",
+          ],
+        },
+        "PathPart": "fulfilment",
+        "RestApiId": {
+          "Ref": "FulfilmentAPI",
+        },
+      },
+      "Type": "AWS::ApiGateway::Resource",
+    },
+    "FulfilmentStateMachine": {
+      "DeletionPolicy": "Delete",
+      "DependsOn": [
+        "FulfilmentStateMachineRoleDefaultPolicyCD2815C9",
+        "FulfilmentStateMachineRoleF40DFD27",
+      ],
+      "Properties": {
+        "DefinitionString": {
+          "Fn::Sub": [
+            "{"Comment":"State machine for Fulfilment","TimeoutSeconds":64800,"StartAt":"QueryZuora","States":{"QueryZuora":{"Type":"Task","Resource":"\${querierArn}","Next":"WaitSomeTime","Retry":[{"ErrorEquals":["States.ALL"],"IntervalSeconds":30,"MaxAttempts":3}]},"WaitSomeTime":{"Type":"Wait","Seconds":180,"Next":"FetchResults"},"FetchResults":{"Type":"Task","Resource":"\${fetcherArn}","Next":"GenerateFulfilmentFile","Retry":[{"ErrorEquals":["States.ALL"],"IntervalSeconds":30,"MaxAttempts":50,"BackoffRate":1.15}]},"GenerateFulfilmentFile":{"Type":"Task","Resource":"\${exporterArn}","End":true,"Retry":[{"ErrorEquals":["States.ALL"],"IntervalSeconds":30,"MaxAttempts":3}]}}}",
+            {
+              "exporterArn": {
+                "Fn::GetAtt": [
+                  "FulfilmentExporterLambda",
+                  "Arn",
+                ],
+              },
+              "fetcherArn": {
+                "Fn::GetAtt": [
+                  "ResultsFetcherLambda",
+                  "Arn",
+                ],
+              },
+              "querierArn": {
+                "Fn::GetAtt": [
+                  "ZuoraQuerierLambda",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+        },
+        "RoleArn": {
+          "Fn::GetAtt": [
+            "FulfilmentStateMachineRoleF40DFD27",
+            "Arn",
+          ],
+        },
+        "StateMachineName": "fulfilment-state-machine-PROD",
+        "Tags": [
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "PROD",
+          },
+        ],
+      },
+      "Type": "AWS::StepFunctions::StateMachine",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "FulfilmentStateMachineAlarm": {
+      "Properties": {
+        "ActionsEnabled": true,
+        "AlarmActions": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:aws:sns:eu-west-1:",
+                {
+                  "Ref": "AWS::AccountId",
+                },
+                ":alarms-handler-topic-PROD",
+              ],
+            ],
+          },
+        ],
+        "AlarmDescription": "Impact - Guardian Weekly and Home Delivery subscribes will not get their paper. Fix FulfilmentStateMachine ASAP! Follow the process in https://docs.google.com/document/d/1_3El3cly9d7u_jPgTcRjLxmdG2e919zCLvmcFCLOYAk/edit",
+        "AlarmName": "URGENT 9-5 - PROD Failed to generate GW and HD fulfilment files",
+        "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+        "Dimensions": [
+          {
+            "Name": "StateMachineArn",
+            "Value": {
+              "Ref": "FulfilmentStateMachine",
+            },
+          },
+        ],
+        "EvaluationPeriods": 1,
+        "MetricName": "ExecutionsFailed",
+        "Namespace": "AWS/States",
+        "Period": 60,
+        "Statistic": "Sum",
+        "Tags": [
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "PROD",
+          },
+        ],
+        "Threshold": 1,
+        "TreatMissingData": "ignore",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "FulfilmentStateMachineEventsRoleBFB43A69": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "events.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Tags": [
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "PROD",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "FulfilmentStateMachineEventsRoleDefaultPolicy98A9C459": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "states:StartExecution",
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "FulfilmentStateMachine",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "FulfilmentStateMachineEventsRoleDefaultPolicy98A9C459",
+        "Roles": [
+          {
+            "Ref": "FulfilmentStateMachineEventsRoleBFB43A69",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "FulfilmentStateMachineRoleDefaultPolicyCD2815C9": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "ZuoraQuerierLambda",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "ZuoraQuerierLambda",
+                          "Arn",
+                        ],
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "ResultsFetcherLambda",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "ResultsFetcherLambda",
+                          "Arn",
+                        ],
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "FulfilmentExporterLambda",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "FulfilmentExporterLambda",
+                          "Arn",
+                        ],
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "FulfilmentStateMachineRoleDefaultPolicyCD2815C9",
+        "Roles": [
+          {
+            "Ref": "FulfilmentStateMachineRoleF40DFD27",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "FulfilmentStateMachineRoleF40DFD27": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "states.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Tags": [
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "PROD",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "FulfilmentWorkersLambdaRole": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Path": "/",
+        "Policies": [
+          {
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Action": [
+                    "logs:CreateLogGroup",
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents",
+                    "lambda:InvokeFunction",
+                  ],
+                  "Effect": "Allow",
+                  "Resource": "*",
+                },
+              ],
+              "Version": "2012-10-17",
+            },
+            "PolicyName": "LambdaPolicy",
+          },
+          {
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Action": "s3:GetObject",
+                  "Effect": "Allow",
+                  "Resource": "arn:aws:s3:::gu-reader-revenue-private/membership/fulfilment-lambdas/PROD/*",
+                },
+              ],
+              "Version": "2012-10-17",
+            },
+            "PolicyName": "PrivateBucket",
+          },
+          {
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Action": [
+                    "s3:AbortMultipartUpload",
+                    "s3:DeleteObject",
+                    "s3:GetObject",
+                    "s3:GetObjectAcl",
+                    "s3:GetBucketAcl",
+                    "s3:ListBucket",
+                    "s3:PutObject",
+                    "s3:GetObjectVersion",
+                    "s3:DeleteObjectVersion",
+                  ],
+                  "Effect": "Allow",
+                  "Resource": "arn:aws:s3:::fulfilment-export-prod/*",
+                },
+              ],
+              "Version": "2012-10-17",
+            },
+            "PolicyName": "WorkBucket",
+          },
+          {
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Action": "s3:ListBucket",
+                  "Effect": "Allow",
+                  "Resource": "arn:aws:s3:::fulfilment-export-prod",
+                },
+              ],
+              "Version": "2012-10-17",
+            },
+            "PolicyName": "ListWorkBucket",
+          },
+          {
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Action": "cloudwatch:PutMetricData",
+                  "Effect": "Allow",
+                  "Resource": "*",
+                },
+              ],
+              "Version": "2012-10-17",
+            },
+            "PolicyName": "CloudWatchMetrics",
+          },
+        ],
+        "RoleName": "FulfilmentWorkers-PROD",
+        "Tags": [
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "PROD",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "FulfilmentWorkersLambdaRoleDefaultPolicy4697D31E": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "s3:GetObject*",
+                "s3:GetBucket*",
+                "s3:List*",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":s3:::",
+                      {
+                        "Ref": "DistributionBucketName",
+                      },
+                    ],
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":s3:::",
+                      {
+                        "Ref": "DistributionBucketName",
+                      },
+                      "/membership/PROD/fulfilment-lambdas/fulfilment-lambdas.zip",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": "ssm:GetParametersByPath",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:ssm:eu-west-1:",
+                    {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":parameter/PROD/membership/fulfilment-lambdas",
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": [
+                "ssm:GetParameters",
+                "ssm:GetParameter",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:ssm:eu-west-1:",
+                    {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":parameter/PROD/membership/fulfilment-lambdas/*",
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "FulfilmentWorkersLambdaRoleDefaultPolicy4697D31E",
+        "Roles": [
+          {
+            "Ref": "FulfilmentWorkersLambdaRole",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "GuardianWeeklyDataQualityCompositeAlarm": {
+      "Properties": {
+        "ActionsEnabled": true,
+        "AlarmActions": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:aws:sns:eu-west-1:",
+                {
+                  "Ref": "AWS::AccountId",
+                },
+                ":alarms-handler-topic-PROD",
+              ],
+            ],
+          },
+        ],
+        "AlarmDescription": "Guardian Weekly fulfilment data has quality issues that may prevent newspaper delivery. Check the ValidationError metrics and the exporter logs. Follow the process in https://docs.google.com/document/d/1_3El3cly9d7u_jPgTcRjLxmdG2e919zCLvmcFCLOYAk/edit",
+        "AlarmName": "URGENT 9-5 - PROD Guardian Weekly Data Quality Issues Detected",
+        "ComparisonOperator": "GreaterThanThreshold",
+        "EvaluationPeriods": 1,
+        "Metrics": [
+          {
+            "Expression": "m1+m2+m3+m4",
+            "Id": "expr_1",
+            "Label": "Total Data Quality Errors",
+          },
+          {
+            "Id": "m1",
+            "MetricStat": {
+              "Metric": {
+                "Dimensions": [
+                  {
+                    "Name": "ErrorType",
+                    "Value": "MissingAddress",
+                  },
+                  {
+                    "Name": "FulfilmentType",
+                    "Value": "weekly",
+                  },
+                  {
+                    "Name": "Stage",
+                    "Value": "PROD",
+                  },
+                ],
+                "MetricName": "ValidationError",
+                "Namespace": "fulfilment-lambdas",
+              },
+              "Period": 300,
+              "Stat": "Sum",
+            },
+            "ReturnData": false,
+          },
+          {
+            "Id": "m2",
+            "MetricStat": {
+              "Metric": {
+                "Dimensions": [
+                  {
+                    "Name": "ErrorType",
+                    "Value": "MissingCity",
+                  },
+                  {
+                    "Name": "FulfilmentType",
+                    "Value": "weekly",
+                  },
+                  {
+                    "Name": "Stage",
+                    "Value": "PROD",
+                  },
+                ],
+                "MetricName": "ValidationError",
+                "Namespace": "fulfilment-lambdas",
+              },
+              "Period": 300,
+              "Stat": "Sum",
+            },
+            "ReturnData": false,
+          },
+          {
+            "Id": "m3",
+            "MetricStat": {
+              "Metric": {
+                "Dimensions": [
+                  {
+                    "Name": "ErrorType",
+                    "Value": "MissingCountry",
+                  },
+                  {
+                    "Name": "FulfilmentType",
+                    "Value": "weekly",
+                  },
+                  {
+                    "Name": "Stage",
+                    "Value": "PROD",
+                  },
+                ],
+                "MetricName": "ValidationError",
+                "Namespace": "fulfilment-lambdas",
+              },
+              "Period": 300,
+              "Stat": "Sum",
+            },
+            "ReturnData": false,
+          },
+          {
+            "Id": "m4",
+            "MetricStat": {
+              "Metric": {
+                "Dimensions": [
+                  {
+                    "Name": "ErrorType",
+                    "Value": "MissingPostcode",
+                  },
+                  {
+                    "Name": "FulfilmentType",
+                    "Value": "weekly",
+                  },
+                  {
+                    "Name": "Stage",
+                    "Value": "PROD",
+                  },
+                ],
+                "MetricName": "ValidationError",
+                "Namespace": "fulfilment-lambdas",
+              },
+              "Period": 300,
+              "Stat": "Sum",
+            },
+            "ReturnData": false,
+          },
+        ],
+        "Tags": [
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "PROD",
+          },
+        ],
+        "Threshold": 0,
+        "TreatMissingData": "notBreaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "GuardianWeeklyUploadToSalesforceLambdaAlarm": {
+      "Properties": {
+        "ActionsEnabled": true,
+        "AlarmActions": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:aws:sns:eu-west-1:",
+                {
+                  "Ref": "AWS::AccountId",
+                },
+                ":alarms-handler-topic-PROD",
+              ],
+            ],
+          },
+        ],
+        "AlarmDescription": "Impact - Guardian Weekly subscribers will not get their paper. Investigate weekly-fulfilmentUploader ASAP!  Follow the process in https://docs.google.com/document/d/1_3El3cly9d7u_jPgTcRjLxmdG2e919zCLvmcFCLOYAk/edit",
+        "AlarmName": "URGENT 9-5 - PROD Failed to upload Guardian Weekly fulfilment files to Salesforce",
+        "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+        "Dimensions": [
+          {
+            "Name": "FunctionName",
+            "Value": {
+              "Ref": "WeeklyUploaderLambda",
+            },
+          },
+        ],
+        "EvaluationPeriods": 1,
+        "MetricName": "Errors",
+        "Namespace": "AWS/Lambda",
+        "Period": 60,
+        "Statistic": "Sum",
+        "Tags": [
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "PROD",
+          },
+        ],
+        "Threshold": 1,
+        "TreatMissingData": "notBreaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "HomeDeliveryDataQualityCompositeAlarm": {
+      "Properties": {
+        "ActionsEnabled": true,
+        "AlarmActions": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:aws:sns:eu-west-1:",
+                {
+                  "Ref": "AWS::AccountId",
+                },
+                ":alarms-handler-topic-PROD",
+              ],
+            ],
+          },
+        ],
+        "AlarmDescription": "Home Delivery fulfilment data has quality issues that may prevent newspaper delivery. Check the ValidationError metrics and the exporter logs. Follow the process in https://docs.google.com/document/d/1_3El3cly9d7u_jPgTcRjLxmdG2e919zCLvmcFCLOYAk/edit",
+        "AlarmName": "URGENT 9-5 - PROD Home Delivery Data Quality Issues Detected",
+        "ComparisonOperator": "GreaterThanThreshold",
+        "EvaluationPeriods": 1,
+        "Metrics": [
+          {
+            "Expression": "m1+m2+m3+m4",
+            "Id": "expr_1",
+            "Label": "Total Data Quality Errors",
+          },
+          {
+            "Id": "m1",
+            "MetricStat": {
+              "Metric": {
+                "Dimensions": [
+                  {
+                    "Name": "ErrorType",
+                    "Value": "MissingAddress",
+                  },
+                  {
+                    "Name": "FulfilmentType",
+                    "Value": "homedelivery",
+                  },
+                  {
+                    "Name": "Stage",
+                    "Value": "PROD",
+                  },
+                ],
+                "MetricName": "ValidationError",
+                "Namespace": "fulfilment-lambdas",
+              },
+              "Period": 300,
+              "Stat": "Sum",
+            },
+            "ReturnData": false,
+          },
+          {
+            "Id": "m2",
+            "MetricStat": {
+              "Metric": {
+                "Dimensions": [
+                  {
+                    "Name": "ErrorType",
+                    "Value": "MissingCity",
+                  },
+                  {
+                    "Name": "FulfilmentType",
+                    "Value": "homedelivery",
+                  },
+                  {
+                    "Name": "Stage",
+                    "Value": "PROD",
+                  },
+                ],
+                "MetricName": "ValidationError",
+                "Namespace": "fulfilment-lambdas",
+              },
+              "Period": 300,
+              "Stat": "Sum",
+            },
+            "ReturnData": false,
+          },
+          {
+            "Id": "m3",
+            "MetricStat": {
+              "Metric": {
+                "Dimensions": [
+                  {
+                    "Name": "ErrorType",
+                    "Value": "MissingPostcode",
+                  },
+                  {
+                    "Name": "FulfilmentType",
+                    "Value": "homedelivery",
+                  },
+                  {
+                    "Name": "Stage",
+                    "Value": "PROD",
+                  },
+                ],
+                "MetricName": "ValidationError",
+                "Namespace": "fulfilment-lambdas",
+              },
+              "Period": 300,
+              "Stat": "Sum",
+            },
+            "ReturnData": false,
+          },
+          {
+            "Id": "m4",
+            "MetricStat": {
+              "Metric": {
+                "Dimensions": [
+                  {
+                    "Name": "ErrorType",
+                    "Value": "MissingName",
+                  },
+                  {
+                    "Name": "FulfilmentType",
+                    "Value": "homedelivery",
+                  },
+                  {
+                    "Name": "Stage",
+                    "Value": "PROD",
+                  },
+                ],
+                "MetricName": "ValidationError",
+                "Namespace": "fulfilment-lambdas",
+              },
+              "Period": 300,
+              "Stat": "Sum",
+            },
+            "ReturnData": false,
+          },
+        ],
+        "Tags": [
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "PROD",
+          },
+        ],
+        "Threshold": 0,
+        "TreatMissingData": "notBreaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "HomeDeliveryUploadToSalesforceApiAlarm": {
+      "Properties": {
+        "ActionsEnabled": true,
+        "AlarmActions": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:aws:sns:eu-west-1:",
+                {
+                  "Ref": "AWS::AccountId",
+                },
+                ":alarms-handler-topic-PROD",
+              ],
+            ],
+          },
+        ],
+        "AlarmDescription": "Impact - Home Delivery subscribers will not get their paper. Investigate fulfilment-api Gateway ASAP!  Follow the process in https://docs.google.com/document/d/1_3El3cly9d7u_jPgTcRjLxmdG2e919zCLvmcFCLOYAk/edit",
+        "AlarmName": "URGENT 9-5 - PROD Failed to upload Home Delivery fulfilment files to Salesforce",
+        "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+        "Dimensions": [
+          {
+            "Name": "ApiName",
+            "Value": "fulfilment-api-PROD",
+          },
+          {
+            "Name": "Stage",
+            "Value": "PROD",
+          },
+        ],
+        "EvaluationPeriods": 1,
+        "MetricName": "5XXError",
+        "Namespace": "AWS/ApiGateway",
+        "Period": 60,
+        "Statistic": "Sum",
+        "Tags": [
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "PROD",
+          },
+        ],
+        "Threshold": 1,
+        "TreatMissingData": "notBreaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "MissingAddressAlarm": {
+      "Properties": {
+        "ActionsEnabled": true,
+        "AlarmActions": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:aws:sns:eu-west-1:",
+                {
+                  "Ref": "AWS::AccountId",
+                },
+                ":alarms-handler-topic-PROD",
+              ],
+            ],
+          },
+        ],
+        "AlarmDescription": "Impact - Customers may not receive their newspapers due to missing address. Investigate fulfilment data ASAP! Follow the process in https://docs.google.com/document/d/1_3El3cly9d7u_jPgTcRjLxmdG2e919zCLvmcFCLOYAk/edit",
+        "AlarmName": "URGENT 9-5 - PROD Fulfilment files have missing address information",
+        "ComparisonOperator": "GreaterThanThreshold",
+        "Dimensions": [
+          {
+            "Name": "ErrorType",
+            "Value": "MissingAddress",
+          },
+          {
+            "Name": "FulfilmentType",
+            "Value": "homedelivery",
+          },
+          {
+            "Name": "Stage",
+            "Value": "PROD",
+          },
+        ],
+        "EvaluationPeriods": 1,
+        "MetricName": "ValidationError",
+        "Namespace": "fulfilment-lambdas",
+        "Period": 300,
+        "Statistic": "Sum",
+        "Tags": [
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "PROD",
+          },
+        ],
+        "Threshold": 0,
+        "TreatMissingData": "notBreaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "MissingDeliveryAgentAlarm": {
+      "Properties": {
+        "ActionsEnabled": true,
+        "AlarmActions": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:aws:sns:eu-west-1:",
+                {
+                  "Ref": "AWS::AccountId",
+                },
+                ":alarms-handler-topic-PROD",
+              ],
+            ],
+          },
+        ],
+        "AlarmDescription": "Impact - Customers may not receive their newspapers due to missing delivery agent. Investigate fulfilment data ASAP! Follow the process in https://docs.google.com/document/d/1_3El3cly9d7u_jPgTcRjLxmdG2e919zCLvmcFCLOYAk/edit",
+        "AlarmName": "URGENT 9-5 - PROD Fulfilment files have missing delivery agent information",
+        "ComparisonOperator": "GreaterThanThreshold",
+        "Dimensions": [
+          {
+            "Name": "ErrorType",
+            "Value": "MissingDeliveryAgent",
+          },
+          {
+            "Name": "FulfilmentType",
+            "Value": "homedelivery",
+          },
+          {
+            "Name": "Stage",
+            "Value": "PROD",
+          },
+        ],
+        "EvaluationPeriods": 1,
+        "MetricName": "ValidationError",
+        "Namespace": "fulfilment-lambdas",
+        "Period": 300,
+        "Statistic": "Sum",
+        "Tags": [
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "PROD",
+          },
+        ],
+        "Threshold": 0,
+        "TreatMissingData": "notBreaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "MissingNameAlarm": {
+      "Properties": {
+        "ActionsEnabled": true,
+        "AlarmActions": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:aws:sns:eu-west-1:",
+                {
+                  "Ref": "AWS::AccountId",
+                },
+                ":alarms-handler-topic-PROD",
+              ],
+            ],
+          },
+        ],
+        "AlarmDescription": "Impact - Customers may not receive their newspapers due to missing name. Investigate fulfilment data ASAP! Follow the process in https://docs.google.com/document/d/1_3El3cly9d7u_jPgTcRjLxmdG2e919zCLvmcFCLOYAk/edit",
+        "AlarmName": "URGENT 9-5 - PROD Fulfilment files have missing customer name information",
+        "ComparisonOperator": "GreaterThanThreshold",
+        "Dimensions": [
+          {
+            "Name": "ErrorType",
+            "Value": "MissingName",
+          },
+          {
+            "Name": "FulfilmentType",
+            "Value": "homedelivery",
+          },
+          {
+            "Name": "Stage",
+            "Value": "PROD",
+          },
+        ],
+        "EvaluationPeriods": 1,
+        "MetricName": "ValidationError",
+        "Namespace": "fulfilment-lambdas",
+        "Period": 300,
+        "Statistic": "Sum",
+        "Tags": [
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "PROD",
+          },
+        ],
+        "Threshold": 0,
+        "TreatMissingData": "notBreaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "MissingPostcodeAlarm": {
+      "Properties": {
+        "ActionsEnabled": true,
+        "AlarmActions": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:aws:sns:eu-west-1:",
+                {
+                  "Ref": "AWS::AccountId",
+                },
+                ":alarms-handler-topic-PROD",
+              ],
+            ],
+          },
+        ],
+        "AlarmDescription": "Impact - Customers may not receive their newspapers due to missing postcode. Investigate fulfilment data ASAP! Follow the process in https://docs.google.com/document/d/1_3El3cly9d7u_jPgTcRjLxmdG2e919zCLvmcFCLOYAk/edit",
+        "AlarmName": "URGENT 9-5 - PROD Fulfilment files have missing postcode information",
+        "ComparisonOperator": "GreaterThanThreshold",
+        "Dimensions": [
+          {
+            "Name": "ErrorType",
+            "Value": "MissingPostcode",
+          },
+          {
+            "Name": "FulfilmentType",
+            "Value": "homedelivery",
+          },
+          {
+            "Name": "Stage",
+            "Value": "PROD",
+          },
+        ],
+        "EvaluationPeriods": 1,
+        "MetricName": "ValidationError",
+        "Namespace": "fulfilment-lambdas",
+        "Period": 300,
+        "Statistic": "Sum",
+        "Tags": [
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "PROD",
+          },
+        ],
+        "Threshold": 0,
+        "TreatMissingData": "notBreaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "RestApiAccount7C83CF5A": {
+      "DeletionPolicy": "Retain",
+      "DependsOn": [
+        "FulfilmentAPI",
+      ],
+      "Properties": {
+        "CloudWatchRoleArn": {
+          "Fn::GetAtt": [
+            "RestApiCloudWatchRoleE3ED6605",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::ApiGateway::Account",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "RestApiCloudWatchRoleE3ED6605": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "apigateway.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs",
+              ],
+            ],
+          },
+        ],
+        "Tags": [
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "PROD",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "RestApiDeployment180EC5036d1971fecbf3c58a7bde3cfc6f017dfa": {
+      "DependsOn": [
+        "FulfilmentMethod",
+        "FulfilmentProxyResource",
+      ],
+      "Properties": {
+        "Description": "Upload Home Delivery fulfilment files to Salesforce document Home_Delivery_Pipeline_Fulfilment",
+        "RestApiId": {
+          "Ref": "FulfilmentAPI",
+        },
+      },
+      "Type": "AWS::ApiGateway::Deployment",
+    },
+    "RestApifulfilmentPOSTApiPermissionTestfulfilmentlambdasPRODRestApiC813D2A5POSTfulfilment52D2F119": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "SalesforceUploaderLambda",
+            "Arn",
+          ],
+        },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition",
+              },
+              ":execute-api:eu-west-1:",
+              {
+                "Ref": "AWS::AccountId",
+              },
+              ":",
+              {
+                "Ref": "FulfilmentAPI",
+              },
+              "/test-invoke-stage/POST/fulfilment",
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "RestApifulfilmentPOSTApiPermissionfulfilmentlambdasPRODRestApiC813D2A5POSTfulfilmentCBEAA2EA": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "SalesforceUploaderLambda",
+            "Arn",
+          ],
+        },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition",
+              },
+              ":execute-api:eu-west-1:",
+              {
+                "Ref": "AWS::AccountId",
+              },
+              ":",
+              {
+                "Ref": "FulfilmentAPI",
+              },
+              "/",
+              {
+                "Ref": "FulfilmentAPIStage",
+              },
+              "/POST/fulfilment",
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "ResultsFetcherLambda": {
+      "DependsOn": [
+        "FulfilmentWorkersLambdaRoleDefaultPolicy4697D31E",
+        "FulfilmentWorkersLambdaRole",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "DistributionBucketName",
+          },
+          "S3Key": "membership/PROD/fulfilment-lambdas/fulfilment-lambdas.zip",
+        },
+        "Description": "Fetch zuora export results",
+        "Environment": {
+          "Variables": {
+            "APP": "fulfilment-lambdas",
+            "STACK": "membership",
+            "STAGE": "PROD",
+            "Stage": "PROD",
+          },
+        },
+        "FunctionName": "zuora_fulfilment_fetcher-PROD",
+        "Handler": "fetcher.handler",
+        "LoggingConfig": {
+          "LogFormat": "Text",
+        },
+        "MemorySize": 512,
+        "Role": {
+          "Fn::GetAtt": [
+            "FulfilmentWorkersLambdaRole",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Tags": [
+          {
+            "Key": "App",
+            "Value": "fulfilment-lambdas",
+          },
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "PROD",
+          },
+        ],
+        "Timeout": 300,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "SFDownloadScheduledRule": {
+      "Properties": {
+        "Description": "Download fulfilment files from Salesforce",
+        "ScheduleExpression": "cron(50 14 ? * mon-fri *)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "SalesforceDownloaderLambda",
+                "Arn",
+              ],
+            },
+            "Id": "Target0",
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
+    "SFDownloadScheduledRuleAllowEventRulefulfilmentlambdasPRODSalesforceDownloaderLambdaB7C2C2627401ED62": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "SalesforceDownloaderLambda",
+            "Arn",
+          ],
+        },
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Fn::GetAtt": [
+            "SFDownloadScheduledRule",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "SalesforceDownloaderLambda": {
+      "DependsOn": [
+        "FulfilmentWorkersLambdaRoleDefaultPolicy4697D31E",
+        "FulfilmentWorkersLambdaRole",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "DistributionBucketName",
+          },
+          "S3Key": "membership/PROD/fulfilment-lambdas/fulfilment-lambdas.zip",
+        },
+        "Description": "Fetch salesforce fulfilment files",
+        "Environment": {
+          "Variables": {
+            "APP": "fulfilment-lambdas",
+            "STACK": "membership",
+            "STAGE": "PROD",
+            "Stage": "PROD",
+          },
+        },
+        "FunctionName": "zuora_fulfilment_salesforce_downloader-PROD",
+        "Handler": "salesforce_downloader.handler",
+        "LoggingConfig": {
+          "LogFormat": "Text",
+        },
+        "MemorySize": 512,
+        "Role": {
+          "Fn::GetAtt": [
+            "FulfilmentWorkersLambdaRole",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Tags": [
+          {
+            "Key": "App",
+            "Value": "fulfilment-lambdas",
+          },
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "PROD",
+          },
+        ],
+        "Timeout": 300,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "SalesforceUploaderLambda": {
+      "DependsOn": [
+        "FulfilmentWorkersLambdaRoleDefaultPolicy4697D31E",
+        "FulfilmentWorkersLambdaRole",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "DistributionBucketName",
+          },
+          "S3Key": "membership/PROD/fulfilment-lambdas/fulfilment-lambdas.zip",
+        },
+        "Description": "Upload Home Delivery fulfilment files to Salesforce document Home_Delivery_Pipeline_Fulfilment",
+        "Environment": {
+          "Variables": {
+            "APP": "fulfilment-lambdas",
+            "STACK": "membership",
+            "STAGE": "PROD",
+            "Stage": "PROD",
+            "StateMachine": {
+              "Ref": "FulfilmentStateMachine",
+            },
+          },
+        },
+        "FunctionName": "salesforce_uploader-PROD",
+        "Handler": "salesforce_uploader.handler",
+        "LoggingConfig": {
+          "LogFormat": "Text",
+        },
+        "MemorySize": 512,
+        "Role": {
+          "Fn::GetAtt": [
+            "FulfilmentWorkersLambdaRole",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Tags": [
+          {
+            "Key": "App",
+            "Value": "fulfilment-lambdas",
+          },
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "PROD",
+          },
+        ],
+        "Timeout": 300,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "ScheduledRule": {
+      "Properties": {
+        "Description": "TriggerFulfilment",
+        "ScheduleExpression": "cron(0 7 ? * mon-fri *)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Ref": "FulfilmentStateMachine",
+            },
+            "Id": "Target0",
+            "Input": "{"deliveryDateDaysFromNow":1,"type":"homedelivery"}",
+            "RoleArn": {
+              "Fn::GetAtt": [
+                "FulfilmentStateMachineEventsRoleBFB43A69",
+                "Arn",
+              ],
+            },
+          },
+          {
+            "Arn": {
+              "Ref": "FulfilmentStateMachine",
+            },
+            "Id": "Target1",
+            "Input": "{"deliveryDateDaysFromNow":2,"type":"homedelivery"}",
+            "RoleArn": {
+              "Fn::GetAtt": [
+                "FulfilmentStateMachineEventsRoleBFB43A69",
+                "Arn",
+              ],
+            },
+          },
+          {
+            "Arn": {
+              "Ref": "FulfilmentStateMachine",
+            },
+            "Id": "Target2",
+            "Input": "{"deliveryDateDaysFromNow":3,"type":"homedelivery"}",
+            "RoleArn": {
+              "Fn::GetAtt": [
+                "FulfilmentStateMachineEventsRoleBFB43A69",
+                "Arn",
+              ],
+            },
+          },
+          {
+            "Arn": {
+              "Ref": "FulfilmentStateMachine",
+            },
+            "Id": "Target3",
+            "Input": "{"deliveryDateDaysFromNow":4,"type":"homedelivery"}",
+            "RoleArn": {
+              "Fn::GetAtt": [
+                "FulfilmentStateMachineEventsRoleBFB43A69",
+                "Arn",
+              ],
+            },
+          },
+          {
+            "Arn": {
+              "Ref": "FulfilmentStateMachine",
+            },
+            "Id": "Target4",
+            "Input": "{"deliveryDateDaysFromNow":5,"type":"homedelivery"}",
+            "RoleArn": {
+              "Fn::GetAtt": [
+                "FulfilmentStateMachineEventsRoleBFB43A69",
+                "Arn",
+              ],
+            },
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
+    "WeeklyScheduledRule": {
+      "Properties": {
+        "Description": "TriggerWeeklyFulfilment",
+        "ScheduleExpression": "cron(00 2 ? * * *)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Ref": "FulfilmentStateMachine",
+            },
+            "Id": "Target0",
+            "Input": "{"type":"weekly","deliveryDayOfWeek":"friday","minDaysInAdvance":8}",
+            "RoleArn": {
+              "Fn::GetAtt": [
+                "FulfilmentStateMachineEventsRoleBFB43A69",
+                "Arn",
+              ],
+            },
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
+    "WeeklyScheduledUploadRule": {
+      "Properties": {
+        "Description": "TriggerWeeklyFulfilmentUpload",
+        "ScheduleExpression": "cron(00 11 ? * THU *)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "WeeklyUploaderLambda",
+                "Arn",
+              ],
+            },
+            "Id": "Target0",
+            "Input": "{"type":"weekly","deliveryDayOfWeek":"friday","minDaysInAdvance":8}",
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
+    "WeeklyScheduledUploadRuleAllowEventRulefulfilmentlambdasPRODWeeklyUploaderLambdaE6A615C8EBE56A16": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "WeeklyUploaderLambda",
+            "Arn",
+          ],
+        },
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Fn::GetAtt": [
+            "WeeklyScheduledUploadRule",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "WeeklyUploaderLambda": {
+      "DependsOn": [
+        "FulfilmentWorkersLambdaRoleDefaultPolicy4697D31E",
+        "FulfilmentWorkersLambdaRole",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "DistributionBucketName",
+          },
+          "S3Key": "membership/PROD/fulfilment-lambdas/fulfilment-lambdas.zip",
+        },
+        "Description": "upload Guardian Weekly fulfilment files to salesforce",
+        "Environment": {
+          "Variables": {
+            "APP": "fulfilment-lambdas",
+            "STACK": "membership",
+            "STAGE": "PROD",
+            "Stage": "PROD",
+          },
+        },
+        "FunctionName": "weekly-fulfilmentUploader-PROD",
+        "Handler": "weekly_salesforce_uploader.handler",
+        "LoggingConfig": {
+          "LogFormat": "Text",
+        },
+        "MemorySize": 512,
+        "Role": {
+          "Fn::GetAtt": [
+            "FulfilmentWorkersLambdaRole",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Tags": [
+          {
+            "Key": "App",
+            "Value": "fulfilment-lambdas",
+          },
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "PROD",
+          },
+        ],
+        "Timeout": 300,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "ZuoraQuerierLambda": {
+      "DependsOn": [
+        "FulfilmentWorkersLambdaRoleDefaultPolicy4697D31E",
+        "FulfilmentWorkersLambdaRole",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "DistributionBucketName",
+          },
+          "S3Key": "membership/PROD/fulfilment-lambdas/fulfilment-lambdas.zip",
+        },
+        "Description": "Trigger zuora export",
+        "Environment": {
+          "Variables": {
+            "APP": "fulfilment-lambdas",
+            "STACK": "membership",
+            "STAGE": "PROD",
+            "Stage": "PROD",
+          },
+        },
+        "FunctionName": "zuora_fulfilment_querier-PROD",
+        "Handler": "querier.handler",
+        "LoggingConfig": {
+          "LogFormat": "Text",
+        },
+        "MemorySize": 512,
+        "Role": {
+          "Fn::GetAtt": [
+            "FulfilmentWorkersLambdaRole",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Tags": [
+          {
+            "Key": "App",
+            "Value": "fulfilment-lambdas",
+          },
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "PROD",
+          },
+        ],
+        "Timeout": 300,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "checkerLambda": {
+      "DependsOn": [
+        "FulfilmentWorkersLambdaRoleDefaultPolicy4697D31E",
+        "FulfilmentWorkersLambdaRole",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "DistributionBucketName",
+          },
+          "S3Key": "membership/PROD/fulfilment-lambdas/fulfilment-lambdas.zip",
+        },
+        "Description": "daily check to verify fulfilment files have been generated",
+        "Environment": {
+          "Variables": {
+            "APP": "fulfilment-lambdas",
+            "STACK": "membership",
+            "STAGE": "PROD",
+            "Stage": "PROD",
+          },
+        },
+        "FunctionName": "zuora_fulfilment_checker-PROD",
+        "Handler": "checker.handler",
+        "LoggingConfig": {
+          "LogFormat": "Text",
+        },
+        "MemorySize": 128,
+        "Role": {
+          "Fn::GetAtt": [
+            "FulfilmentWorkersLambdaRole",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Tags": [
+          {
+            "Key": "App",
+            "Value": "fulfilment-lambdas",
+          },
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "PROD",
+          },
+        ],
+        "Timeout": 300,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "fulfilmentCheckerMetricFilter": {
+      "Properties": {
+        "FilterPattern": ""CHECK:PASSED"",
+        "LogGroupName": {
+          "Fn::Join": [
+            "",
+            [
+              "/aws/lambda/",
+              {
+                "Ref": "checkerLambda",
+              },
+            ],
+          ],
+        },
+        "MetricTransformations": [
+          {
+            "MetricName": "fulfilmentFileUpdated",
+            "MetricNamespace": "PROD/fulfilment",
+            "MetricValue": "1",
+          },
+        ],
+      },
+      "Type": "AWS::Logs::MetricFilter",
+    },
+  },
+}
+`;
