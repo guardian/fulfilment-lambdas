@@ -57,6 +57,24 @@ exports[`The fulfilment-lambdas stack matches the snapshot 1`] = `
         "Description": "trigger fulfilment file check",
         "ScheduleExpression": "cron(30 11 * * ? *)",
         "State": "ENABLED",
+        "Tags": [
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "CODE",
+          },
+        ],
         "Targets": [
           {
             "Arn": {
@@ -896,6 +914,7 @@ exports[`The fulfilment-lambdas stack matches the snapshot 1`] = `
             "Expression": "m1+m2+m3+m4",
             "Id": "expr_1",
             "Label": "Total Data Quality Errors",
+            "ReturnData": true,
           },
           {
             "Id": "m1",
@@ -1051,6 +1070,7 @@ exports[`The fulfilment-lambdas stack matches the snapshot 1`] = `
             "Expression": "m1+m2+m3+m4",
             "Id": "expr_1",
             "Label": "Total Data Quality Errors",
+            "ReturnData": true,
           },
           {
             "Id": "m1",
@@ -1252,6 +1272,9 @@ exports[`The fulfilment-lambdas stack matches the snapshot 1`] = `
         "FulfilmentMethod",
         "FulfilmentProxyResource",
       ],
+      "Metadata": {
+        "aws:cdk:do-not-refactor": true,
+      },
       "Properties": {
         "Description": "Upload Home Delivery fulfilment files to Salesforce document Home_Delivery_Pipeline_Fulfilment",
         "RestApiId": {
@@ -1395,6 +1418,24 @@ exports[`The fulfilment-lambdas stack matches the snapshot 1`] = `
         "Description": "Download fulfilment files from Salesforce",
         "ScheduleExpression": "cron(50 14 ? * mon-fri *)",
         "State": "ENABLED",
+        "Tags": [
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "CODE",
+          },
+        ],
         "Targets": [
           {
             "Arn": {
@@ -1556,6 +1597,24 @@ exports[`The fulfilment-lambdas stack matches the snapshot 1`] = `
         "Description": "TriggerFulfilment",
         "ScheduleExpression": "cron(0 7 ? * mon-fri *)",
         "State": "ENABLED",
+        "Tags": [
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "CODE",
+          },
+        ],
         "Targets": [
           {
             "Arn": {
@@ -1631,6 +1690,24 @@ exports[`The fulfilment-lambdas stack matches the snapshot 1`] = `
         "Description": "TriggerWeeklyFulfilment",
         "ScheduleExpression": "cron(00 2 ? * * *)",
         "State": "ENABLED",
+        "Tags": [
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "CODE",
+          },
+        ],
         "Targets": [
           {
             "Arn": {
@@ -1654,6 +1731,24 @@ exports[`The fulfilment-lambdas stack matches the snapshot 1`] = `
         "Description": "TriggerWeeklyFulfilmentUpload",
         "ScheduleExpression": "cron(00 11 ? * THU *)",
         "State": "ENABLED",
+        "Tags": [
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "CODE",
+          },
+        ],
         "Targets": [
           {
             "Arn": {
@@ -2009,6 +2104,24 @@ exports[`The fulfilment-lambdas stack matches the snapshot 2`] = `
         "Description": "trigger fulfilment file check",
         "ScheduleExpression": "cron(30 11 * * ? *)",
         "State": "ENABLED",
+        "Tags": [
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "PROD",
+          },
+        ],
         "Targets": [
           {
             "Arn": {
@@ -2904,6 +3017,7 @@ exports[`The fulfilment-lambdas stack matches the snapshot 2`] = `
             "Expression": "m1+m2+m3+m4",
             "Id": "expr_1",
             "Label": "Total Data Quality Errors",
+            "ReturnData": true,
           },
           {
             "Id": "m1",
@@ -3115,6 +3229,7 @@ exports[`The fulfilment-lambdas stack matches the snapshot 2`] = `
             "Expression": "m1+m2+m3+m4",
             "Id": "expr_1",
             "Label": "Total Data Quality Errors",
+            "ReturnData": true,
           },
           {
             "Id": "m1",
@@ -3622,6 +3737,9 @@ exports[`The fulfilment-lambdas stack matches the snapshot 2`] = `
         "FulfilmentMethod",
         "FulfilmentProxyResource",
       ],
+      "Metadata": {
+        "aws:cdk:do-not-refactor": true,
+      },
       "Properties": {
         "Description": "Upload Home Delivery fulfilment files to Salesforce document Home_Delivery_Pipeline_Fulfilment",
         "RestApiId": {
@@ -3765,6 +3883,24 @@ exports[`The fulfilment-lambdas stack matches the snapshot 2`] = `
         "Description": "Download fulfilment files from Salesforce",
         "ScheduleExpression": "cron(50 14 ? * mon-fri *)",
         "State": "ENABLED",
+        "Tags": [
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "PROD",
+          },
+        ],
         "Targets": [
           {
             "Arn": {
@@ -3926,6 +4062,24 @@ exports[`The fulfilment-lambdas stack matches the snapshot 2`] = `
         "Description": "TriggerFulfilment",
         "ScheduleExpression": "cron(0 7 ? * mon-fri *)",
         "State": "ENABLED",
+        "Tags": [
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "PROD",
+          },
+        ],
         "Targets": [
           {
             "Arn": {
@@ -4001,6 +4155,24 @@ exports[`The fulfilment-lambdas stack matches the snapshot 2`] = `
         "Description": "TriggerWeeklyFulfilment",
         "ScheduleExpression": "cron(00 2 ? * * *)",
         "State": "ENABLED",
+        "Tags": [
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "PROD",
+          },
+        ],
         "Targets": [
           {
             "Arn": {
@@ -4024,6 +4196,24 @@ exports[`The fulfilment-lambdas stack matches the snapshot 2`] = `
         "Description": "TriggerWeeklyFulfilmentUpload",
         "ScheduleExpression": "cron(00 11 ? * THU *)",
         "State": "ENABLED",
+        "Tags": [
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/fulfilment-lambdas",
+          },
+          {
+            "Key": "Stack",
+            "Value": "membership",
+          },
+          {
+            "Key": "Stage",
+            "Value": "PROD",
+          },
+        ],
         "Targets": [
           {
             "Arn": {

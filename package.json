@@ -1,89 +1,86 @@
 {
-	"name": "fulfilment-lambdas",
-	"version": "0.0.1",
-	"description": "Lambdas to fulfil guardian subscriptions",
-	"packageManager": "pnpm@10.33.4",
-	"buildDir": "dist",
-	"devDependencies": {
-		"@babel/cli": "^7.7.7",
-		"@babel/core": "^7.29.6",
-		"@babel/preset-env": "^7.24.8",
-		"@babel/preset-flow": "^7.24.7",
-		"@babel/preset-typescript": "^7.24.7",
-		"@guardian/prettier": "^8.0.1",
-		"@types/aws-lambda": "^8.10.141",
-		"@types/common-tags": "^1.8.4",
-		"@types/jest": "^29.5.12",
-		"@types/lodash": "^4.17.7",
-		"@types/multistream": "^4.1.3",
-		"@types/node": "^24.7.2",
-		"@typescript-eslint/eslint-plugin": "^8.56.0",
-		"@typescript-eslint/parser": "^8.56.0",
-		"babel-jest": "^29.7.0",
-		"common-tags": "^1.8.0",
-		"esbuild": "^0.28.1",
-		"eslint": "^9.37.0",
-		"jest": "^29.7.0",
-		"lambda-local": "^1.6.3",
-		"lodash": "^4.18.1",
-		"mockdate": "^2.0.5",
-		"prettier": "^3.3.3",
-		"replace": "^1.1.1",
-		"string-width": "^4.2.0",
-		"ts-jest": "^29.2.2",
-		"typescript": "^5.5.3"
-	},
-	"scripts": {
-		"build": "esbuild --bundle --platform=node --target=node20 --outdir=dist src/*.ts",
-		"package": "pnpm type-check && pnpm lint && pnpm check-formatting && pnpm test && pnpm build && cd dist && zip -qr fulfilment-lambdas.zip ./*.js",
-		"check-formatting": "prettier --check **/*.ts **.ts",
-		"fix-formatting": "prettier --write **/*.ts **.ts",
-		"run:hd:exporter": "lambda-local -l dist/exporter.js -e __tests__/resources/input/homedelivery/exporter.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
-		"run:weekly:exporter": "lambda-local -l dist/exporter.js -e __tests__/resources/input/weekly/exporter.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
-		"run:hd:querier": "lambda-local -l dist/querier.js -e __tests__/resources/input/homedelivery/querier.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
-		"run:weekly:querier": "lambda-local -l dist/querier.js -e __tests__/resources/input/weekly/querier.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
-		"run:hd:fetcher": "lambda-local -l dist/fetcher.js -e __tests__/resources/input/homedelivery/fetcher.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
-		"run:weekly:fetcher": "lambda-local -l dist/fetcher.js -e __tests__/resources/input/weekly/fetcher.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
-		"run:weekly:uploader": "lambda-local -l dist/weekly_salesforce_uploader.js -e __tests__/resources/input/weekly_salesforce_uploader.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
-		"run:sf": "lambda-local -l dist/salesforce_downloader.js -e __tests__/resources/input/input.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
-		"run:sfup": "lambda-local -l dist/salesforce_uploader.js -e __tests__/resources/input/upload.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
-		"run:checker": "lambda-local -l dist/checker.js -e __tests__/resources/input/checker.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
-		"clean": "rm -rf dist && rm -rf target && rm -f cloudformation/prod.yaml && rm -f  cloudformation/code.yaml",
-		"lint": "eslint 'src/**/*.ts' '__tests__/**/*.ts'",
-		"test": "jest --runInBand",
-		"testOnly": "jest -t 'should generate correct fulfilment file'",
-		"type-check": "tsc --noEmit",
-		"type-watch": "tsc --noEmit --watch"
-	},
-	"dependencies": {
-		"aws-sdk": "^2.1641.0",
-		"fast-csv": "4.3.6",
-		"form-data": "^4.0.6",
-		"get-stream": "^5.1.0",
-		"http-signature": "^1.3.5",
-		"lodash-es": "^4.18.1",
-		"moment": "^2.29.4",
-		"multistream": "^2.1.0",
-		"safe-buffer": "^5.2.1"
-	},
-	"jest": {
-		"verbose": false,
-		"testEnvironment": "node",
-		"testPathIgnorePatterns": [
-			"/node_modules/",
-			"<rootDir>/cdk/"
-		],
-		"modulePathIgnorePatterns": [
-			"<rootDir>/cdk/"
-		]
-	},
-	"pnpm": {
-	  "overrides": {
-	    "minimatch": "3.1.4",
-	    "handlebars": "4.7.9",
-	    "picomatch@<3": "2.3.2",
-	    "picomatch@>=3": "4.0.4",
-	    "flatted": "3.4.2"
-	  }
-	}
+  "name": "fulfilment-lambdas",
+  "version": "0.0.1",
+  "description": "Lambdas to fulfil guardian subscriptions",
+  "packageManager": "pnpm@10.33.4",
+  "buildDir": "dist",
+  "devDependencies": {
+    "@babel/cli": "^7.7.7",
+    "@babel/core": "^7.29.6",
+    "@babel/preset-env": "^7.24.8",
+    "@babel/preset-flow": "^7.24.7",
+    "@babel/preset-typescript": "^7.24.7",
+    "@guardian/prettier": "^8.0.1",
+    "@types/aws-lambda": "^8.10.141",
+    "@types/common-tags": "^1.8.4",
+    "@types/jest": "^29.5.12",
+    "@types/lodash": "^4.17.7",
+    "@types/multistream": "^4.1.3",
+    "@types/node": "^24.7.2",
+    "@typescript-eslint/eslint-plugin": "^8.56.0",
+    "@typescript-eslint/parser": "^8.56.0",
+    "babel-jest": "^29.7.0",
+    "common-tags": "^1.8.0",
+    "esbuild": "^0.28.1",
+    "eslint": "^9.37.0",
+    "jest": "^29.7.0",
+    "lambda-local": "^1.6.3",
+    "lodash": "^4.18.1",
+    "mockdate": "^2.0.5",
+    "prettier": "^3.3.3",
+    "replace": "^1.1.1",
+    "string-width": "^4.2.0",
+    "ts-jest": "^29.2.2",
+    "typescript": "^5.5.3"
+  },
+  "scripts": {
+    "build": "esbuild --bundle --platform=node --target=node20 --outdir=dist src/*.ts",
+    "package": "pnpm type-check && pnpm lint && pnpm check-formatting && pnpm test && pnpm build && cd dist && zip -qr fulfilment-lambdas.zip ./*.js",
+    "check-formatting": "prettier --check **/*.ts **.ts",
+    "fix-formatting": "prettier --write **/*.ts **.ts",
+    "run:hd:exporter": "lambda-local -l dist/exporter.js -e __tests__/resources/input/homedelivery/exporter.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
+    "run:weekly:exporter": "lambda-local -l dist/exporter.js -e __tests__/resources/input/weekly/exporter.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
+    "run:hd:querier": "lambda-local -l dist/querier.js -e __tests__/resources/input/homedelivery/querier.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
+    "run:weekly:querier": "lambda-local -l dist/querier.js -e __tests__/resources/input/weekly/querier.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
+    "run:hd:fetcher": "lambda-local -l dist/fetcher.js -e __tests__/resources/input/homedelivery/fetcher.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
+    "run:weekly:fetcher": "lambda-local -l dist/fetcher.js -e __tests__/resources/input/weekly/fetcher.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
+    "run:weekly:uploader": "lambda-local -l dist/weekly_salesforce_uploader.js -e __tests__/resources/input/weekly_salesforce_uploader.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
+    "run:sf": "lambda-local -l dist/salesforce_downloader.js -e __tests__/resources/input/input.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
+    "run:sfup": "lambda-local -l dist/salesforce_uploader.js -e __tests__/resources/input/upload.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
+    "run:checker": "lambda-local -l dist/checker.js -e __tests__/resources/input/checker.json -h handler -P ~/.aws/credentials -p membership -r eu-west-1 -t 30 -E {\\\"Stage\\\":\\\"CODE\\\"}",
+    "clean": "rm -rf dist && rm -rf target && rm -f cloudformation/prod.yaml && rm -f  cloudformation/code.yaml",
+    "lint": "eslint 'src/**/*.ts' '__tests__/**/*.ts'",
+    "test": "jest --runInBand",
+    "testOnly": "jest -t 'should generate correct fulfilment file'",
+    "type-check": "tsc --noEmit",
+    "type-watch": "tsc --noEmit --watch"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.1641.0",
+    "fast-csv": "4.3.6",
+    "form-data": "^4.0.6",
+    "get-stream": "^5.1.0",
+    "http-signature": "^1.3.5",
+    "lodash-es": "^4.18.1",
+    "moment": "^2.29.4",
+    "multistream": "^2.1.0",
+    "safe-buffer": "^5.2.1"
+  },
+  "jest": {
+    "verbose": false,
+    "testEnvironment": "node",
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "<rootDir>/cdk/"
+    ],
+    "modulePathIgnorePatterns": [
+      "<rootDir>/cdk/"
+    ]
+  },
+  "pnpm": {
+    "overrides": {
+      "uuid": "^11.1.1",
+      "minimatch@<3.1.4": "3.1.4"
+    }
+  }
 }

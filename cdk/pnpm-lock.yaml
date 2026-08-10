@@ -4,13 +4,16 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  uuid: ^11.1.1
+
 importers:
 
   .:
     devDependencies:
       '@guardian/cdk':
         specifier: 61.11.1
-        version: 61.11.1(aws-cdk-lib@2.195.0(constructs@10.4.2))(aws-cdk@2.1014.0)(constructs@10.4.2)
+        version: 61.11.1(aws-cdk-lib@2.264.0(constructs@10.8.1))(aws-cdk@2.1135.1)(constructs@10.8.1)
       '@guardian/eslint-config':
         specifier: ^11.0.0
         version: 11.0.0(eslint@9.39.5)(typescript@5.9.3)
@@ -24,14 +27,14 @@ importers:
         specifier: ^22.15.14
         version: 22.20.1
       aws-cdk:
-        specifier: 2.1014.0
-        version: 2.1014.0
+        specifier: 2.1135.1
+        version: 2.1135.1
       aws-cdk-lib:
-        specifier: 2.195.0
-        version: 2.195.0(constructs@10.4.2)
+        specifier: 2.264.0
+        version: 2.264.0(constructs@10.8.1)
       constructs:
-        specifier: 10.4.2
-        version: 10.4.2
+        specifier: 10.8.1
+        version: 10.8.1
       eslint:
         specifier: ^9.38.0
         version: 9.39.5
@@ -59,15 +62,15 @@ importers:
 
 packages:
 
-  '@aws-cdk/asset-awscli-v1@2.2.289':
-    resolution: {integrity: sha512-X0fy/eKo6t7XI+AYZZWuEI3/f+050/fAtG2A6ckMc+AgAiYdK8cCc90lDc0/FYsvmJSh5WjwDVKTP2wyeLoL+A==}
+  '@aws-cdk/asset-awscli-v1@2.2.282':
+    resolution: {integrity: sha512-7hKMi5tTxDcKGIMIOq14PnY0GBcugW33Uh/2YHDZiEwSxLeFOCYBwhR+BFXONb/EJeVI3RETFgailNZbkcKF6g==}
 
   '@aws-cdk/asset-node-proxy-agent-v6@2.1.2':
     resolution: {integrity: sha512-pDiuqH+qY3zM9lhhLjbKJ1tnKOHzQ2V4Wr/3qsxyKeKAkuPMI/BVGvZG1PbrikUw949cGVTfVEt4ETKKYnrj0Q==}
 
-  '@aws-cdk/cloud-assembly-schema@41.2.0':
-    resolution: {integrity: sha512-JaulVS6z9y5+u4jNmoWbHZRs9uGOnmn/ktXygNWKNu1k6lF3ad4so3s18eRu15XCbUIomxN9WPYT6Ehh7hzONw==}
-    engines: {node: '>= 14.15.0'}
+  '@aws-cdk/cloud-assembly-schema@54.17.0':
+    resolution: {integrity: sha512-wV1GmMM5AvDkiJIenb9aJcBiGTa5KwX/C/mIjFZCsWsB5b1rEMLnwMageqrOpL2mWKicpxqS8ofF/Yte4Lm3Dg==}
+    engines: {node: '>= 18.0.0'}
     bundledDependencies:
       - jsonschema
       - semver
@@ -846,13 +849,15 @@ packages:
     resolution: {integrity: sha512-wvUjBtSGN7+7SjNpq/9M2Tg350UZD3q62IFZLbRAR1bSMlCo1ZaeW+BJ+D090e4hIIZLBcTDWe4Mh4jvUDajzQ==}
     engines: {node: '>= 0.4'}
 
-  aws-cdk-lib@2.195.0:
-    resolution: {integrity: sha512-AYLysgSjSnSjkal/AmR86DqvOVqy0VjeWmXR+ucIIGSOzJsevsYuNWCeVnf4v9x+vd2ysVcO8fXndG426vGZ/w==}
-    engines: {node: '>= 14.15.0'}
+  aws-cdk-lib@2.264.0:
+    resolution: {integrity: sha512-TzeWc4aM2qftdoWzIgqV7DotzUO9+DqYLXHvL2qygZqkrJdvITTp8ojHstxYPH40FfA+RL4x5hVfa52NCTB0ZA==}
+    engines: {node: '>= 20.0.0'}
     peerDependencies:
-      constructs: ^10.0.0
+      constructs: ^10.5.0
     bundledDependencies:
+      - '@aws/cloudformation-validate'
       - '@balena/dockerignore'
+      - '@aws-cdk/cloud-assembly-api'
       - case
       - fs-extra
       - ignore
@@ -860,13 +865,12 @@ packages:
       - minimatch
       - punycode
       - semver
-      - table
       - yaml
       - mime-types
 
-  aws-cdk@2.1014.0:
-    resolution: {integrity: sha512-es101rtRAClix9BncNL54iW90MiOyRv4iCC5tv/firGDnidS6pPinuK0IIFt0RO6w0+3heRxWBXg8HY+f9877w==}
-    engines: {node: '>= 14.15.0'}
+  aws-cdk@2.1135.1:
+    resolution: {integrity: sha512-g1jcMfWlyYtGamFJ/kPBOCuchl3NfwTF2UwOLTIDN0nJbGm84EAO+c8DlYnaemM8UmKFkdoq4BGdmiNL5nHWwA==}
+    engines: {node: '>= 18.0.0'}
     hasBin: true
 
   aws-sdk@2.1693.0:
@@ -1040,8 +1044,8 @@ packages:
   concat-map@0.0.1:
     resolution: {integrity: sha512-/Srv4dswyQNBfohGpz9o6Yb3Gz3SrUDqBH5rTuhGR7ahtlbYKnVxw2bCFMRljaA7EXHaXZ8wsHdodFvbkhKmqg==}
 
-  constructs@10.4.2:
-    resolution: {integrity: sha512-wsNxBlAott2qg8Zv87q3eYZYgheb9lchtBfjHzzLHtXbttwSrHPs1NNQbBrmbb1YZvYg2+Vh0Dor76w4mFxJkA==}
+  constructs@10.8.1:
+    resolution: {integrity: sha512-98yGXYyhePqPYh3cYu8nzBERmAhC0DONe3UD03okK0nehZ7hYP4wgZuf02a04+uOWxnTJ5Rpp5m0GRNpwyLGGA==}
 
   convert-source-map@2.0.0:
     resolution: {integrity: sha512-Kvp459HrV2FEJ1CAsi1Ku+MY3kasH19TFykTz2xWmMeq6bk2NU3XXvfJ+Q61m0xktWwt+1HSYf3JZsTms3aRJg==}
@@ -1403,11 +1407,6 @@ packages:
 
   fs.realpath@1.0.0:
     resolution: {integrity: sha512-OO0pH2lK6a0hZnAdau5ItzHPI6pUlvI7jMVnxUQRtw4owF2wk8lOSabtGDCTP4Ggrg2MbGnWO9X8K1t4+fGMDw==}
-
-  fsevents@2.3.2:
-    resolution: {integrity: sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==}
-    engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
-    os: [darwin]
 
   fsevents@2.3.3:
     resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
@@ -2666,9 +2665,8 @@ packages:
   util@0.12.5:
     resolution: {integrity: sha512-kZf/K6hEIrWHI6XqOFUiiMa+79wE/D8Q+NCNAWclkyg3b4d2k7s0QGepNjiABc+aR3N1PAyHL7p6UcLY6LmrnA==}
 
-  uuid@8.0.0:
-    resolution: {integrity: sha512-jOXGuXZAWdsTH7eZLtyXMqUb9EcWMGZNbL9YcGBJl4MH4nrxHmZJhEHvyLFrkxo+28uLb/NYRcStH48fnD0Vzw==}
-    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
+  uuid@11.1.1:
+    resolution: {integrity: sha512-vIYxrBCC/N/K+Js3qSN88go7kIfNPssr/hHCesKCQNAjmgvYS2oqr69kIufEG+O4+PfezOH4EbIeHCfFov8ZgQ==}
     hasBin: true
 
   v8-to-istanbul@9.3.0:
@@ -2753,11 +2751,11 @@ packages:
 
 snapshots:
 
-  '@aws-cdk/asset-awscli-v1@2.2.289': {}
+  '@aws-cdk/asset-awscli-v1@2.2.282': {}
 
   '@aws-cdk/asset-node-proxy-agent-v6@2.1.2': {}
 
-  '@aws-cdk/cloud-assembly-schema@41.2.0': {}
+  '@aws-cdk/cloud-assembly-schema@54.17.0': {}
 
   '@babel/code-frame@7.29.7':
     dependencies:
@@ -3080,15 +3078,15 @@ snapshots:
       '@eslint/core': 0.17.0
       levn: 0.4.1
 
-  '@guardian/cdk@61.11.1(aws-cdk-lib@2.195.0(constructs@10.4.2))(aws-cdk@2.1014.0)(constructs@10.4.2)':
+  '@guardian/cdk@61.11.1(aws-cdk-lib@2.264.0(constructs@10.8.1))(aws-cdk@2.1135.1)(constructs@10.8.1)':
     dependencies:
       '@oclif/core': 3.26.6
-      aws-cdk: 2.1014.0
-      aws-cdk-lib: 2.195.0(constructs@10.4.2)
+      aws-cdk: 2.1135.1
+      aws-cdk-lib: 2.264.0(constructs@10.8.1)
       aws-sdk: 2.1693.0
       chalk: 4.1.2
       codemaker: 1.138.0
-      constructs: 10.4.2
+      constructs: 10.8.1
       git-url-parse: 16.1.0
       js-yaml: 4.3.0
       read-pkg-up: 7.0.1
@@ -3705,16 +3703,14 @@ snapshots:
     dependencies:
       possible-typed-array-names: 1.1.0
 
-  aws-cdk-lib@2.195.0(constructs@10.4.2):
+  aws-cdk-lib@2.264.0(constructs@10.8.1):
     dependencies:
-      '@aws-cdk/asset-awscli-v1': 2.2.289
+      '@aws-cdk/asset-awscli-v1': 2.2.282
       '@aws-cdk/asset-node-proxy-agent-v6': 2.1.2
-      '@aws-cdk/cloud-assembly-schema': 41.2.0
-      constructs: 10.4.2
+      '@aws-cdk/cloud-assembly-schema': 54.17.0
+      constructs: 10.8.1
 
-  aws-cdk@2.1014.0:
-    optionalDependencies:
-      fsevents: 2.3.2
+  aws-cdk@2.1135.1: {}
 
   aws-sdk@2.1693.0:
     dependencies:
@@ -3726,7 +3722,7 @@ snapshots:
       sax: 1.2.1
       url: 0.10.3
       util: 0.12.5
-      uuid: 8.0.0
+      uuid: 11.1.1
       xml2js: 0.6.2
 
   axe-core@4.12.1: {}
@@ -3920,7 +3916,7 @@ snapshots:
 
   concat-map@0.0.1: {}
 
-  constructs@10.4.2: {}
+  constructs@10.8.1: {}
 
   convert-source-map@2.0.0: {}
 
@@ -4449,9 +4445,6 @@ snapshots:
       universalify: 2.0.1
 
   fs.realpath@1.0.0: {}
-
-  fsevents@2.3.2:
-    optional: true
 
   fsevents@2.3.3:
     optional: true
@@ -5945,7 +5938,7 @@ snapshots:
       is-typed-array: 1.1.15
       which-typed-array: 1.1.22
 
-  uuid@8.0.0: {}
+  uuid@11.1.1: {}
 
   v8-to-istanbul@9.3.0:
     dependencies:
