@@ -1,10 +1,8 @@
 /* eslint-env jest */
 
-import type { Config } from '../../src/lib/config';
 import { Zuora } from '../../src/lib/Zuora';
 
 const config = {
-	stage: 'CODE',
 	zuora: {
 		api: {
 			url: 'https://apisandbox.zuora.com',
@@ -13,12 +11,18 @@ const config = {
 			clientSecret: 'client-secret',
 		},
 	},
-} as Config;
+};
 
 const response = (body: unknown, ok = true, status = 200) => ({
 	ok,
 	status,
 	json: () => Promise.resolve(body),
+});
+
+const fileResponse = (body: string) => ({
+	ok: true,
+	status: 200,
+	arrayBuffer: () => Promise.resolve(new TextEncoder().encode(body).buffer),
 });
 
 beforeEach(() => {
@@ -114,5 +118,58 @@ test('fails when the OAuth token request is rejected', async () => {
 	const zuora = new Zuora(config);
 	await expect(zuora.query('query')).rejects.toThrow(
 		'error response status 401 when fetching oauth token',
+	);
+});
+
+test('fails when the OAuth token response is invalid', async () => {
+	const fetchMock = global.fetch as jest.Mock;
+	fetchMock.mockResolvedValueOnce(response({ access_token: 'token' }));
+
+	const zuora = new Zuora(config);
+	await expect(zuora.query('query')).rejects.toThrow(
+		'invalid response when fetching oauth token',
+	);
+});
+
+test('reuses the OAuth token when polling and downloading a job', async () => {
+	const fetchMock = global.fetch as jest.Mock;
+	const batch = {
+		name: 'subscriptions',
+		status: 'completed',
+		fileId: 'file-id',
+	};
+	fetchMock
+		.mockResolvedValueOnce(
+			response({ access_token: 'token', expires_in: 3600 }),
+		)
+		.mockResolvedValueOnce(response({ status: 'completed', batches: [batch] }))
+		.mockResolvedValueOnce(fileResponse('subscription-number\nA-S000001'));
+
+	const zuora = new Zuora(config);
+	await expect(zuora.getJobResult('job-id')).resolves.toEqual([batch]);
+	await expect(zuora.fetchFile(batch, '2026-11-04')).resolves.toEqual({
+		batchName: 'subscriptions',
+		fileName: 'subscriptions_2026-11-04_file-id.csv',
+		data: Buffer.from('subscription-number\nA-S000001'),
+	});
+
+	expect(fetchMock).toHaveBeenCalledTimes(3);
+	expect(fetchMock).toHaveBeenNthCalledWith(
+		2,
+		'https://apisandbox.zuora.com/apps/api/batch-query/jobs/job-id',
+		expect.objectContaining({
+			headers: expect.objectContaining({
+				Authorization: 'Bearer token',
+			}),
+		}),
+	);
+	expect(fetchMock).toHaveBeenNthCalledWith(
+		3,
+		'https://apisandbox.zuora.com/apps/api/batch-query/file/file-id',
+		expect.objectContaining({
+			headers: expect.objectContaining({
+				Authorization: 'Bearer token',
+			}),
+		}),
 	);
 });

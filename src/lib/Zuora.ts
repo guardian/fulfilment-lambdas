@@ -24,18 +24,18 @@ export type FileData = {
 };
 
 export class Zuora {
-	config: Config;
+	private readonly config: Pick<Config, 'zuora'>;
 	private accessToken?: AccessToken;
-	private readonly tokenExpiryBuffer = 60 * 1000;
+	private readonly tokenExpiryBufferMs = 60 * 1000;
 
-	constructor(config: Config) {
+	constructor(config: Pick<Config, 'zuora'>) {
 		this.config = config;
 	}
 
 	private async getAuthorization(): Promise<{ Authorization: string }> {
 		if (
 			!this.accessToken ||
-			this.accessToken.expiresAt <= Date.now() + this.tokenExpiryBuffer
+			this.accessToken.expiresAt <= Date.now() + this.tokenExpiryBufferMs
 		) {
 			this.accessToken = await this.fetchAccessToken();
 		}
