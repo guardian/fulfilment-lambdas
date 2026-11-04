@@ -11,8 +11,9 @@ jest.mock('../../src/lib/config', () => {
 		zuora: {
 			api: {
 				url: 'http://fake-zuora-utl.com',
-				username: 'fakeUser',
-				password: 'fakePass',
+				oauthUrl: 'http://fake-zuora-oauth-url.com',
+				clientId: 'fakeClientId',
+				clientSecret: 'fakeClientSecret',
 			},
 		},
 		stage: 'CODE',
@@ -23,16 +24,18 @@ jest.mock('../../src/lib/config', () => {
 });
 
 // Mock fetch
-global.fetch = jest.fn(() =>
-	Promise.resolve({
+global.fetch = jest.fn((input) => {
+	const url = input.toString();
+	const json =
+		url === 'http://fake-zuora-oauth-url.com/oauth/token'
+			? { access_token: 'token', expires_in: 3600 }
+			: { id: 'someId' };
+	return Promise.resolve({
 		ok: true,
 		status: 200,
-		json: () =>
-			Promise.resolve({
-				id: 'someId',
-			}),
-	}),
-) as jest.Mock;
+		json: () => Promise.resolve(json),
+	});
+}) as jest.Mock;
 
 test('should return error if missing delivery date and deliveryDateDaysFromNow ', async () => {
 	await expect(handler({ type: 'homedelivery' })).rejects.toThrow();

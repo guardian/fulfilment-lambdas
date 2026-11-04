@@ -18,8 +18,9 @@ export type Config = {
 	zuora: {
 		api: {
 			url: string;
-			username: string;
-			password: string;
+			oauthUrl: string;
+			clientId: string;
+			clientSecret: string;
 		};
 	};
 	salesforce: {

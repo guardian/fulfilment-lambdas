@@ -12,6 +12,11 @@ type Batch = {
 	fileId: string;
 };
 
+type AccessToken = {
+	value: string;
+	expiresAt: number;
+};
+
 export type FileData = {
 	batchName: string;
 	fileName: string;
@@ -19,17 +24,64 @@ export type FileData = {
 };
 
 export class Zuora {
-	authorization: { Authorization: string };
-	config: Config;
-	constructor(config: Config) {
-		this.authorization = {
-			Authorization:
-				'Basic ' +
-				Buffer.from(
-					`${config.zuora.api.username}:${config.zuora.api.password}`,
-				).toString('base64'),
-		};
+	private readonly config: Pick<Config, 'zuora'>;
+	private accessToken?: AccessToken;
+	private readonly tokenExpiryBufferMs = 60 * 1000;
+
+	constructor(config: Pick<Config, 'zuora'>) {
 		this.config = config;
+	}
+
+	private async getAuthorization(): Promise<{ Authorization: string }> {
+		if (
+			!this.accessToken ||
+			this.accessToken.expiresAt <= Date.now() + this.tokenExpiryBufferMs
+		) {
+			this.accessToken = await this.fetchAccessToken();
+		}
+
+		return { Authorization: `Bearer ${this.accessToken.value}` };
+	}
+
+	private async fetchAccessToken(): Promise<AccessToken> {
+		const formData = new URLSearchParams([
+			['client_id', this.config.zuora.api.clientId],
+			['client_secret', this.config.zuora.api.clientSecret],
+			['grant_type', 'client_credentials'],
+		]);
+		const response = await fetch(
+			`${this.config.zuora.api.oauthUrl}/oauth/token`,
+			{
+				method: 'POST',
+				body: formData,
+			},
+		);
+
+		if (!response.ok) {
+			throw new NamedError(
+				'api_call_error',
+				`error response status ${response.status} when fetching oauth token`,
+			);
+		}
+
+		const body = (await response.json()) as {
+			access_token?: unknown;
+			expires_in?: unknown;
+		};
+		if (
+			typeof body.access_token !== 'string' ||
+			typeof body.expires_in !== 'number'
+		) {
+			throw new NamedError(
+				'api_call_error',
+				'invalid response when fetching oauth token',
+			);
+		}
+
+		return {
+			value: body.access_token,
+			expiresAt: Date.now() + body.expires_in * 1000,
+		};
 	}
 
 	async query(name: string, ...queries: Array<Query>) {
@@ -37,12 +89,13 @@ export class Zuora {
 			return { ...q, type: 'zoqlexport' };
 		});
 		try {
+			const authorization = await this.getAuthorization();
 			const response = await fetch(
 				`${this.config.zuora.api.url}/apps/api/batch-query/`,
 				{
 					method: 'POST',
 					headers: {
-						...this.authorization,
+						...authorization,
 						'Content-Type': 'application/json',
 					},
 					body: JSON.stringify({
@@ -94,11 +147,12 @@ export class Zuora {
 	async fetchFile(batch: Batch, deliveryDate: string): Promise<FileData> {
 		console.log(`fetching file from zuora with id ${batch.fileId}`);
 		try {
+			const authorization = await this.getAuthorization();
 			const response = await fetch(
 				`${this.config.zuora.api.url}/apps/api/batch-query/file/${batch.fileId}`,
 				{
 					headers: {
-						...this.authorization,
+						...authorization,
 						'Content-Type': 'application/json',
 					},
 				},
@@ -131,11 +185,12 @@ export class Zuora {
 	async getJobResult(jobId: string): Promise<Array<Batch>> {
 		console.log(`getting job results for jobId=${jobId}`);
 		try {
+			const authorization = await this.getAuthorization();
 			const response = await fetch(
 				`${this.config.zuora.api.url}/apps/api/batch-query/jobs/${jobId}`,
 				{
 					headers: {
-						...this.authorization,
+						...authorization,
 						'Content-Type': 'application/json',
 					},
 				},
