@@ -23,16 +23,6 @@ export type Config = {
 			clientSecret: string;
 		};
 	};
-	salesforce: {
-		api: {
-			consumer_key: string;
-			consumer_secret: string;
-			username: string;
-			password: string;
-			token: string;
-			salesforceUrl: string;
-		};
-	};
 	api: {
 		expectedToken: string;
 	};

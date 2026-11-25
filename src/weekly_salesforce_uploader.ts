@@ -39,7 +39,7 @@ export async function handler(input: WeeklyInput) {
 		`Uploading Guardian Weekly issue ${sfFormattedDeliveryDate} to Salesforce...`,
 	);
 	const config = await fetchConfig();
-	const salesforce = await authenticate(config);
+	const salesforce = await authenticate();
 	const uploadTimeStamp = moment().format('DDMMYYYY_HH');
 	const sourceFileName = `${deliveryDate.format('YYYY-MM-DD')}_WEEKLY.csv`;
 	const s3ToSfName = (prefix: string) =>

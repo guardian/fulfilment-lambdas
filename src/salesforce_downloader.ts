@@ -25,7 +25,7 @@ export const handler: Handler = async (event, context, callback) => {
 async function downloader() {
 	console.log('Fetching config from S3.');
 	const config = await fetchConfig();
-	const salesforce = await authenticate(config);
+	const salesforce = await authenticate();
 	console.log('Getting home delivery folder');
 	const folders: Array<Folder & S3Folder> = [
 		config.fulfilments.homedelivery.downloadFolder,

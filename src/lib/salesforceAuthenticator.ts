@@ -1,7 +1,6 @@
 import FormData from 'form-data';
-import type { Config } from './config';
 import NamedError from './NamedError';
-import { S3 } from 'aws-sdk';
+import AWS, { S3 } from 'aws-sdk';
 import { Readable, PassThrough } from 'stream';
 
 export type Folder = {
@@ -9,30 +8,124 @@ export type Folder = {
 	name: string;
 };
 
-export async function authenticate(config: Config) {
-	console.log('Authenticating with Salesforce.');
+export type SalesforceCredentials = {
+	authUrl: string;
+	clientId: string;
+	clientSecret: string;
+};
 
-	const url = `https://${config.salesforce.api.salesforceUrl}/services/oauth2/token`;
-	const params = new URLSearchParams({
-		grant_type: 'password',
-		client_id: config.salesforce.api.consumer_key,
-		client_secret: config.salesforce.api.consumer_secret,
-		username: config.salesforce.api.username,
-		password: `${config.salesforce.api.password}${config.salesforce.api.token}`,
+type SalesforceAuthResponse = {
+	instance_url: string;
+	access_token: string;
+};
+
+function isNonEmptyString(value: unknown): value is string {
+	return typeof value === 'string' && value.trim().length > 0;
+}
+
+export function parseSalesforceCredentials(
+	secret: unknown,
+): SalesforceCredentials {
+	if (
+		typeof secret !== 'object' ||
+		secret === null ||
+		!('authUrl' in secret) ||
+		!isNonEmptyString(secret.authUrl) ||
+		!('clientId' in secret) ||
+		!isNonEmptyString(secret.clientId) ||
+		!('clientSecret' in secret) ||
+		!isNonEmptyString(secret.clientSecret)
+	) {
+		throw new Error(
+			'Salesforce connected app secret must contain non-empty authUrl, clientId and clientSecret fields',
+		);
+	}
+
+	return {
+		authUrl: secret.authUrl,
+		clientId: secret.clientId,
+		clientSecret: secret.clientSecret,
+	};
+}
+
+export function buildSalesforceAuthBody(
+	credentials: SalesforceCredentials,
+): URLSearchParams {
+	return new URLSearchParams({
+		grant_type: 'client_credentials',
+		client_id: credentials.clientId,
+		client_secret: credentials.clientSecret,
 	});
-	const response = await fetch(url, {
+}
+
+async function getSalesforceCredentials(
+	secretName: string,
+	secretsManager: AWS.SecretsManager,
+): Promise<SalesforceCredentials> {
+	const response = await secretsManager
+		.getSecretValue({
+			SecretId: secretName,
+			VersionStage: 'AWSCURRENT',
+		})
+		.promise();
+
+	if (response.SecretString === undefined) {
+		throw new Error(`Secret ${secretName} has no string value`);
+	}
+
+	return parseSalesforceCredentials(
+		JSON.parse(response.SecretString) as unknown,
+	);
+}
+
+function getSalesforceSecretName(): string {
+	const secretName = process.env.SECRET_NAME_CONNECTED_APP;
+	if (!secretName) {
+		throw new Error('SECRET_NAME_CONNECTED_APP is not configured');
+	}
+	return secretName;
+}
+
+function parseSalesforceAuthResponse(
+	response: unknown,
+): SalesforceAuthResponse {
+	if (
+		typeof response !== 'object' ||
+		response === null ||
+		!('instance_url' in response) ||
+		!isNonEmptyString(response.instance_url) ||
+		!('access_token' in response) ||
+		!isNonEmptyString(response.access_token)
+	) {
+		throw new Error(
+			'Salesforce authentication response is missing instance_url or access_token',
+		);
+	}
+
+	return {
+		instance_url: response.instance_url,
+		access_token: response.access_token,
+	};
+}
+
+export async function authenticate(secretsManager = new AWS.SecretsManager()) {
+	const credentials = await getSalesforceCredentials(
+		getSalesforceSecretName(),
+		secretsManager,
+	);
+	const response = await fetch(credentials.authUrl, {
 		method: 'POST',
-		body: params,
+		body: buildSalesforceAuthBody(credentials),
+		headers: {
+			'Content-Type': 'application/x-www-form-urlencoded',
+		},
 	});
 
 	if (!response.ok) {
 		throw new Error(`Authentication failed with status ${response.status}`);
 	}
 
-	const data = (await response.json()) as {
-		instance_url: string;
-		access_token: string;
-	};
+	const data = parseSalesforceAuthResponse(await response.json());
 	return new Salesforce(data.instance_url, data.access_token);
 }
 
