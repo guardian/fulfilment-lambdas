@@ -174,7 +174,7 @@ export function handler(
 			callback(null, new SuccessResponse(uploadedFiles));
 		})
 		.catch((error) => {
-			console.log(error);
+			console.error('Salesforce upload failed');
 			if (error instanceof ApiResponse) {
 				callback(null, error);
 			} else {
