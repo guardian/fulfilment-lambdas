@@ -9,9 +9,14 @@ export type Stage = 'CODE' | 'PROD';
 const stages: Array<Stage> = ['CODE', 'PROD'];
 export type fulfilmentType = 'homedelivery' | 'weekly';
 
-export type uploadDownload = {
+export type uploadConfig = {
 	uploadFolder: Folder & S3Folder;
+};
+export type uploadDownload = uploadConfig & {
 	downloadFolder: Folder & S3Folder;
+};
+type weeklyUploadDownload = uploadConfig & {
+	downloadFolder?: Folder & S3Folder;
 };
 export type Config = {
 	stage: Stage;
@@ -29,15 +34,15 @@ export type Config = {
 	fulfilments: {
 		homedelivery: uploadDownload;
 		weekly: {
-			NZ: uploadDownload;
-			VU: uploadDownload;
-			AU: uploadDownload;
-			UK: uploadDownload;
-			CA: uploadDownload;
-			CAHAND: uploadDownload;
-			US: uploadDownload;
-			EU: uploadDownload;
-			ROW: uploadDownload;
+			NZ: weeklyUploadDownload;
+			VU: weeklyUploadDownload;
+			AU: weeklyUploadDownload;
+			UK: weeklyUploadDownload;
+			CA: weeklyUploadDownload;
+			CAHAND: weeklyUploadDownload;
+			US: weeklyUploadDownload;
+			EU: weeklyUploadDownload;
+			ROW: weeklyUploadDownload;
 		};
 	};
 };

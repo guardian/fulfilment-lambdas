@@ -19,13 +19,18 @@ async function downloader() {
 	const config = await fetchConfig();
 	const salesforce = await authenticate();
 	console.log('Getting home delivery folder');
+	const weeklyDownloadFolders = Object.entries(
+		config.fulfilments.weekly,
+	).flatMap(([name, fulfilment]) => {
+		if (!isConfiguredDownloadFolder(fulfilment.downloadFolder)) {
+			console.warn(`Skipping unconfigured weekly download folder: ${name}`);
+			return [];
+		}
+		return [fulfilment.downloadFolder];
+	});
 	const folders: Array<Folder & S3Folder> = [
 		config.fulfilments.homedelivery.downloadFolder,
-		...Object.keys(config.fulfilments.weekly).map(
-			(k) =>
-				config.fulfilments.weekly[k as keyof Config['fulfilments']['weekly']]
-					.downloadFolder,
-		),
+		...weeklyDownloadFolders,
 	];
 	const promises = folders.map((folder) =>
 		download(config, salesforce, folder),
@@ -34,6 +39,12 @@ async function downloader() {
 	return result.reduce((acc, val) => {
 		return { ...acc, ...val };
 	}, {});
+}
+
+function isConfiguredDownloadFolder(
+	folder: (Folder & S3Folder) | undefined,
+): folder is Folder & S3Folder {
+	return folder !== undefined && folder.folderId !== 'TODO';
 }
 
 async function download(

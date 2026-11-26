@@ -1,14 +1,14 @@
 import { fetchConfig } from './lib/config';
 import { uploadFiles } from './lib/S3ToSalesforceUploader';
 import { authenticate } from './lib/salesforceAuthenticator';
-import type { uploadDownload } from './lib/config';
+import type { uploadConfig } from './lib/config';
 import type { UploadInfo } from './lib/S3ToSalesforceUploader';
 import moment from 'moment';
 import { getDeliveryDate } from './weekly/WeeklyInput';
 import type { WeeklyInput } from './weekly/WeeklyInput';
 
 function buildSourceAndDestination(
-	upDown: uploadDownload,
+	upDown: uploadConfig,
 	destFileName: string,
 	sourceFileName: string,
 ): UploadInfo {
