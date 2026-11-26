@@ -9,17 +9,9 @@ import { ls, upload } from './lib/storage';
 import stream from 'stream';
 import getStream from 'get-stream';
 
-export const handler: Handler = async (event, context, callback) => {
-	downloader()
-		.then((r) => {
-			console.log('response:', r);
-			console.log('success');
-			callback(null, { ...event, ...r });
-		})
-		.catch((e) => {
-			console.log('oh no  ', e);
-			callback(e);
-		});
+export const handler: Handler = async (event) => {
+	const result = await downloader();
+	return { ...event, ...result };
 };
 
 async function downloader() {
