@@ -1,0 +1,27 @@
+{
+	"name": "fulfilment-lambdas",
+	"checks": [
+		{
+			"id": "application-package",
+			"command": ["pnpm", "package"],
+			"timeout_seconds": 1200,
+			"required": true
+		},
+		{
+			"id": "cdk-package",
+			"command": ["pnpm", "--dir", "cdk", "package"],
+			"timeout_seconds": 1200,
+			"required": true
+		}
+	],
+	"required_observations": [
+		"local-validation",
+		"configuration",
+		"code-deployment",
+		"functional-test",
+		"review-readiness",
+		"review",
+		"monitoring",
+		"rollback"
+	]
+}

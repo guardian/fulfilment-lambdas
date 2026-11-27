@@ -52,6 +52,18 @@ export class FulfilmentLambdas extends GuStack {
 	constructor(scope: App, id: string, props: GuStackProps) {
 		super(scope, id, props);
 		const isProd = this.stage === 'PROD';
+		const salesforceSecretName = `${this.stage}/Salesforce/ConnectedApp/PrintFulfilment`;
+		const salesforceCredentialsPolicy = new PolicyDocument({
+			statements: [
+				new PolicyStatement({
+					effect: Effect.ALLOW,
+					actions: ['secretsmanager:GetSecretValue'],
+					resources: [
+						`arn:aws:secretsmanager:${this.region}:${this.account}:secret:${salesforceSecretName}-*`,
+					],
+				}),
+			],
+		});
 
 		const logsBucketName = `fulfilment-s3-logs-${this.stage.toLowerCase()}`;
 		const exportBucketName = `fulfilment-export-${this.stage.toLowerCase()}`;
@@ -177,6 +189,7 @@ export class FulfilmentLambdas extends GuStack {
 						}),
 					],
 				}),
+				SalesforceCredentials: salesforceCredentialsPolicy,
 			},
 		});
 		this.keep(workersRole, 'FulfilmentWorkersLambdaRole');
@@ -205,12 +218,18 @@ export class FulfilmentLambdas extends GuStack {
 			description: 'Fetch salesforce fulfilment files',
 			handler: 'salesforce_downloader.handler',
 			role: workersRole,
+			environment: {
+				SECRET_NAME_CONNECTED_APP: salesforceSecretName,
+			},
 		});
 		const weeklyUploader = this.worker('WeeklyUploaderLambda', {
 			functionName: `weekly-fulfilmentUploader-${this.stage}`,
 			description: 'upload Guardian Weekly fulfilment files to salesforce',
 			handler: 'weekly_salesforce_uploader.handler',
 			role: workersRole,
+			environment: {
+				SECRET_NAME_CONNECTED_APP: salesforceSecretName,
+			},
 		});
 
 		// --- Step Function (kept ASL, L2 construct) -------------------------
@@ -288,7 +307,10 @@ export class FulfilmentLambdas extends GuStack {
 				'Upload Home Delivery fulfilment files to Salesforce document Home_Delivery_Pipeline_Fulfilment',
 			handler: 'salesforce_uploader.handler',
 			role: workersRole,
-			environment: { StateMachine: stateMachine.stateMachineArn },
+			environment: {
+				StateMachine: stateMachine.stateMachineArn,
+				SECRET_NAME_CONNECTED_APP: salesforceSecretName,
+			},
 		});
 
 		// --- Checker lambda + metric filter --------------------------------

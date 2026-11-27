@@ -773,6 +773,30 @@ exports[`The fulfilment-lambdas stack matches the snapshot 1`] = `
             },
             "PolicyName": "CloudWatchMetrics",
           },
+          {
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Action": "secretsmanager:GetSecretValue",
+                  "Effect": "Allow",
+                  "Resource": {
+                    "Fn::Join": [
+                      "",
+                      [
+                        "arn:aws:secretsmanager:eu-west-1:",
+                        {
+                          "Ref": "AWS::AccountId",
+                        },
+                        ":secret:CODE/Salesforce/ConnectedApp/PrintFulfilment-*",
+                      ],
+                    ],
+                  },
+                },
+              ],
+              "Version": "2012-10-17",
+            },
+            "PolicyName": "SalesforceCredentials",
+          },
         ],
         "RoleName": "FulfilmentWorkers-CODE",
         "Tags": [
@@ -1485,6 +1509,7 @@ exports[`The fulfilment-lambdas stack matches the snapshot 1`] = `
         "Environment": {
           "Variables": {
             "APP": "fulfilment-lambdas",
+            "SECRET_NAME_CONNECTED_APP": "CODE/Salesforce/ConnectedApp/PrintFulfilment",
             "STACK": "membership",
             "STAGE": "CODE",
             "Stage": "CODE",
@@ -1545,6 +1570,7 @@ exports[`The fulfilment-lambdas stack matches the snapshot 1`] = `
         "Environment": {
           "Variables": {
             "APP": "fulfilment-lambdas",
+            "SECRET_NAME_CONNECTED_APP": "CODE/Salesforce/ConnectedApp/PrintFulfilment",
             "STACK": "membership",
             "STAGE": "CODE",
             "Stage": "CODE",
@@ -1799,6 +1825,7 @@ exports[`The fulfilment-lambdas stack matches the snapshot 1`] = `
         "Environment": {
           "Variables": {
             "APP": "fulfilment-lambdas",
+            "SECRET_NAME_CONNECTED_APP": "CODE/Salesforce/ConnectedApp/PrintFulfilment",
             "STACK": "membership",
             "STAGE": "CODE",
             "Stage": "CODE",
@@ -2876,6 +2903,30 @@ exports[`The fulfilment-lambdas stack matches the snapshot 2`] = `
             },
             "PolicyName": "CloudWatchMetrics",
           },
+          {
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Action": "secretsmanager:GetSecretValue",
+                  "Effect": "Allow",
+                  "Resource": {
+                    "Fn::Join": [
+                      "",
+                      [
+                        "arn:aws:secretsmanager:eu-west-1:",
+                        {
+                          "Ref": "AWS::AccountId",
+                        },
+                        ":secret:PROD/Salesforce/ConnectedApp/PrintFulfilment-*",
+                      ],
+                    ],
+                  },
+                },
+              ],
+              "Version": "2012-10-17",
+            },
+            "PolicyName": "SalesforceCredentials",
+          },
         ],
         "RoleName": "FulfilmentWorkers-PROD",
         "Tags": [
@@ -3950,6 +4001,7 @@ exports[`The fulfilment-lambdas stack matches the snapshot 2`] = `
         "Environment": {
           "Variables": {
             "APP": "fulfilment-lambdas",
+            "SECRET_NAME_CONNECTED_APP": "PROD/Salesforce/ConnectedApp/PrintFulfilment",
             "STACK": "membership",
             "STAGE": "PROD",
             "Stage": "PROD",
@@ -4010,6 +4062,7 @@ exports[`The fulfilment-lambdas stack matches the snapshot 2`] = `
         "Environment": {
           "Variables": {
             "APP": "fulfilment-lambdas",
+            "SECRET_NAME_CONNECTED_APP": "PROD/Salesforce/ConnectedApp/PrintFulfilment",
             "STACK": "membership",
             "STAGE": "PROD",
             "Stage": "PROD",
@@ -4264,6 +4317,7 @@ exports[`The fulfilment-lambdas stack matches the snapshot 2`] = `
         "Environment": {
           "Variables": {
             "APP": "fulfilment-lambdas",
+            "SECRET_NAME_CONNECTED_APP": "PROD/Salesforce/ConnectedApp/PrintFulfilment",
             "STACK": "membership",
             "STAGE": "PROD",
             "Stage": "PROD",

@@ -134,7 +134,7 @@ export function handler(
 		console.log('Config fetched successfully.');
 		await validateToken(config.api.expectedToken, providedToken);
 		console.log('token validated successfully');
-		const salesforce = await authenticate(config);
+		const salesforce = await authenticate();
 		console.log('Finding fulfilment folder.');
 		const folder = config.fulfilments.homedelivery.uploadFolder;
 		console.log(folder);
@@ -174,7 +174,7 @@ export function handler(
 			callback(null, new SuccessResponse(uploadedFiles));
 		})
 		.catch((error) => {
-			console.log(error);
+			console.error('Salesforce upload failed');
 			if (error instanceof ApiResponse) {
 				callback(null, error);
 			} else {

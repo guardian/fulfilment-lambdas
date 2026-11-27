@@ -136,6 +136,23 @@ test('should return error if api token is wrong', (done) => {
 	);
 });
 
+test('should not log Salesforce error details', (done) => {
+	const consoleError = jest.spyOn(console, 'error').mockImplementation();
+	const wrongTokenInput = getFakeInput('wrongToken', '2017-06-12', 1);
+
+	handler(wrongTokenInput, {}, () => {
+		try {
+			expect(consoleError).toHaveBeenCalledTimes(1);
+			expect(consoleError).toHaveBeenCalledWith('Salesforce upload failed');
+			done();
+		} catch (error) {
+			done.fail(String(error));
+		} finally {
+			consoleError.mockRestore();
+		}
+	});
+});
+
 test('should return 400 error required parameters are missing', (done) => {
 	const emptyRequest = { body: '{}', headers: {} };
 	const expectedResponse = errorResponse(400, 'missing amount or date');
